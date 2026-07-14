@@ -2,21 +2,20 @@
 
 ## Source of truth
 
-The seven supplied mockups under `docs/design/reference` remain the content and
-visual-language source of truth. The compact desktop geometry follows the
-960×680 `rustzen-clear` client baseline. The generated transparent PNG app mark
-under `apps/gui/public/app-mark.png` is the canonical visible logo asset.
+The seven supplied mockups under `docs/design/reference` remain the visual-language
+reference. The current focused information architecture intentionally removes
+their repeated dashboard content and route sidebar. The compact desktop geometry
+follows the 960×680 `rustzen-clear` client baseline. The generated transparent PNG
+app mark under `apps/gui/public/app-mark.png` is the canonical visible logo asset.
 
 ## Shell
 
-- Main window: 960×680, 196px sidebar, 1px cool-gray divider.
-- Sidebar: traffic lights, 32px PNG app mark, five 42px navigation rows, and a
-  collector status card anchored at the bottom.
-- Content: 64px top bar with title at 22px/700, window filter, and refresh.
+- Main window: 960×680 with no sidebar or tree navigation.
+- Content: 64px top bar with traffic lights, 32px PNG app mark, product and page
+  titles, window filter, refresh, theme, and one Settings entry.
 - Page inset: 14–18px. Panels use 11–12px radii and 1px borders.
-- Only the main content scrolls. The app shell and sidebar remain fixed.
-- Overview leads with quota remaining in the ring and first numeric metric;
-  quota used is secondary context.
+- Only the main content scrolls. The app shell remains fixed.
+- Overview contains only current remaining quota and the remaining trend.
 
 ## Tokens
 
@@ -36,26 +35,26 @@ Icons use Phosphor's regular outline weight; the app mark is a transparent PNG.
 
 ## Components
 
-- `AppShell`: window chrome, navigation, top bar, responsive content ownership.
-- `CollectorStatus`: connection state, last update, next poll.
+- `AppShell`: window chrome, product identity, top bar, Settings entry, and
+  responsive content ownership.
 - `QuotaRing`: remaining percentage first, followed by used percentage and reset.
 - `TrendChart`: library-rendered line/area chart with shared axes and tooltip.
 - `MetricCard`, `Panel`, `SegmentedControl`, `SelectControl`, `Toggle`.
-- Route components: Overview, Trends, Activity, Alerts, Settings.
-- `TrayPopover`: compact quota, seven-day sparkline, collector state, and four
+- Exposed route components: Overview and Settings.
+- `TrayPopover`: current remaining quota, seven-day remaining sparkline, and four
   native-feeling actions.
 
 ## Responsive behavior
 
-- The 960px main-window baseline keeps the full compact sidebar and three-column
-  dashboard composition.
-- Below 820px grids begin to collapse; below 680px navigation becomes an icon rail.
-- The tray surface is 420×680 and is not treated as a mobile page.
+- The 960px main-window baseline uses a compact current-value rail beside the
+  remaining-trend chart.
+- Below 680px the two Overview panels collapse to one column.
+- The tray surface is 420×440 and is not treated as a mobile page.
 
 ## Interaction states
 
-Navigation, theme, filters, segmented ranges, refresh, alert detail expansion,
-settings, CSV export, reset confirmation, and tray actions are functional.
+Product-title navigation, theme, filter, refresh, Settings, CSV export, reset
+confirmation, and tray actions are functional.
 The Settings data section also supports arbitrary retention days, live SQLite
 disk-size reporting, and an explicit database cleanup/compaction action.
 Every control has hover, focus-visible, disabled, selected, and pressed states.
@@ -68,7 +67,7 @@ Reduced-motion users receive no animated chart/ring entrance.
 - Avoid arbitrary values for ordinary spacing. Reference-specific geometry may
   use a named component class backed by tokens.
 - Tauri commands return typed DTOs; the React layer never imports storage logic.
-- Window labels are `main` and `tray`. The tray window is frameless, transparent,
-  always on top, hidden on blur, and toggled from the tray icon.
+- Window labels are `main` and `tray`. The tray window is frameless, opaque,
+  shadowless, always on top, hidden on blur, and toggled from the tray icon.
 - On macOS the app uses accessory activation policy so it behaves as a menu bar
   utility rather than a permanent Dock app.

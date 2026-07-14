@@ -15,8 +15,8 @@ The first implementation includes:
 - event-first collection with a 60-second polling fallback;
 - SQLite history with change-only writes;
 - dynamic quota windows keyed by app-server `limitId`;
-- overview, trends, activity, alerts, settings, light/dark themes, and a menu
-  bar popover;
+- a focused remaining-quota Overview, Settings, light/dark themes, and a compact
+  menu bar popover;
 - rapid-drain, stale-collector, and reset detection;
 - CSV export, retention settings, notifications, and launch-at-login controls.
 

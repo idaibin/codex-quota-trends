@@ -8,11 +8,8 @@ client screenshot. Browser-review captures use deterministic local data:
 
 | Surface | Viewport | Evidence |
 | --- | --- | --- |
-| Overview, light | 960×680 | `screenshots/actual/overview-compact.png` |
-| Overview, dark | 960×680 | `screenshots/actual/overview-dark-compact.png` |
-| Trends | 960×680 | `screenshots/actual/trends-compact.png` |
-| Activity | 960×680 | `screenshots/actual/activity-compact.png` |
-| Alerts | 960×680 | `screenshots/actual/alerts-compact.png` |
+| Overview, light | 960×680 | `screenshots/actual/overview-remaining-single.png` |
+| Overview, dark | 960×680 | `screenshots/actual/overview-remaining-single-dark.png` |
 | Settings | 960×680 | `screenshots/actual/settings-compact.png` |
 | Settings, storage controls | 960×680 | `screenshots/actual/settings-storage.png` |
 | Menu bar popover | 420×440 | `screenshots/actual/tray-remaining-compact.png` |
@@ -21,6 +18,8 @@ The compact reference and Overview implementation were appended side by side
 in `screenshots/actual/compact-reference-comparison.png` before review.
 The supplied tray screenshot and the simplified implementation were normalized
 and compared side by side in `screenshots/actual/tray-remaining-comparison.png`.
+The supplied main-window screenshot and focused remaining implementation were
+compared in `screenshots/actual/overview-remaining-single-comparison.png`.
 
 ## Findings and fixes
 
@@ -51,6 +50,10 @@ and compared side by side in `screenshots/actual/tray-remaining-comparison.png`.
   added used quota, reset time, and a full Collector card. Its information area
   now contains one current remaining value and one 7-day remaining trend; the
   operational action rows remain available and the window is 420×440.
+- P2: the main window repeated quota, pace, collector, speed, reset, and status
+  information across a sidebar and seven panels. The sidebar and tree navigation
+  are removed; Overview now contains only current remaining and the 24-hour
+  remaining trend, with one Settings entry in the top bar.
 
 ## Native client evidence
 
@@ -81,6 +84,26 @@ stopped after verification.
   P0/P1/P2 layout, typography, color, asset, or copy mismatch against the scoped
   simplification brief, so no post-comparison fix pass was required.
 
+## Focused main-window QA
+
+- Source visual truth: `/var/folders/33/1n65110j6_15vm1fd1fydb440000gn/T/codex-clipboard-e26e8652-6121-4454-bed3-dba21e9e8716.png`.
+- Implementation: `screenshots/actual/overview-remaining-single.png`, captured
+  in the in-app browser at 960×680 in the light theme with deterministic data.
+- Full-view comparison: `screenshots/actual/overview-remaining-single-comparison.png`.
+  A focused crop was unnecessary because the 960px comparison keeps all visible
+  typography, controls, panel edges, chart ticks, and icons legible.
+- The existing system font, purple accent, panel borders, PNG logo, and Phosphor
+  controls remain aligned with the supplied visual language. Copy is limited to
+  `Current Remaining`, `Remaining`, and `Remaining Trend (24h)` in page content.
+- The demo trend now ends at the current 68% remaining value. The trend uses the
+  remaining metric and decreases as quota is consumed.
+- The single Settings control opened Settings successfully; the product identity
+  returned to Overview successfully. No browser console warnings or errors were
+  reported after either transition.
+- Comparison history: the first focused-dashboard comparison found no actionable
+  P0/P1/P2 typography, layout, color, asset, copy, or interaction mismatch, so no
+  post-comparison fix pass was required.
+
 ## Reproduction
 
 ```bash
@@ -88,7 +111,8 @@ cd apps/gui
 npm run dev
 ```
 
-Capture the six main routes at 960×680 and `/?surface=tray` at 420×440. Append
-each source and implementation image before judging visible differences.
+Capture Overview in light and dark themes plus Settings at 960×680, and
+`/?surface=tray` at 420×440. Append each source and implementation image before
+judging visible differences.
 
 final result: passed

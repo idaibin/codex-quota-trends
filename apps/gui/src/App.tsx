@@ -1,38 +1,21 @@
 import { ArrowsClockwise } from "@phosphor-icons/react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import {
-  getActivity,
-  getAlerts,
-  getDashboard,
-  getSettings,
-  refreshQuota,
-  saveSettings,
-} from "./api/quota-api";
+import { getDashboard, getSettings, refreshQuota, saveSettings } from "./api/quota-api";
 import { AppShell } from "./components/app-shell";
 import { TrayPopover } from "./components/tray-popover";
 import { IconButton, SelectControl } from "./components/ui";
-import { ActivityRoute } from "./routes/activity-route";
-import { AlertsRoute } from "./routes/alerts-route";
 import { OverviewRoute } from "./routes/overview-route";
 import { SettingsRoute } from "./routes/settings-route";
-import { TrendsRoute } from "./routes/trends-route";
-import type {
-  ActivityEvent,
-  AlertRecord,
-  AppSettings,
-  DashboardData,
-  RouteId,
-  ThemeMode,
-} from "./types";
+import type { AppSettings, DashboardData, ThemeMode } from "./types";
+
+type MainRoute = "overview" | "settings";
 
 export default function App() {
-  const [route, setRoute] = useState<RouteId>(
-    () => (localStorage.getItem("cqt:requested-route") as RouteId) || "overview",
+  const [route, setRoute] = useState<MainRoute>(() =>
+    localStorage.getItem("cqt:requested-route") === "settings" ? "settings" : "overview",
   );
   const [dashboard, setDashboard] = useState<DashboardData | null>(null);
-  const [activity, setActivity] = useState<ActivityEvent[]>([]);
-  const [alerts, setAlerts] = useState<AlertRecord[]>([]);
   const [settings, setSettings] = useState<AppSettings | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -40,15 +23,8 @@ export default function App() {
 
   const load = useCallback(async () => {
     try {
-      const [dashboardData, activityData, alertData, settingsData] = await Promise.all([
-        getDashboard(),
-        getActivity(),
-        getAlerts(),
-        getSettings(),
-      ]);
+      const [dashboardData, settingsData] = await Promise.all([getDashboard(), getSettings()]);
       setDashboard(dashboardData);
-      setActivity(activityData);
-      setAlerts(alertData);
       setSettings(settingsData);
       setError(null);
     } catch (reason) {
@@ -68,11 +44,8 @@ export default function App() {
   }, [route]);
 
   useEffect(() => {
-    const routeIds: RouteId[] = ["overview", "trends", "activity", "alerts", "settings"];
     const applyRoute = (value: unknown) => {
-      if (typeof value === "string" && routeIds.includes(value as RouteId)) {
-        setRoute(value as RouteId);
-      }
+      setRoute(value === "settings" ? "settings" : "overview");
     };
     const handleStorage = (event: StorageEvent) => {
       if (event.key === "cqt:requested-route") applyRoute(event.newValue);
@@ -152,16 +125,12 @@ export default function App() {
     <AppShell
       route={route}
       onRouteChange={setRoute}
-      collector={dashboard.collector}
       theme={settings.theme}
       onThemeToggle={handleThemeToggle}
       toolbar={toolbar}
     >
       {error && <div className="error-banner">Collector error: {error}</div>}
       {route === "overview" && <OverviewRoute data={dashboard} />}
-      {route === "trends" && <TrendsRoute data={dashboard} />}
-      {route === "activity" && <ActivityRoute events={activity} />}
-      {route === "alerts" && <AlertsRoute alerts={alerts} />}
       {route === "settings" && <SettingsRoute settings={settings} onSettingsChange={setSettings} />}
     </AppShell>
   );

@@ -11,7 +11,7 @@ const now = Math.floor(Date.now() / 1000);
 
 export const demoHistory: TrendPoint[] = Array.from({ length: 49 }, (_, index) => {
   const hour = index / 2;
-  const curve = 4 + hour * 2.75 + Math.sin(index / 3) * 1.4;
+  const curve = 26 + hour * 0.25 + Math.sin(index / 3) * 0.4;
   return {
     timestamp: now - (48 - index) * 1_800,
     usedPercent: Number(Math.min(82, curve).toFixed(1)),
