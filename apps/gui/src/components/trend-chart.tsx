@@ -11,6 +11,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import type { XAxisTickContentProps } from "recharts";
 import type { TrendPoint } from "../types";
 import { formatChartTime, formatPercent } from "../utils/format";
 
@@ -21,6 +22,16 @@ const formatTrayTime = (timestamp: number) =>
   new Intl.DateTimeFormat("zh-CN", { hour: "2-digit", minute: "2-digit", hour12: false }).format(
     new Date(timestamp * 1_000),
   );
+
+function TrayTimeTick({ x, y, payload, index, visibleTicksCount }: XAxisTickContentProps) {
+  const textAnchor = index === 0 ? "start" : index === visibleTicksCount - 1 ? "end" : "middle";
+
+  return (
+    <text x={x} y={y} dy="0.71em" textAnchor={textAnchor}>
+      {formatTrayTime(Number(payload.value))}
+    </text>
+  );
+}
 
 export function UsageAreaChart({
   history,
@@ -145,10 +156,10 @@ export function TrayRemainingChart({ history }: { history: TrendPoint[] }) {
             scale="linear"
             domain={["dataMin", "dataMax"]}
             ticks={timeTicks}
-            tickFormatter={formatTrayTime}
+            tick={TrayTimeTick}
             tickLine={false}
             axisLine={false}
-            minTickGap={64}
+            interval={0}
             height={18}
             tickMargin={3}
           />

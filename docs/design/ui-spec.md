@@ -21,7 +21,8 @@ and used only for Settings. The generated transparent PNG app mark under
 - The trend renders directly on the popover canvas without an enclosing card,
   border, radius, or elevated panel background.
 - Trend: the primary content region with a dynamic percentage domain, three
-  horizontal guides, time-only X-axis labels, a hidden Y axis, reset time in the upper-left heading,
+  horizontal guides, fixed left/center/right time-only X-axis labels, a hidden
+  Y axis, reset time in the upper-left heading,
   endpoint marker, area fill, and a precise hover tooltip. The first and middle
   representative values are quiet labels; the latest value uses an accent label
   and halo marker. Axis labels use smaller, muted type with compact margins.

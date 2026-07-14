@@ -316,4 +316,19 @@
   or errors.
 - No actionable P0/P1/P2 findings remain for the clipping correction.
 
+## Fixed left-center-right time ticks
+
+- Previous implementation baseline: `screenshots/actual/tray-time-label-visible.jpg`.
+- Browser-rendered implementation: `screenshots/actual/tray-three-time-ticks.jpg`.
+- Full-view comparison: `screenshots/actual/tray-three-time-ticks-comparison.jpg`.
+- Viewport and state: 420×170, light tray surface, fixed 128px chart.
+- Automatic tick omission is disabled for the three requested timestamps. A custom
+  tick renderer left-aligns the first time, centers the temporal midpoint, and
+  right-aligns the latest time so all three labels stay inside the plot bounds.
+- Browser geometry confirms all three time labels at 147.44–164.44px vertically;
+  the left label starts at 20px and the right label ends at 398px.
+- Hovering the chart still exposes the Chinese remaining-quota tooltip, and browser
+  console inspection reports no warnings or errors.
+- No actionable P0/P1/P2 findings remain for the three-tick layout.
+
 final result: passed
