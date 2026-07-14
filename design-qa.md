@@ -331,4 +331,22 @@
   console inspection reports no warnings or errors.
 - No actionable P0/P1/P2 findings remain for the three-tick layout.
 
+## Grid-owned tray spacing and integer current quota
+
+- Previous implementation baseline: `screenshots/actual/tray-three-time-ticks.jpg`.
+- Browser-rendered implementation: `screenshots/actual/tray-grid-current-quota.jpg`.
+- Full-view comparison: `screenshots/actual/tray-grid-current-quota-comparison.jpg`.
+- Viewport and state: 420×170, light tray surface, deterministic 24-hour trend.
+- Read-only SQLite evidence shows the latest real `codex` weekly row at 47% used,
+  which corresponds to 53% remaining. The prior 68.1% image was browser demo data,
+  not a production-data failure; demo history and its snapshot are now aligned.
+- The tray and chart containers have zero outer padding. CSS Grid owns the
+  `28px 136px 6px` heading/chart/bottom tracks, while the chart margin owns
+  the plot's 20px left, 28px right, 18px top, and 1px bottom safe insets.
+- All quota percentages render as integers. The final 53% label spans 378.70–405.30px,
+  and X-axis labels end at 166.94px, so neither touches the 420×170 viewport edge.
+- Hovering the trend reports an integer Chinese remaining-quota tooltip; browser
+  console inspection reports no warnings or errors.
+- No actionable P0/P1/P2 findings remain for the grid and quota-value corrections.
+
 final result: passed

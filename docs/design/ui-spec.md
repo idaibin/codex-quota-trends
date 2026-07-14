@@ -19,7 +19,8 @@ and used only for Settings. The generated transparent PNG app mark under
   chart heading; the range badge shows cumulative consumption for the visible history
   by adding every usage increase and ignoring reset decreases.
 - The trend renders directly on the popover canvas without an enclosing card,
-  border, radius, or elevated panel background.
+  border, radius, outer padding, or elevated panel background. CSS Grid owns the
+  heading/chart rows; the chart's own plot margin controls its four safe insets.
 - Trend: the primary content region with a dynamic percentage domain, three
   horizontal guides, fixed left/center/right time-only X-axis labels, a hidden
   Y axis, reset time in the upper-left heading,
@@ -28,8 +29,9 @@ and used only for Settings. The generated transparent PNG app mark under
   and halo marker. Axis labels use smaller, muted type with compact margins.
   Timestamps use a continuous numeric axis so irregularly collected source points
   retain their real temporal spacing instead of being rendered as equal categories.
-  The 128px plot adds 5% of the observed range above the maximum and below the minimum,
-  keeping the curve clear of the outer guides without introducing fixed percentage bounds.
+  The plot fills its Grid row and adds 5% of the observed range above the maximum
+  and below the minimum, keeping the curve clear of the outer guides without
+  introducing fixed percentage bounds. Quota percentages render as whole numbers.
 - Visible popover copy, chart labels, tooltips, and accessibility names use Chinese.
 - The native window and its content clip to an 8px corner radius.
 

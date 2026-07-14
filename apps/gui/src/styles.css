@@ -1220,13 +1220,13 @@ select {
 }
 
 .tray-popover {
-  display: flex;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
   width: 100%;
   min-width: 0;
   height: 100%;
-  flex-direction: column;
   overflow: hidden;
-  padding: 6px;
+  padding: 0;
   border: 0;
   border-radius: 8px;
   color: var(--text);
@@ -1236,27 +1236,25 @@ select {
   -webkit-user-select: none;
 }
 .tray-overview {
-  display: flex;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
   min-height: 0;
-  flex: 1;
-  flex-direction: column;
   overflow: hidden;
   border: 0;
   border-radius: 0;
   background: transparent;
 }
 .tray-trend-section {
-  display: flex;
+  display: grid;
+  grid-template-rows: 28px minmax(0, 1fr) 6px;
   min-height: 0;
-  flex: 0 0 auto;
-  flex-direction: column;
-  padding: 4px 2px 1px;
+  padding: 0;
 }
 .tray-chart-heading {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 1px;
+  padding: 4px 8px 0;
 }
 .tray-chart-heading h2 {
   margin: 0;
@@ -1283,9 +1281,8 @@ select {
 .tray-trend-chart {
   width: 100%;
   min-height: 0;
-  height: 128px;
-  flex: 0 0 128px;
-  margin-top: 2px;
+  height: 100%;
+  margin: 0;
 }
 .tray-trend-chart .recharts-cartesian-axis-tick text {
   fill: var(--muted);

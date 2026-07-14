@@ -142,7 +142,7 @@ export function TrayRemainingChart({ history }: { history: TrendPoint[] }) {
   return (
     <div className="tray-trend-chart" aria-label="最近24小时的剩余额度">
       <ResponsiveContainer width="100%" height="100%">
-        <AreaChart data={data} margin={{ top: 18, right: 14, bottom: 1, left: 12 }}>
+        <AreaChart data={data} margin={{ top: 18, right: 28, bottom: 1, left: 20 }}>
           <CartesianGrid
             stroke="var(--chart-grid)"
             strokeDasharray="2 4"

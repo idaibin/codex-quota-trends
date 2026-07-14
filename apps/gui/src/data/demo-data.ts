@@ -10,11 +10,9 @@ import type {
 const now = Math.floor(Date.now() / 1000);
 
 export const demoHistory: TrendPoint[] = Array.from({ length: 49 }, (_, index) => {
-  const hour = index / 2;
-  const curve = 26 + hour * 0.25 + Math.sin(index / 3) * 0.4;
   return {
     timestamp: now - (48 - index) * 1_800,
-    usedPercent: Number(Math.min(82, curve).toFixed(1)),
+    usedPercent: 34 + Math.round((index * 13) / 48),
   };
 });
 
@@ -26,7 +24,7 @@ export const demoDashboard: DashboardData = {
     windows: [
       {
         windowMinutes: 10_080,
-        usedPercent: 32,
+        usedPercent: 47,
         resetAt: now + 6 * 86_400 + 18 * 3_600 + 42 * 60,
       },
       {
@@ -37,7 +35,7 @@ export const demoDashboard: DashboardData = {
     ],
   },
   history: demoHistory,
-  consumedPercent: 6,
+  consumedPercent: 13,
   speeds: { fifteenMinutes: 1.2, oneHour: 4.8, twentyFourHours: 15.3 },
   pace: { timeProgress: 40, usageProgress: 65, status: "above" },
   collector: { status: "connected", lastUpdateAt: now - 60, nextPollSeconds: 58 },

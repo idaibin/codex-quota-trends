@@ -1,5 +1,5 @@
 export function formatPercent(value: number): string {
-  return `${Number.isInteger(value) ? value : value.toFixed(1)}%`;
+  return `${Math.round(value)}%`;
 }
 
 export function formatBytes(value: number): string {

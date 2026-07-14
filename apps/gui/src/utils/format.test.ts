@@ -8,9 +8,9 @@ describe("format helpers", () => {
     expect(formatWindow(null)).toBe("Quota");
   });
 
-  it("formats percentages without noisy decimals", () => {
+  it("formats quota percentages as integers", () => {
     expect(formatPercent(32)).toBe("32%");
-    expect(formatPercent(4.84)).toBe("4.8%");
+    expect(formatPercent(4.84)).toBe("5%");
   });
 
   it("formats database sizes", () => {
