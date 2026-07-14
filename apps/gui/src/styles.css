@@ -1305,11 +1305,11 @@ progress::-webkit-progress-value {
   height: 100%;
   overflow: auto;
   padding: 12px;
-  border: 1px solid var(--border-strong);
-  border-radius: 18px;
+  border: 0;
+  border-radius: 0;
   color: var(--text);
   background: var(--panel);
-  box-shadow: var(--shadow);
+  box-shadow: none;
 }
 .tray-popover > header {
   display: flex;

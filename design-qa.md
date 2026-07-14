@@ -38,6 +38,10 @@ in `screenshots/actual/compact-reference-comparison.png` before review.
 - P3: the Data section now shows custom retention days, total SQLite disk usage,
   DB/WAL/SHM breakdown, reclaimable space, cleanup, export, and folder actions in
   one compact row. The cleanup success state was exercised with demo data.
+- P2: the transparent tray window and native shadow exposed a light halo around
+  all four edges in dark mode. The tray surface now owns the full rectangular
+  window background with no outer border, radius, transparency, or native shadow;
+  internal cards retain their spacing and radii.
 
 ## Native client evidence
 

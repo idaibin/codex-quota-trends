@@ -31,11 +31,11 @@
         "height": 680,
         "visible": false,
         "decorations": false,
-        "transparent": true,
+        "transparent": false,
         "resizable": false,
         "alwaysOnTop": true,
         "skipTaskbar": true,
-        "shadow": true
+        "shadow": false
       }
     ],
     "security": {
