@@ -3,7 +3,8 @@ use std::{fs, process::Command};
 use chrono::Utc;
 use codex_quota_core::{
     ActivityEvent, AlertRecord, AppSettings, CollectorState, DatabaseCleanupResult, DatabaseStats,
-    Pace, QuotaSnapshot, TrendPoint, UsageSpeeds, calculate_pace, calculate_speeds,
+    Pace, QuotaSnapshot, TrendPoint, UsageSpeeds, calculate_consumed, calculate_pace,
+    calculate_speeds,
 };
 use serde::Serialize;
 use tauri::{AppHandle, State};
@@ -16,6 +17,7 @@ use crate::state::AppState;
 pub struct DashboardData {
     snapshot: QuotaSnapshot,
     history: Vec<TrendPoint>,
+    consumed_percent: f64,
     speeds: UsageSpeeds,
     pace: Pace,
     collector: CollectorState,
@@ -36,13 +38,12 @@ fn dashboard(state: &AppState) -> Result<DashboardData, String> {
     let history = snapshot
         .windows
         .first()
-        .map(|window| {
-            database.history(&snapshot.limit_id, window.window_minutes, now - 30 * 86_400)
-        })
+        .map(|window| database.history(&snapshot.limit_id, window.window_minutes, now - 7 * 86_400))
         .transpose()
         .map_err(|error| error.to_string())?
         .unwrap_or_default();
     let speeds = calculate_speeds(&history, now);
+    let consumed_percent = calculate_consumed(&history);
     let pace = snapshot.windows.first().map(|window| calculate_pace(window, now)).unwrap_or(Pace {
         time_progress: 0.0,
         usage_progress: 0.0,
@@ -53,7 +54,7 @@ fn dashboard(state: &AppState) -> Result<DashboardData, String> {
         .read()
         .map_err(|_| "collector state lock poisoned".to_owned())?
         .clone();
-    Ok(DashboardData { snapshot, history, speeds, pace, collector })
+    Ok(DashboardData { snapshot, history, consumed_percent, speeds, pace, collector })
 }
 
 #[tauri::command]

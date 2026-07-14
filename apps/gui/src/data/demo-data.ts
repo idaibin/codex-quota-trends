@@ -37,6 +37,7 @@ export const demoDashboard: DashboardData = {
     ],
   },
   history: demoHistory,
+  consumedPercent: 6,
   speeds: { fifteenMinutes: 1.2, oneHour: 4.8, twentyFourHours: 15.3 },
   pace: { timeProgress: 40, usageProgress: 65, status: "above" },
   collector: { status: "connected", lastUpdateAt: now - 60, nextPollSeconds: 58 },

@@ -224,4 +224,27 @@
   accessibility snapshot; browser console contained no warnings or errors.
 - No actionable P0/P1/P2 findings remain for the compact Settings redesign.
 
+## Reset-safe cumulative consumption
+
+- Source visual truth: `/var/folders/33/1n65110j6_15vm1fd1fydb440000gn/T/codex-clipboard-f8970cc7-f755-420d-bc01-fbac9810a1b9.png`.
+- Browser-rendered implementation: `screenshots/actual/tray-cumulative-consumption-browser.png`.
+- Full-view comparison: `screenshots/actual/tray-cumulative-consumption-comparison.png`.
+- Viewport and state: 420×420, light tray surface, deterministic 24-hour trend.
+  The source and implementation use different quota snapshots, so comparison is
+  limited to information hierarchy, range metadata, spacing, and chart treatment.
+- Earlier P2 finding: the upper summary repeated a range-change metric while the
+  range pill exposed only `24小时`, leaving no reset-safe measure of consumption.
+- Fix: the repeated upper metric is removed. The chart pill now reads
+  `24小时 · 已消耗 6%`, keeping the period and its cumulative consumption together.
+- Calculation evidence: core tests sum only positive adjacent used-percentage changes,
+  ignore the decrease caused by a reset to 100% remaining, and prove that later
+  consumption continues accumulating beyond 100% instead of resetting or capping.
+- Post-fix visual evidence: the comparison shows a quieter summary, an aligned compact
+  pill, and unchanged chart emphasis. Browser accessibility output contains the new
+  Chinese label and no `区间变化` text.
+- Native Tauri runtime and the same frontend source were verified locally. Native
+  tray-window capture was unavailable because the macOS Accessibility click did not
+  expose an app window, so the exact 420×420 browser render is the visual proof.
+- No actionable P0/P1/P2 findings remain for the requested cumulative metric.
+
 final result: passed

@@ -1,4 +1,3 @@
-import { Minus, TrendDown, TrendUp } from "@phosphor-icons/react";
 import type { DashboardData } from "../types";
 import { formatPercent } from "../utils/format";
 import { TrayRemainingChart } from "./trend-chart";
@@ -27,9 +26,6 @@ export function TrayPopover({ data }: { data: DashboardData }) {
   const remaining = 100 - Math.min(100, Math.max(0, quotaWindow.usedPercent));
   const firstPoint = data.history[0];
   const lastPoint = data.history.at(-1);
-  const remainingChange =
-    firstPoint && lastPoint ? firstPoint.usedPercent - lastPoint.usedPercent : 0;
-  const ChangeIcon = remainingChange > 0 ? TrendUp : remainingChange < 0 ? TrendDown : Minus;
   const historySpan =
     firstPoint && lastPoint ? Math.max(0, lastPoint.timestamp - firstPoint.timestamp) : 0;
   const rangeLabel = historySpan >= 2 * 86_400 ? "7天" : "24小时";
@@ -41,19 +37,13 @@ export function TrayPopover({ data }: { data: DashboardData }) {
             <span>{formatWindowZh(quotaWindow.windowMinutes)}</span>
             <strong>{formatPercent(remaining)}</strong>
           </div>
-          <div className="tray-remaining-change">
-            <ChangeIcon weight="bold" />
-            <strong>
-              {remainingChange > 0 ? "+" : ""}
-              {remainingChange.toFixed(1)} 个百分点
-            </strong>
-            <span>区间变化</span>
-          </div>
         </section>
         <section className="tray-trend-section">
           <div className="tray-chart-heading">
             <h2>{formatResetDateZh(quotaWindow.resetAt)}</h2>
-            <span>{rangeLabel}</span>
+            <span>
+              {rangeLabel} · 已消耗 <strong>{formatPercent(data.consumedPercent)}</strong>
+            </span>
           </div>
           <TrayRemainingChart history={data.history} />
         </section>

@@ -28,6 +28,7 @@ export interface UsageSpeeds {
 export interface DashboardData {
   snapshot: QuotaSnapshot;
   history: TrendPoint[];
+  consumedPercent: number;
   speeds: UsageSpeeds;
   pace: {
     timeProgress: number;

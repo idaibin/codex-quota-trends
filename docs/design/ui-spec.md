@@ -15,8 +15,9 @@ and used only for Settings. The generated transparent PNG app mark under
 - Menu bar popover: 420×420, frameless, opaque, shadowless, and hidden on blur.
 - The popover has no header or inline utility actions. Right-clicking the menu-bar
   item exposes pause/resume, Settings, and Quit in a compact native Chinese menu.
-- Remaining summary: current percentage, quota-window label, and the remaining-point
-  change for the visible range. Reset timing belongs to the chart heading.
+- Remaining summary: current percentage and quota-window label. Reset timing belongs
+  to the chart heading; the range badge shows cumulative consumption for the visible
+  history by adding every usage increase and ignoring reset decreases.
 - The remaining summary and trend render directly on the popover canvas without
   an enclosing card, border, radius, or elevated panel background.
 - Trend: the primary content region with a dynamic percentage domain, three

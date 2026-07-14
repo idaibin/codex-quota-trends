@@ -6,6 +6,7 @@ pub mod storage;
 pub use collector::{CollectorConfig, CollectorRuntime, CollectorState, SharedCollectorState};
 pub use quota::{
     AlertRecord, AlertSeverity, AlertStatus, AlertType, AppSettings, Pace, PaceStatus,
-    QuotaSnapshot, QuotaWindow, TrendPoint, UsageSpeeds, calculate_pace, calculate_speeds,
+    QuotaSnapshot, QuotaWindow, TrendPoint, UsageSpeeds, calculate_consumed, calculate_pace,
+    calculate_speeds,
 };
 pub use storage::{ActivityEvent, Database, DatabaseCleanupResult, DatabaseStats};

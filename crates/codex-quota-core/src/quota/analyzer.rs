@@ -34,6 +34,22 @@ pub fn calculate_speeds(history: &[TrendPoint], now: i64) -> UsageSpeeds {
     }
 }
 
+pub fn calculate_consumed(history: &[TrendPoint]) -> f64 {
+    let mut points =
+        history.iter().filter(|point| point.used_percent.is_finite()).collect::<Vec<_>>();
+    points.sort_by_key(|point| point.timestamp);
+    round_one(
+        points
+            .windows(2)
+            .map(|pair| {
+                let previous = pair[0].used_percent.clamp(0.0, 100.0);
+                let current = pair[1].used_percent.clamp(0.0, 100.0);
+                (current - previous).max(0.0)
+            })
+            .sum(),
+    )
+}
+
 fn speed_over(history: &[TrendPoint], now: i64, seconds: i64) -> f64 {
     let Some(latest) =
         history.iter().filter(|point| point.timestamp <= now).max_by_key(|point| point.timestamp)
@@ -102,6 +118,31 @@ mod tests {
         assert_eq!(speeds.fifteen_minutes, 1.0);
         assert!(speeds.one_hour >= 4.0);
         assert_eq!(speeds.twenty_four_hours, 15.0);
+    }
+
+    #[test]
+    fn accumulates_consumption_across_quota_resets() {
+        let history = vec![
+            TrendPoint { timestamp: 0, used_percent: 10.0 },
+            TrendPoint { timestamp: 100, used_percent: 80.0 },
+            TrendPoint { timestamp: 200, used_percent: 0.0 },
+            TrendPoint { timestamp: 300, used_percent: 60.0 },
+        ];
+
+        assert_eq!(calculate_consumed(&history), 130.0);
+    }
+
+    #[test]
+    fn ignores_resets_and_downward_corrections() {
+        let history = vec![
+            TrendPoint { timestamp: 300, used_percent: 8.0 },
+            TrendPoint { timestamp: 100, used_percent: 20.0 },
+            TrendPoint { timestamp: 200, used_percent: 18.0 },
+            TrendPoint { timestamp: 400, used_percent: 2.0 },
+            TrendPoint { timestamp: 500, used_percent: 6.5 },
+        ];
+
+        assert_eq!(calculate_consumed(&history), 4.5);
     }
 
     #[test]
