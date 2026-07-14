@@ -916,7 +916,7 @@ select {
   min-height: 82px;
   align-items: center;
   gap: 10px;
-  padding: 6px;
+  padding: 10px;
 }
 .alert-summary > div {
   display: grid;
@@ -1226,7 +1226,7 @@ select {
   height: 100%;
   flex-direction: column;
   overflow: hidden;
-  padding: 10px;
+  padding: 6px;
   border: 0;
   border-radius: 8px;
   color: var(--text);

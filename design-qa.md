@@ -300,4 +300,20 @@
 - Browser accessibility output and console inspection report no warnings or errors.
 - No actionable P0/P1/P2 findings remain for the requested spacing adjustment.
 
+## Tray time-label clipping correction
+
+- Previous implementation baseline: `screenshots/actual/tray-padding-5-final.jpg`.
+- Browser-rendered implementation: `screenshots/actual/tray-time-label-visible.jpg`.
+- Full-view comparison: `screenshots/actual/tray-time-label-visible-comparison.jpg`.
+- Viewport and state: 420×170, light tray surface, fixed 128px chart.
+- The tray surface now owns the intended 6px outer inset. The previous spacing edit
+  had changed an unrelated alert summary while leaving the tray at 10px; that alert
+  spacing is restored and the tray inset is corrected at its actual layout owner.
+- The 170px document has no vertical overflow. Browser geometry places the X-axis
+  labels at 147.44–164.44px, leaving 5.56px before the viewport edge.
+- Reset time, cumulative consumption, percentage labels, endpoint halo, and both
+  visible time ticks remain readable; browser console inspection reports no warnings
+  or errors.
+- No actionable P0/P1/P2 findings remain for the clipping correction.
+
 final result: passed
