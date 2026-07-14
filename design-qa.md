@@ -15,10 +15,12 @@ client screenshot. Browser-review captures use deterministic local data:
 | Alerts | 960×680 | `screenshots/actual/alerts-compact.png` |
 | Settings | 960×680 | `screenshots/actual/settings-compact.png` |
 | Settings, storage controls | 960×680 | `screenshots/actual/settings-storage.png` |
-| Menu bar popover | 420×680 | `screenshots/actual/tray-compact.png` |
+| Menu bar popover | 420×440 | `screenshots/actual/tray-remaining-compact.png` |
 
 The compact reference and Overview implementation were appended side by side
 in `screenshots/actual/compact-reference-comparison.png` before review.
+The supplied tray screenshot and the simplified implementation were normalized
+and compared side by side in `screenshots/actual/tray-remaining-comparison.png`.
 
 ## Findings and fixes
 
@@ -45,6 +47,10 @@ in `screenshots/actual/compact-reference-comparison.png` before review.
 - P2: the browser-preview border and shadow were also visible around the real
   Tauri main window. They are now disabled only in the native runtime; rounded
   clipping and all internal panel borders remain unchanged.
+- P2: the tray repeated the remaining percentage in the ring and metrics, then
+  added used quota, reset time, and a full Collector card. Its information area
+  now contains one current remaining value and one 7-day remaining trend; the
+  operational action rows remain available and the window is 420×440.
 
 ## Native client evidence
 
@@ -56,6 +62,25 @@ permission context, so browser screenshots are the visual evidence and the
 CGWindow record is the native geometry evidence. The disposable app process was
 stopped after verification.
 
+## Tray remaining simplification QA
+
+- Source visual truth: `/var/folders/33/1n65110j6_15vm1fd1fydb440000gn/T/codex-clipboard-c69c0046-e714-4a0a-9b1a-fa3e8f6c53cd.png`.
+- Implementation: `screenshots/actual/tray-remaining-compact.png`, captured in
+  the in-app browser at 420×440 in the light theme with deterministic demo data.
+- Full-view comparison: `screenshots/actual/tray-remaining-comparison.png`.
+  A focused crop was unnecessary because the full-width 420px comparison keeps
+  the logo, labels, values, chart, icons, borders, and action copy legible.
+- Typography continues to use the existing system font, weights, and hierarchy;
+  spacing and color tokens remain aligned with the supplied popover. The PNG logo
+  and Phosphor icons are unchanged and remain sharp at the rendered size.
+- Copy now describes only `Current Remaining` and `Remaining Trend (7d)` in the
+  information area. The chart accessibility label is `Quota remaining over time`.
+- The four existing action controls remain present with their original handlers.
+  No browser console warnings or errors were reported after rendering.
+- Comparison history: the initial implementation comparison found no actionable
+  P0/P1/P2 layout, typography, color, asset, or copy mismatch against the scoped
+  simplification brief, so no post-comparison fix pass was required.
+
 ## Reproduction
 
 ```bash
@@ -63,7 +88,7 @@ cd apps/gui
 npm run dev
 ```
 
-Capture the six main routes at 960×680 and `/?surface=tray` at 420×680. Append
+Capture the six main routes at 960×680 and `/?surface=tray` at 420×440. Append
 each source and implementation image before judging visible differences.
 
 final result: passed

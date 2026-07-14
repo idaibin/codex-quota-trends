@@ -18,13 +18,22 @@ const normalize = (history: TrendPoint[]) =>
 export function UsageAreaChart({
   history,
   compact = false,
+  mode = "used",
 }: {
   history: TrendPoint[];
   compact?: boolean;
+  mode?: "used" | "remaining";
 }) {
-  const data = normalize(history);
+  const data = normalize(history).map((point) => ({
+    ...point,
+    remainingPercent: 100 - point.usedPercent,
+  }));
+  const isRemaining = mode === "remaining";
   return (
-    <div className={compact ? "chart chart--compact" : "chart"} aria-label="Quota usage over time">
+    <div
+      className={compact ? "chart chart--compact" : "chart"}
+      aria-label={`Quota ${isRemaining ? "remaining" : "usage"} over time`}
+    >
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart data={data} margin={{ top: 10, right: 6, bottom: 0, left: compact ? -30 : -6 }}>
           {!compact && (
@@ -60,7 +69,7 @@ export function UsageAreaChart({
           )}
           <Area
             type="monotone"
-            dataKey="usedPercent"
+            dataKey={isRemaining ? "remainingPercent" : "usedPercent"}
             stroke="var(--accent)"
             fill="var(--chart-fill)"
             strokeWidth={compact ? 3 : 2.5}

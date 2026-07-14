@@ -3,9 +3,7 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import { useState } from "react";
 import { pauseCollector, quitApp } from "../api/quota-api";
 import type { DashboardData } from "../types";
-import { formatWindow } from "../utils/format";
-import { CollectorStatus } from "./collector-status";
-import { QuotaRing } from "./quota-ring";
+import { formatPercent, formatWindow } from "../utils/format";
 import { UsageAreaChart } from "./trend-chart";
 
 export function TrayPopover({ data }: { data: DashboardData }) {
@@ -27,6 +25,7 @@ export function TrayPopover({ data }: { data: DashboardData }) {
 
   if (!quotaWindow)
     return <div className="tray-popover tray-popover--empty">Waiting for quota data…</div>;
+  const remaining = 100 - Math.min(100, Math.max(0, quotaWindow.usedPercent));
   return (
     <div className="tray-popover">
       <header>
@@ -39,18 +38,18 @@ export function TrayPopover({ data }: { data: DashboardData }) {
         </button>
       </header>
       <section className="tray-quota-card">
-        <h2>
-          Quota Remaining <span>({formatWindow(quotaWindow.windowMinutes)})</span>
-        </h2>
-        <QuotaRing quotaWindow={quotaWindow} />
-        <div className="tray-chart-title">
-          Usage Over Time <span>(7d)</span>
+        <div className="tray-current-remaining">
+          <div>
+            <span>Current Remaining</span>
+            <small>{formatWindow(quotaWindow.windowMinutes)}</small>
+          </div>
+          <strong>{formatPercent(remaining)}</strong>
         </div>
-        <UsageAreaChart history={data.history} compact />
+        <div className="tray-chart-title">
+          Remaining Trend <span>(7d)</span>
+        </div>
+        <UsageAreaChart history={data.history} compact mode="remaining" />
       </section>
-      <CollectorStatus
-        collector={{ ...data.collector, status: paused ? "paused" : data.collector.status }}
-      />
       <nav className="tray-actions" aria-label="Tray actions">
         <button type="button" onClick={() => void showMain()}>
           <Monitor />

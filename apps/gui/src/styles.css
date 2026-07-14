@@ -1335,60 +1335,42 @@ progress::-webkit-progress-value {
   border: 1px solid var(--border);
   border-radius: 12px;
 }
-.tray-quota-card h2 {
-  margin: 0 0 8px;
-  font-size: 15px;
+.tray-current-remaining {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 2px 0 14px;
 }
-.tray-quota-card h2 span,
+.tray-current-remaining > div {
+  display: grid;
+  gap: 3px;
+}
+.tray-current-remaining span {
+  font-size: 14px;
+  font-weight: 650;
+}
+.tray-current-remaining small,
 .tray-chart-title span {
   color: var(--muted);
   font-weight: 450;
 }
-.tray-quota-card .quota-ring-layout {
-  height: 135px;
-  grid-template-columns: 1fr 1fr;
-}
-.tray-quota-card .quota-ring {
-  width: 105px;
-}
-.tray-quota-card .quota-ring__label strong {
-  font-size: 22px;
-}
-.tray-quota-card .quota-ring__metrics {
-  gap: 5px;
-}
-.tray-quota-card .quota-ring__metrics div {
-  gap: 2px;
-}
-.tray-quota-card .quota-ring__metrics strong {
-  font-size: 16px;
-  line-height: 1.1;
-}
-.tray-quota-card .quota-ring__metrics span {
-  font-size: 11px;
-  line-height: 1.2;
+.tray-current-remaining strong {
+  color: var(--accent);
+  font-size: 30px;
+  line-height: 1;
+  letter-spacing: -1px;
+  font-variant-numeric: tabular-nums;
 }
 .tray-chart-title {
-  padding-top: 8px;
+  padding-top: 10px;
   border-top: 1px solid var(--border);
   font-size: 13px;
   font-weight: 650;
 }
 .chart--compact {
-  height: 52px;
-  margin: 5px 0 0;
-}
-.tray-popover > .collector-status {
-  margin-top: 10px;
-  padding: 12px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-}
-.tray-popover > .collector-status dl {
-  gap: 8px;
-  margin-top: 10px;
-  padding-top: 0;
-  border: 0;
+  height: 66px;
+  margin: 4px 0 0;
 }
 .tray-actions {
   margin-top: 10px;
