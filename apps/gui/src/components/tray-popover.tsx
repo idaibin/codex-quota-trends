@@ -40,7 +40,7 @@ export function TrayPopover({ data }: { data: DashboardData }) {
       </header>
       <section className="tray-quota-card">
         <h2>
-          Current Quota <span>({formatWindow(quotaWindow.windowMinutes)})</span>
+          Quota Remaining <span>({formatWindow(quotaWindow.windowMinutes)})</span>
         </h2>
         <QuotaRing quotaWindow={quotaWindow} />
         <div className="tray-chart-title">

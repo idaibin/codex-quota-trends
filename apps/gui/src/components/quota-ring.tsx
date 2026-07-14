@@ -10,14 +10,15 @@ export function QuotaRing({
   compact?: boolean;
 }) {
   const used = Math.min(100, Math.max(0, quotaWindow.usedPercent));
+  const remaining = 100 - used;
   const data = [
-    { value: used, fill: "var(--accent)" },
-    { value: 100 - used, fill: "var(--track)" },
+    { value: remaining, fill: "var(--accent)" },
+    { value: used, fill: "var(--track)" },
   ];
 
   return (
     <div className={`quota-ring-layout ${compact ? "quota-ring-layout--compact" : ""}`}>
-      <div className="quota-ring" aria-label={`${formatPercent(used)} used`}>
+      <div className="quota-ring" aria-label={`${formatPercent(remaining)} remaining`}>
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
@@ -38,18 +39,18 @@ export function QuotaRing({
           </PieChart>
         </ResponsiveContainer>
         <div className="quota-ring__label">
-          <strong>{formatPercent(used)}</strong>
-          <span>Used</span>
+          <strong>{formatPercent(remaining)}</strong>
+          <span>Remaining</span>
         </div>
       </div>
       <div className="quota-ring__metrics">
+        <div className="primary-metric">
+          <strong>{formatPercent(remaining)}</strong>
+          <span>Quota Remaining</span>
+        </div>
         <div>
           <strong>{formatPercent(used)}</strong>
           <span>Quota Used</span>
-        </div>
-        <div>
-          <strong>{formatPercent(100 - used)}</strong>
-          <span>Quota Remaining</span>
         </div>
         <div className="accent-metric">
           <strong>{formatResetDuration(quotaWindow.resetAt)}</strong>

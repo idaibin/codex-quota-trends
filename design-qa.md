@@ -2,50 +2,48 @@
 
 ## Evidence
 
-The supplied images in `docs/design/reference` are the visual source of truth.
-The browser review mode was captured with deterministic local data at these
-states:
+The supplied screens in `docs/design/reference` remain the content and styling
+reference. Compact geometry is measured against the 960×680 `rustzen-clear`
+client screenshot. Browser-review captures use deterministic local data:
 
-| Surface | Reference | Capture viewport |
+| Surface | Viewport | Evidence |
 | --- | --- | --- |
-| Overview, light | `overview-light.png` | 1448×1086 |
-| Overview, dark | `overview-dark.png` | 1448×1086 |
-| Trends | `trends.png` | 1448×1086 |
-| Activity | `activity.png` | 1448×1086 |
-| Alerts | `alerts.png` | 1448×1086 |
-| Settings | `settings.png` | 1448×1086 |
-| Menu bar popover | `tray-popover.png` | 520×840 popover crop |
+| Overview, light | 960×680 | `screenshots/actual/overview-compact.png` |
+| Overview, dark | 960×680 | `screenshots/actual/overview-dark-compact.png` |
+| Trends | 960×680 | `screenshots/actual/trends-compact.png` |
+| Activity | 960×680 | `screenshots/actual/activity-compact.png` |
+| Alerts | 960×680 | `screenshots/actual/alerts-compact.png` |
+| Settings | 960×680 | `screenshots/actual/settings-compact.png` |
+| Menu bar popover | 420×680 | `screenshots/actual/tray-compact.png` |
 
-Each reference and implementation capture was appended side by side before
-review. Browser screenshots are intentionally ignored by Git and can be
-regenerated under `screenshots/actual`.
+The compact reference and Overview implementation were appended side by side
+in `screenshots/actual/compact-reference-comparison.png` before review.
 
 ## Findings and fixes
 
-- P2: the Trends range control and lower summary cards were clipped at the
-  reference viewport. The top bar is now fixed and the chart sections use the
-  available height.
-- P2: the first Settings implementation added an Appearance section that was
-  absent from the reference. It was removed; theme remains available from the
-  top bar.
-- P2: the popover actions extended below the target viewport and the final
-  quota label touched the chart divider. Popover density and metric line height
-  were tightened, with all controls now visible at 520×840.
-- P3: live quota values, dates, and event counts intentionally differ from the
-  static mockups.
-- P3: the browser review surface cannot reproduce native macOS title-bar and
-  menu-bar shadows exactly; native-window verification covers those elements.
+- P2: the original 1448×1086 shell, 320px sidebar, and oversized panels made
+  the utility feel heavier than `rustzen-clear`. The shell is now 960×680 with
+  a 196px sidebar, 64px toolbar, 42px navigation rows, and 12–18px page rhythm.
+- P2: the Overview pace card clipped its second progress row after the first
+  density pass. The top card row was rebalanced and rechecked without overflow.
+- P2: Trends and Activity initially required incidental vertical scrolling.
+  Card, chart, and table density was tightened; both now fit the 960×680 view.
+- P2: the original app mark was low resolution. The visible mark is now a
+  transparent 256×256 PNG, with matching 512×512 app and 128×128 tray assets.
+- P2: quota usage was the primary value. The ring and first metric now show the
+  remaining percentage; used percentage is secondary.
+- P3: Settings intentionally scrolls because it contains multiple configuration
+  groups; all other primary routes fit without page scrolling.
 
-## Result
+## Native client evidence
 
-Passed with no open P0, P1, or P2 visual findings. Navigation, range controls,
-filters, theme switching, settings toggles, alert expansion, collector pause
-and resume, and popover actions were exercised during the review.
-
-The bundled macOS application was also launched as a real 1448px Tauri window.
-It spawned `codex app-server`, reached `Connected`, persisted the live quota
-windows in SQLite, and rendered the active Codex quota instead of the inactive
-supplemental limit.
+The newly built debug bundle was launched from
+`target/debug/bundle/macos/Codex Quota Trends.app`. Process PID `7733` owned
+CGWindowID `5888`, titled `Codex Quota Trends`, at exactly 960×680. Window-level
+capture through `screencapture -l5888` was unavailable in the current host
+permission context, so browser screenshots are the visual evidence and the
+CGWindow record is the native geometry evidence. The disposable app process was
+stopped after verification.
 
 ## Reproduction
 
@@ -54,10 +52,7 @@ cd apps/gui
 npm run dev
 ```
 
-Capture the six main routes at 1448×1086 and `/?surface=tray` at 520×840. For
-each state, use ImageMagick to append the reference and capture before judging:
+Capture the six main routes at 960×680 and `/?surface=tray` at 420×680. Append
+each source and implementation image before judging visible differences.
 
-```bash
-magick docs/design/reference/overview-light.png \
-  screenshots/actual/overview-light.png +append /tmp/overview-light-compare.png
-```
+final result: passed

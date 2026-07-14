@@ -26,8 +26,9 @@ The app must not access `~/.codex/auth.json` or a `chatgpt.com/backend-api` URL.
 
 ## Visual acceptance
 
-1. Capture the 1448×1086 main window for Overview light/dark, Trends,
+1. Capture the 960×680 main window for Overview light/dark, Trends,
    Activity, Alerts, and Settings.
-2. Capture the 520×840 tray popover state.
-3. Compare each state to `docs/design/reference` at the same viewport.
+2. Capture the 420×680 tray popover state.
+3. Compare content and styling to `docs/design/reference`; compare density,
+   rhythm, and window geometry to the 960×680 `rustzen-clear` reference.
 4. Record evidence and remaining P3 differences in `design-qa.md`.

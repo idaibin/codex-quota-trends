@@ -2,18 +2,21 @@
 
 ## Source of truth
 
-The seven supplied mockups under `docs/design/reference` are the visual source
-of truth. Desktop frames target a 1448×1086 capture; the tray reference is a
-1086×1448 presentation of a roughly 672-pixel-wide macOS popover.
+The seven supplied mockups under `docs/design/reference` remain the content and
+visual-language source of truth. The compact desktop geometry follows the
+960×680 `rustzen-clear` client baseline. The generated transparent PNG app mark
+under `apps/gui/public/app-mark.png` is the canonical visible logo asset.
 
 ## Shell
 
-- Main window: 1448×1086 reference ratio, 320px sidebar, 1px cool-gray divider.
-- Sidebar: traffic lights, 40px app mark, five 56px navigation rows, and a
+- Main window: 960×680, 196px sidebar, 1px cool-gray divider.
+- Sidebar: traffic lights, 32px PNG app mark, five 42px navigation rows, and a
   collector status card anchored at the bottom.
-- Content: 30px top bar with title at 30px/700, window filter, and refresh.
-- Page inset: 28–32px. Panels use 14–16px radii and 1px borders.
+- Content: 64px top bar with title at 22px/700, window filter, and refresh.
+- Page inset: 14–18px. Panels use 11–12px radii and 1px borders.
 - Only the main content scrolls. The app shell and sidebar remain fixed.
+- Overview leads with quota remaining in the ring and first numeric metric;
+  quota used is secondary context.
 
 ## Tokens
 
@@ -29,13 +32,13 @@ of truth. Desktop frames target a 1448×1086 capture; the tray reference is a
 | success | `#23b954` | `#33d16b` |
 
 Typography uses the macOS system stack. Numeric metrics use tabular figures.
-Icons use Phosphor's regular outline weight; the app mark is the supplied asset.
+Icons use Phosphor's regular outline weight; the app mark is a transparent PNG.
 
 ## Components
 
 - `AppShell`: window chrome, navigation, top bar, responsive content ownership.
 - `CollectorStatus`: connection state, last update, next poll.
-- `QuotaRing`: window-agnostic used percentage and reset summary.
+- `QuotaRing`: remaining percentage first, followed by used percentage and reset.
 - `TrendChart`: library-rendered line/area chart with shared axes and tooltip.
 - `MetricCard`, `Panel`, `SegmentedControl`, `SelectControl`, `Toggle`.
 - Route components: Overview, Trends, Activity, Alerts, Settings.
@@ -44,9 +47,10 @@ Icons use Phosphor's regular outline weight; the app mark is the supplied asset.
 
 ## Responsive behavior
 
-- At 1100px the sidebar narrows and long brand text hides.
-- At 820px navigation becomes a compact icon rail and dashboard grids collapse.
-- The tray surface has a fixed desktop width and is not treated as a mobile page.
+- The 960px main-window baseline keeps the full compact sidebar and three-column
+  dashboard composition.
+- Below 820px grids begin to collapse; below 680px navigation becomes an icon rail.
+- The tray surface is 420×680 and is not treated as a mobile page.
 
 ## Interaction states
 

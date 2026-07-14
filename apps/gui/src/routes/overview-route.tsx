@@ -23,7 +23,7 @@ export function OverviewRoute({ data }: { data: DashboardData }) {
       <div className="overview-top-grid">
         <Panel className="quota-panel">
           <SectionTitle>
-            Current Quota <span>({formatWindow(quotaWindow.windowMinutes)})</span>
+            Quota Remaining <span>({formatWindow(quotaWindow.windowMinutes)})</span>
           </SectionTitle>
           <QuotaRing quotaWindow={quotaWindow} />
         </Panel>

@@ -10,4 +10,5 @@ target/
 *.db-shm
 *.db-wal
 screenshots/actual/
+tmp/
 apps/gui/src-tauri/gen/
