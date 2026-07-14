@@ -36,7 +36,7 @@ fn toggle_tray(app: &tauri::AppHandle, anchor_x: f64, anchor_y: f64) {
         return;
     }
     let scale = window.scale_factor().unwrap_or(1.0);
-    let width = window.outer_size().map(|size| size.width as f64).unwrap_or(520.0 * scale);
+    let width = window.outer_size().map(|size| size.width as f64).unwrap_or(420.0 * scale);
     let _ = window
         .set_position(PhysicalPosition::new((anchor_x - width / 2.0).max(8.0), anchor_y + 10.0));
     let _ = window.show();
@@ -105,12 +105,10 @@ pub fn run() {
                 }
             });
 
-            let dashboard =
-                MenuItem::with_id(app, "dashboard", "Open Dashboard", true, None::<&str>)?;
             let settings = MenuItem::with_id(app, "settings", "Settings…", true, None::<&str>)?;
             let quit =
                 MenuItem::with_id(app, "quit", "Quit Codex Quota Trends", true, None::<&str>)?;
-            let menu = Menu::with_items(app, &[&dashboard, &settings, &quit])?;
+            let menu = Menu::with_items(app, &[&settings, &quit])?;
             TrayIconBuilder::with_id("codex-quota-trends-tray")
                 .icon(Image::new(include_bytes!("../icons/icon.rgba"), 128, 128))
                 .tooltip("Codex Quota Trends")
@@ -141,7 +139,6 @@ pub fn run() {
                     }
                 })
                 .on_menu_event(|app, event| match event.id().as_ref() {
-                    "dashboard" => show_main(app, None),
                     "settings" => show_main(app, Some("settings")),
                     "quit" => app.exit(0),
                     _ => {}

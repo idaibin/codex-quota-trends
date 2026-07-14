@@ -19,7 +19,7 @@ byte-size formatting, and setting validation.
 With Codex authenticated, start the Tauri app and confirm:
 
 1. Activity records `connected`.
-2. Overview receives at least one real quota window.
+2. The tray popover receives at least one real quota window.
 3. The SQLite database contains a snapshot.
 4. A rate-limit update or poll changes the UI without restarting.
 
@@ -27,8 +27,8 @@ The app must not access `~/.codex/auth.json` or a `chatgpt.com/backend-api` URL.
 
 ## Visual acceptance
 
-1. Capture the 960×680 main window for Overview light/dark and Settings.
-2. Capture the 420×440 tray popover state.
-3. Compare content and styling to `docs/design/reference`; compare density,
-   rhythm, and window geometry to the 960×680 `rustzen-clear` reference.
+1. Capture the 420×500 tray popover with deterministic data.
+2. Verify axis labels, endpoint, tooltip, footer controls, and absence of the
+   Dashboard action or repeated Settings action.
+3. Compare the supplied popover crop and implementation side by side.
 4. Record evidence and remaining P3 differences in `design-qa.md`.

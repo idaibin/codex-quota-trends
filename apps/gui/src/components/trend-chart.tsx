@@ -4,6 +4,7 @@ import {
   CartesianGrid,
   Line,
   LineChart,
+  ReferenceDot,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -14,6 +15,16 @@ import { formatChartTime, formatPercent } from "../utils/format";
 
 const normalize = (history: TrendPoint[]) =>
   history.map((point) => ({ ...point, label: formatChartTime(point.timestamp) }));
+
+const formatTrayDate = (timestamp: number) =>
+  new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" }).format(
+    new Date(timestamp * 1_000),
+  );
+
+const formatTrayTime = (timestamp: number) =>
+  new Intl.DateTimeFormat("en-US", { hour: "2-digit", minute: "2-digit", hour12: false }).format(
+    new Date(timestamp * 1_000),
+  );
 
 export function UsageAreaChart({
   history,
@@ -76,6 +87,95 @@ export function UsageAreaChart({
             dot={false}
             isAnimationActive={false}
           />
+        </AreaChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
+export function TrayRemainingChart({ history }: { history: TrendPoint[] }) {
+  const sevenDaysAgo = Date.now() / 1_000 - 7 * 24 * 60 * 60;
+  const recentHistory = history.filter((point) => point.timestamp >= sevenDaysAgo);
+  const source = recentHistory.length > 1 ? recentHistory : history;
+  const data = source.map((point) => ({
+    ...point,
+    remainingPercent: 100 - point.usedPercent,
+  }));
+  if (data.length === 0)
+    return <div className="tray-trend-chart tray-trend-chart--empty">No trend data yet</div>;
+  const values = data.map((point) => point.remainingPercent);
+  const minimum = Math.min(...values);
+  const maximum = Math.max(...values);
+  const domainMin = Math.max(0, Math.floor((minimum - 4) / 5) * 5);
+  const domainMax = Math.min(100, Math.ceil((maximum + 4) / 5) * 5);
+  const last = data.at(-1);
+  const timeSpan = last && data[0] ? last.timestamp - data[0].timestamp : 0;
+  const formatTick = timeSpan >= 2 * 86_400 ? formatTrayDate : formatTrayTime;
+
+  return (
+    <div
+      className="tray-trend-chart"
+      aria-label={`Quota remaining over the last ${timeSpan >= 2 * 86_400 ? "seven days" : "24 hours"}`}
+    >
+      <ResponsiveContainer width="100%" height="100%">
+        <AreaChart data={data} margin={{ top: 12, right: 10, bottom: 2, left: 0 }}>
+          <CartesianGrid stroke="var(--chart-grid)" strokeDasharray="3 4" vertical={false} />
+          <YAxis
+            domain={[domainMin, domainMax]}
+            tickCount={3}
+            tickFormatter={formatPercent}
+            tickLine={false}
+            axisLine={false}
+            width={42}
+          />
+          <XAxis
+            dataKey="timestamp"
+            tickCount={3}
+            tickFormatter={formatTick}
+            tickLine={false}
+            axisLine={false}
+            minTickGap={64}
+          />
+          <Tooltip
+            formatter={(value) => [formatPercent(Number(value)), "Remaining"]}
+            labelFormatter={(value) =>
+              new Intl.DateTimeFormat("en-US", {
+                month: "short",
+                day: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+              }).format(new Date(Number(value) * 1_000))
+            }
+            cursor={{ stroke: "var(--accent-mid)", strokeDasharray: "3 3" }}
+            contentStyle={{
+              background: "var(--panel)",
+              border: "1px solid var(--border-strong)",
+              borderRadius: 10,
+              boxShadow: "0 10px 28px rgba(15, 23, 42, 0.12)",
+              fontSize: 12,
+            }}
+          />
+          <Area
+            type="monotoneX"
+            dataKey="remainingPercent"
+            stroke="var(--accent)"
+            fill="var(--chart-fill)"
+            fillOpacity={0.72}
+            strokeWidth={2.75}
+            dot={false}
+            activeDot={{ r: 4, fill: "var(--accent)", stroke: "var(--panel)", strokeWidth: 2 }}
+            isAnimationActive={false}
+          />
+          {last && (
+            <ReferenceDot
+              x={last.timestamp}
+              y={last.remainingPercent}
+              r={4}
+              fill="var(--accent)"
+              stroke="var(--panel)"
+              strokeWidth={2}
+            />
+          )}
         </AreaChart>
       </ResponsiveContainer>
     </div>
