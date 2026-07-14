@@ -185,4 +185,43 @@
   console contained no warnings or errors.
 - No actionable P0/P1/P2 findings remain for the requested tray refinement.
 
+## Compact single-column Settings window
+
+- Source visual truth: `/var/folders/33/1n65110j6_15vm1fd1fydb440000gn/T/codex-clipboard-c07aa689-0665-4e3c-ad49-c6cd1f309a1b.png`.
+- Browser-rendered implementation: `screenshots/actual/settings-compact-browser.png`.
+- Native Tauri evidence: `screenshots/actual/settings-compact-native.png`.
+- Full-view comparison: `screenshots/actual/settings-compact-comparison.png`.
+- Viewport and state: 520×580, light theme, populated local storage statistics.
+  The source is the preceding 960×680 design and is normalized onto a 520×580
+  comparison canvas; the viewport reduction is the requested product change, so
+  comparison focuses on retained hierarchy, density, and control readability.
+- Earlier P2 findings: the 960px window left excessive unused space; the branded
+  top bar repeated the current page title; the top-right theme button separated a
+  persistent preference from the other settings; and three horizontal data-action
+  buttons became too small for a compact window.
+- Fixes: the native window is 520×580; the Settings route omits the branded top bar;
+  theme is a normal three-state row in the General group; and database cleanup,
+  export, and folder access are full-width list items with consistent affordances.
+- Post-fix visual evidence: the exact-size browser capture shows all settings without
+  horizontal overflow or clipped copy and leaves only a small bottom inset. The
+  real Tauri capture identifies the app-owned window and confirms the native macOS
+  traffic lights remain clear of content; its earlier 520×620 height was tightened
+  to 580 after that capture to remove the remaining empty footer space.
+- Fonts and typography: the macOS system stack remains unchanged; group labels are
+  quieter 12px metadata while row labels retain stronger readable weight.
+- Spacing and layout: one column, 12px outer inset, 10px group rhythm, 42px rows,
+  11px panel radii, and a clear 36px native-titlebar inset produce a compact rhythm.
+- Colors and tokens: existing canvas, panel, border, accent, muted, and danger tokens
+  are reused in light and dark themes with no new arbitrary palette.
+- Image and asset fidelity: no new bitmap assets were required. Existing Phosphor
+  icons remain sharp and consistent; the removed top-bar logo is intentionally absent.
+- Copy and content: visible labels remain concise Chinese; default retention remains
+  14 days for new installs, and disk totals plus reclaimable space remain visible.
+- Focused-region comparison was not separate because the full 520px window keeps
+  every changed row, icon, label, and control readable at delivered size.
+- Primary interactions tested: theme changed from light to dark and back through the
+  new row, with the root theme updating each time; all controls were present in the
+  accessibility snapshot; browser console contained no warnings or errors.
+- No actionable P0/P1/P2 findings remain for the compact Settings redesign.
+
 final result: passed

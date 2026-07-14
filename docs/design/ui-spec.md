@@ -52,14 +52,18 @@ Icons use Phosphor's regular outline weight; the app mark is a transparent PNG.
 - `TrayRemainingChart`: a library-rendered area chart with adaptive 24-hour or
   seven-day labels, dynamic bounds, endpoint marker, and tooltip.
 - `SettingsRoute`: the only on-demand main-window route.
-  It uses compact Chinese-only groups for general behavior, data storage, and
-  local-data removal. Supporting descriptions appear only when they add
-  actionable information such as reclaimable disk space.
+  It uses a 520×580 single-column preferences window with no branded top bar.
+  Theme selection is a normal row in the General group. Compact Chinese-only
+  groups cover general behavior, data storage, and local-data removal;
+  supporting descriptions appear only when they add actionable information
+  such as reclaimable disk space.
 
 ## Responsive behavior
 
 - The tray surface is fixed at 420×420 and is not treated as a mobile page.
 - Chart labels and plot margins are sized to remain fully visible at that width.
+- The Settings surface is fixed to a compact 520px width. Its native titlebar
+  area is left clear for macOS traffic lights, and all controls flow in one column.
 
 ## Interaction states
 

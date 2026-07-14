@@ -1,4 +1,12 @@
-import { Broom, CalendarBlank, Database, Export, FolderOpen, Gear } from "@phosphor-icons/react";
+import {
+  Broom,
+  CalendarBlank,
+  CaretRight,
+  Database,
+  Export,
+  FolderOpen,
+  Gear,
+} from "@phosphor-icons/react";
 import { useEffect, useState } from "react";
 import {
   cleanupDatabase,
@@ -123,6 +131,16 @@ export function SettingsRoute({
             onChange={(value) => update("launchMenuBarOnly", value)}
           />
         </SettingRow>
+        <SettingRow title="主题">
+          <SelectControl
+            value={draft.theme}
+            onChange={(event) => update("theme", event.target.value as AppSettings["theme"])}
+          >
+            <option value="system">跟随系统</option>
+            <option value="light">浅色</option>
+            <option value="dark">深色</option>
+          </SelectControl>
+        </SettingRow>
       </SettingsSection>
       <SettingsSection icon={<Database />} title="数据">
         <SettingRow title="保留时间">
@@ -155,7 +173,7 @@ export function SettingsRoute({
             )}
           </div>
         </SettingRow>
-        <div className="settings-actions settings-actions--three">
+        <div className="settings-actions">
           <button type="button" onClick={() => void cleanDatabase()} disabled={cleaning}>
             <Broom size={23} />
             <span>
@@ -164,18 +182,21 @@ export function SettingsRoute({
                 <small>可释放 {formatBytes(storageStats.reclaimableBytes)}</small>
               )}
             </span>
+            <CaretRight size={16} aria-hidden="true" />
           </button>
           <button type="button" onClick={() => void exportData()}>
             <Export size={23} />
             <span>
               <strong>导出数据</strong>
             </span>
+            <CaretRight size={16} aria-hidden="true" />
           </button>
           <button type="button" onClick={() => void openDataFolder()}>
             <FolderOpen size={23} />
             <span>
               <strong>打开目录</strong>
             </span>
+            <CaretRight size={16} aria-hidden="true" />
           </button>
         </div>
         {storageMessage && <p className="storage-message">{storageMessage}</p>}
