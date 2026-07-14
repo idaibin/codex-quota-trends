@@ -17,12 +17,12 @@ const normalize = (history: TrendPoint[]) =>
   history.map((point) => ({ ...point, label: formatChartTime(point.timestamp) }));
 
 const formatTrayDate = (timestamp: number) =>
-  new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" }).format(
+  new Intl.DateTimeFormat("zh-CN", { month: "numeric", day: "numeric" }).format(
     new Date(timestamp * 1_000),
   );
 
 const formatTrayTime = (timestamp: number) =>
-  new Intl.DateTimeFormat("en-US", { hour: "2-digit", minute: "2-digit", hour12: false }).format(
+  new Intl.DateTimeFormat("zh-CN", { hour: "2-digit", minute: "2-digit", hour12: false }).format(
     new Date(timestamp * 1_000),
   );
 
@@ -102,7 +102,7 @@ export function TrayRemainingChart({ history }: { history: TrendPoint[] }) {
     remainingPercent: 100 - point.usedPercent,
   }));
   if (data.length === 0)
-    return <div className="tray-trend-chart tray-trend-chart--empty">No trend data yet</div>;
+    return <div className="tray-trend-chart tray-trend-chart--empty">暂无趋势数据</div>;
   const values = data.map((point) => point.remainingPercent);
   const minimum = Math.min(...values);
   const maximum = Math.max(...values);
@@ -115,7 +115,7 @@ export function TrayRemainingChart({ history }: { history: TrendPoint[] }) {
   return (
     <div
       className="tray-trend-chart"
-      aria-label={`Quota remaining over the last ${timeSpan >= 2 * 86_400 ? "seven days" : "24 hours"}`}
+      aria-label={`最近${timeSpan >= 2 * 86_400 ? "七天" : "24小时"}的剩余额度`}
     >
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart data={data} margin={{ top: 12, right: 10, bottom: 2, left: 0 }}>
@@ -137,9 +137,9 @@ export function TrayRemainingChart({ history }: { history: TrendPoint[] }) {
             minTickGap={64}
           />
           <Tooltip
-            formatter={(value) => [formatPercent(Number(value)), "Remaining"]}
+            formatter={(value) => [formatPercent(Number(value)), "剩余额度"]}
             labelFormatter={(value) =>
-              new Intl.DateTimeFormat("en-US", {
+              new Intl.DateTimeFormat("zh-CN", {
                 month: "short",
                 day: "numeric",
                 hour: "2-digit",

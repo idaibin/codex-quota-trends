@@ -10,13 +10,15 @@ and used only for Settings. The generated transparent PNG app mark under
 ## Shell
 
 - Menu bar popover: 420×500, frameless, opaque, shadowless, and hidden on blur.
-- Header: 34px PNG app mark, product name, and one Settings gear.
+- Header: collector state, last-update time, pause/resume, Quit, and Settings.
+  The product mark and name are intentionally omitted from this compact surface.
 - Remaining summary: current percentage, quota-window label, reset countdown,
   and the remaining-point change for the visible range.
 - Trend: the primary content region with a dynamic percentage domain, three
   horizontal guides, contextual time labels, endpoint marker, area fill, and
   a precise hover tooltip.
-- Footer: collector state, last update, pause/resume, and Quit.
+- Visible popover copy, chart labels, tooltips, and accessibility names use Chinese.
+- The native window and its content clip to an 8px corner radius.
 
 ## Tokens
 

@@ -2,53 +2,44 @@
 
 ## Evidence
 
-- Source visual truth: `/var/folders/33/1n65110j6_15vm1fd1fydb440000gn/T/codex-clipboard-59ab3ad9-78be-441b-8ba1-e4a48c254901.png`.
-- Source popover crop: `screenshots/actual/tray-source-crop.png`.
-- Implementation: `screenshots/actual/tray-focused-v2.png`.
-- Tooltip state: `screenshots/actual/tray-focused-tooltip.png`.
+- Source visual truth: `/var/folders/33/1n65110j6_15vm1fd1fydb440000gn/T/codex-clipboard-76657db7-ffd9-41be-bd1d-343019640f06.png`.
+- Normalized source: `screenshots/actual/tray-zh-source.png`.
+- Implementation: `screenshots/actual/tray-zh-v2.png`.
+- Full-view comparison: `screenshots/actual/tray-zh-comparison.png`.
 - Viewport: 420×500, light theme, deterministic local quota data.
-- Full-view comparison: `screenshots/actual/tray-focused-comparison.png`.
-- Focused-region comparison was unnecessary because the normalized 420px views
-  keep all typography, controls, chart axes, endpoint, logo, and borders legible.
+- Focused-region comparison was unnecessary because the normalized comparison
+  keeps the header controls, all Chinese copy, axes, endpoint, and corners legible.
 
-## Findings and comparison history
+## Findings and fixes
 
-- P2, first pass: the left Y-axis labels were clipped and 24-hour X-axis labels
-  repeated the same calendar date. The chart margin was corrected and the X-axis
-  now selects time labels for 24-hour data and dates for multi-day data.
-- Post-fix evidence: `screenshots/actual/tray-focused-v2.png` shows complete
-  60/70/80% labels, three distinct time labels, and an unobstructed endpoint.
-- No actionable P0/P1/P2 findings remain after the second comparison.
+- P2: the product mark and English product name occupied the most valuable top-left
+  area. The brand block was removed completely.
+- P2: collector state and pause/Quit actions were detached below the primary card.
+  They now share one compact top status bar with the Settings control.
+- P2: visible labels, relative time, reset duration, range change, chart tooltip,
+  empty states, and accessible control names mixed English with Chinese. All popover
+  content now uses Chinese and Chinese date/time formatting.
+- P2: the frameless native surface had square corners. The tray webview is transparent,
+  while root, popover, and content clipping all resolve to an 8px border radius.
+- No actionable P0/P1/P2 findings remain after the implementation comparison.
 
 ## Required fidelity surfaces
 
-- Fonts and typography: the existing macOS system stack, compact optical weights,
-  tabular quota figures, and restrained uppercase eyebrow establish clear hierarchy.
-- Spacing and layout rhythm: the 420×500 frame uses one 15px-radius content card,
-  a 14px outer inset, and a stable header-summary-chart-footer rhythm with no scroll.
-- Colors and tokens: the existing purple accent, neutral canvas, semantic green
-  collector state, and low-contrast grid lines remain consistent in light and dark.
-- Image quality and assets: the supplied PNG logo remains sharp at 34px; all utility
-  controls use the existing Phosphor icon library with no placeholder artwork.
-- Copy and content: the surface prioritizes current remaining, reset time, range
-  change, and the remaining trend. Open Dashboard and duplicate Settings rows are gone.
+- Fonts and typography: the macOS system stack and tabular quota figures are retained;
+  Chinese hierarchy remains readable without clipping or unintended wrapping.
+- Spacing and layout rhythm: moving the former footer content to the top frees enough
+  height for a 230px trend chart while preserving the 420×500 outer geometry.
+- Colors and tokens: the purple trend, neutral surface, and semantic collector state
+  reuse the existing light/dark design tokens.
+- Image quality and assets: no visible raster asset remains after the requested brand
+  removal; utility controls continue to use the existing Phosphor icon library.
+- Copy and content: all visible product copy and interactive labels are Chinese.
 
-## Interaction evidence
+## Runtime evidence
 
-- The in-app browser DOM exposes exactly three controls: Settings, pause/resume,
-  and Quit. No Dashboard action is rendered.
-- The chart exposes current Y-axis percentages, range-appropriate X-axis labels,
-  a readable hover tooltip, and the latest-point marker.
-- Pause changed the footer to `Collector paused` and Resume restored the connected
-  state. The browser console reported no warnings or errors.
-- Native debug PID `26615` reported hidden 960×680 `main` window CGWindowID
-  `6900` and hidden 420×500 `tray` window CGWindowID `6901`, confirming the
-  menu-bar-only startup state and requested tray geometry. Native Settings-window
-  interaction was not automated in this pass.
-
-## Follow-up polish
-
-- P3: when a full seven days of real history exists, confirm three date ticks stay
-  readable in both English and localized macOS date formats.
+- Browser DOM exposes `采集器已连接`, Chinese update time, `暂停采集`, `退出应用`,
+  `打开设置`, Chinese quota/reset/change labels, and `剩余额度趋势`.
+- Computed styles report 8px radii for the root, popover, and main card with hidden
+  overflow. Browser console warnings and errors: none.
 
 final result: passed

@@ -77,6 +77,13 @@ body {
   background: transparent;
   font-size: 14px;
 }
+:root[data-surface="tray"],
+:root[data-surface="tray"] body,
+:root[data-surface="tray"] #root {
+  overflow: hidden;
+  border-radius: 8px;
+  background: transparent;
+}
 button,
 select,
 input {
@@ -1220,29 +1227,21 @@ select {
   overflow: hidden;
   padding: 14px;
   border: 0;
-  border-radius: 0;
+  border-radius: 8px;
   color: var(--text);
   background: var(--canvas);
   box-shadow: none;
 }
-.tray-popover > header {
+.tray-statusbar {
   display: flex;
   min-height: 42px;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
   margin-bottom: 12px;
   padding: 0 2px;
 }
-.tray-popover > header .brand strong {
-  font-size: 15px;
-  letter-spacing: -0.2px;
-}
-.tray-popover .brand img {
-  width: 34px;
-  height: 34px;
-}
-.tray-icon-button,
-.tray-footer-actions button {
+.tray-statusbar-actions button {
   display: grid;
   width: 34px;
   height: 34px;
@@ -1258,8 +1257,7 @@ select {
     border-color 0.16s ease,
     background 0.16s ease;
 }
-.tray-icon-button:hover,
-.tray-footer-actions button:hover {
+.tray-statusbar-actions button:hover {
   border-color: var(--border);
   color: var(--text);
   background: var(--panel-subtle);
@@ -1269,7 +1267,7 @@ select {
   flex: 1;
   overflow: hidden;
   border: 1px solid var(--border);
-  border-radius: 15px;
+  border-radius: 8px;
   background: var(--panel);
 }
 .tray-remaining-hero {
@@ -1356,7 +1354,7 @@ select {
 }
 .tray-trend-chart {
   width: 100%;
-  height: 178px;
+  height: 230px;
   margin-top: 5px;
 }
 .tray-trend-chart .recharts-cartesian-axis-tick text {
@@ -1367,14 +1365,6 @@ select {
   place-content: center;
   color: var(--muted);
   font-size: 12px;
-}
-.tray-footer {
-  display: flex;
-  min-height: 54px;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 10px 2px 0;
 }
 .tray-collector-summary {
   display: flex;
@@ -1411,17 +1401,17 @@ select {
   color: var(--muted);
   font-size: 11px;
 }
-.tray-footer-actions {
+.tray-statusbar-actions {
   display: flex;
   flex: 0 0 auto;
   gap: 4px;
 }
-.tray-footer-actions svg {
+.tray-statusbar-actions svg {
   width: 19px;
   height: 19px;
 }
-.tray-footer-actions .quit-action:hover,
-.tray-footer-actions .quit-action:hover svg {
+.tray-statusbar-actions .quit-action:hover,
+.tray-statusbar-actions .quit-action:hover svg {
   color: var(--danger);
 }
 .tray-popover--empty,
