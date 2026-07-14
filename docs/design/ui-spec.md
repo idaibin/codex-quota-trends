@@ -9,6 +9,9 @@ and used only for Settings. The generated transparent PNG app mark under
 
 ## Shell
 
+- Menu bar item: a monochrome template version of the existing quota curve with
+  no purple tile, followed by the rounded current remaining percentage. The title
+  refreshes from the latest local quota snapshot without opening the popover.
 - Menu bar popover: 420×420, frameless, opaque, shadowless, and hidden on blur.
 - Header: collector state, last-update time, pause/resume, Quit, and Settings.
   The product mark and name are intentionally omitted from this compact surface.

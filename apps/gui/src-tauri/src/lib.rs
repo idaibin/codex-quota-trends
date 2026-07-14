@@ -15,6 +15,26 @@ use tauri::{
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
 };
 
+const TRAY_REFRESH_INTERVAL: std::time::Duration = std::time::Duration::from_secs(5);
+
+fn format_remaining_title(used_percent: Option<f64>) -> String {
+    used_percent
+        .filter(|value| value.is_finite())
+        .map(|value| format!("{:.0}%", 100.0 - value.clamp(0.0, 100.0)))
+        .unwrap_or_else(|| "--%".to_owned())
+}
+
+fn current_remaining_title(database: &Arc<Mutex<Database>>) -> String {
+    let used_percent = database.lock().ok().and_then(|database| {
+        database
+            .latest_any_snapshot()
+            .ok()
+            .flatten()
+            .and_then(|snapshot| snapshot.windows.first().map(|window| window.used_percent))
+    });
+    format_remaining_title(used_percent)
+}
+
 fn show_main(app: &tauri::AppHandle, route: Option<&str>) {
     if let Some(window) = app.get_webview_window("main") {
         if route == Some("settings") {
@@ -53,6 +73,8 @@ pub fn run() {
             let data_dir = app.path().app_data_dir()?;
             fs::create_dir_all(&data_dir)?;
             let database = Arc::new(Mutex::new(Database::open(data_dir.join("quota-trends.db"))?));
+            let tray_database = Arc::clone(&database);
+            let initial_tray_title = current_remaining_title(&tray_database);
             let runtime = CollectorRuntime::new(Arc::clone(&database), CollectorConfig::default());
             let state = AppState {
                 database,
@@ -68,8 +90,10 @@ pub fn run() {
             let quit =
                 MenuItem::with_id(app, "quit", "Quit Codex Quota Trends", true, None::<&str>)?;
             let menu = Menu::with_items(app, &[&settings, &quit])?;
-            TrayIconBuilder::with_id("codex-quota-trends-tray")
-                .icon(Image::new(include_bytes!("../icons/icon.rgba"), 128, 128))
+            let tray_icon = TrayIconBuilder::with_id("codex-quota-trends-tray")
+                .icon(Image::new(include_bytes!("../icons/tray-template.rgba"), 128, 128))
+                .icon_as_template(true)
+                .title(&initial_tray_title)
                 .tooltip("Codex Quota Trends")
                 .menu(&menu)
                 .show_menu_on_left_click(false)
@@ -103,6 +127,17 @@ pub fn run() {
                     _ => {}
                 })
                 .build(app)?;
+            tauri::async_runtime::spawn(async move {
+                let mut displayed_title = initial_tray_title;
+                loop {
+                    tokio::time::sleep(TRAY_REFRESH_INTERVAL).await;
+                    let next_title = current_remaining_title(&tray_database);
+                    if next_title != displayed_title {
+                        let _ = tray_icon.set_title(Some(&next_title));
+                        displayed_title = next_title;
+                    }
+                }
+            });
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -141,4 +176,18 @@ pub fn run() {
         }
         _ => {}
     });
+}
+
+#[cfg(test)]
+mod tests {
+    use super::format_remaining_title;
+
+    #[test]
+    fn formats_remaining_percentage_for_the_tray_title() {
+        assert_eq!(format_remaining_title(Some(42.4)), "58%");
+        assert_eq!(format_remaining_title(Some(-3.0)), "100%");
+        assert_eq!(format_remaining_title(Some(120.0)), "0%");
+        assert_eq!(format_remaining_title(None), "--%");
+        assert_eq!(format_remaining_title(Some(f64::NAN)), "--%");
+    }
 }

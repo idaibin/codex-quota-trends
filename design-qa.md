@@ -124,4 +124,28 @@
   and hover/focus behavior are unchanged; no new image assets were required.
 - No actionable P0/P1/P2 findings remain for the requested flat-container change.
 
+## Menu bar percentage and template icon
+
+- Source visual truth: `/var/folders/33/1n65110j6_15vm1fd1fydb440000gn/T/codex-clipboard-9fc06c34-18aa-4b3a-91ce-0deb25942c48.png`.
+- Native implementation region: `screenshots/actual/menu-bar-percentage-region.png`.
+- Focused implementation: `screenshots/actual/menu-bar-percentage-focused.png`.
+- Focused comparison: `screenshots/actual/menu-bar-percentage-comparison.png`.
+- Viewport and state: macOS menu bar, 720×40 points captured at 2× scale,
+  light menu-bar appearance, latest stored quota showing 57% remaining.
+- Earlier P2 finding: the tray item exposed only a purple rounded-square app icon,
+  so the current remaining quota could not be read without opening the popover.
+- Fix: the tray uses a transparent macOS template rendering of the existing quota
+  curve and a native title containing the rounded remaining percentage.
+- Post-fix evidence: the focused native capture shows the curve followed by `57%`,
+  with no purple tile, colored surround, raster halo, or extra card background.
+- The full native region proves alignment with neighboring macOS status items; the
+  focused comparison is required because the icon and title are too small to judge
+  accurately in the full 720-point strip.
+- Typography is native macOS menu-bar text; spacing follows the system status-item
+  layout; color adapts through template rendering; the reused curve remains sharp;
+  and the percentage is concise without duplicated words.
+- Interaction is unchanged: clicking the icon/title keeps toggling the existing
+  popover, and the percentage refreshes from the latest local snapshot.
+- No actionable P0/P1/P2 findings remain for the requested menu-bar change.
+
 final result: passed
