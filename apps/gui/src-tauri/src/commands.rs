@@ -1,4 +1,4 @@
-use std::{fs, process::Command, sync::atomic::Ordering};
+use std::{fs, process::Command};
 
 use chrono::Utc;
 use codex_quota_core::{
@@ -118,11 +118,6 @@ pub fn save_settings(
 }
 
 #[tauri::command]
-pub fn set_collector_paused(state: State<'_, AppState>, paused: bool) {
-    state.collector_paused.store(paused, Ordering::Relaxed);
-}
-
-#[tauri::command]
 pub fn export_data(state: State<'_, AppState>) -> Result<Option<String>, String> {
     let csv = state
         .database
@@ -171,9 +166,4 @@ pub fn reset_local_data(state: State<'_, AppState>) -> Result<DatabaseCleanupRes
         .map_err(|_| "database lock poisoned".to_owned())?
         .reset_local_data()
         .map_err(|error| error.to_string())
-}
-
-#[tauri::command]
-pub fn quit_app(app: AppHandle) {
-    app.exit(0);
 }

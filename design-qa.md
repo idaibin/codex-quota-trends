@@ -148,4 +148,41 @@
   popover, and the percentage refreshes from the latest local snapshot.
 - No actionable P0/P1/P2 findings remain for the requested menu-bar change.
 
+## Context-menu actions and refined current value
+
+- Source visual truth: `/var/folders/33/1n65110j6_15vm1fd1fydb440000gn/T/codex-clipboard-1ea9f71f-b408-44c2-a175-6164a431759c.png`.
+- Browser-rendered implementation: `screenshots/actual/tray-popover-browser-final.png`.
+- Full-view comparison: `screenshots/actual/tray-popover-comparison.png`.
+- Native interaction evidence: `screenshots/actual/tray-context-menu-final.png`.
+- Viewport and state: 420×420, light tray surface, populated 24-hour trend. The
+  source uses live 57% data while the browser adapter uses deterministic 68% data;
+  comparison is limited to hierarchy, typography, spacing, and chart treatment.
+- Earlier P2 findings: the inline collector/action header consumed vertical space;
+  the chart heading repeated the trend title; the axis type was visually heavy; and
+  the latest value was indistinguishable from the other representative labels.
+- Fixes: the header and its stale frontend commands were removed; pause/resume,
+  Settings, and Quit moved to the native Chinese context menu; reset time moved to
+  the chart heading; axes use 9px muted type and lighter grid strokes; and the latest
+  value uses the accent color plus a two-layer halo marker.
+- First post-fix capture exposed a slash-formatted date and selectable heading text.
+  The date was changed to explicit Chinese month/day copy and the native tray surface
+  now prevents accidental text selection. The final comparison shows both fixes.
+- Fonts and typography: the system stack is preserved; smaller axis labels remain
+  legible, and the current value has the strongest chart-label emphasis.
+- Spacing and layout: removing the header gives the summary and chart the full window;
+  the divider, chart margins, 8px outer radius, and compact range pill remain aligned.
+- Colors and tokens: existing canvas, accent, grid, fill, muted, and border tokens are
+  reused in light and dark modes; no new arbitrary palette was introduced.
+- Image and asset fidelity: no new raster or illustrative assets were needed; the
+  existing Recharts area and Phosphor change icon remain sharp at native scale.
+- Copy and content: all visible popover and native-menu copy is Chinese. Reset time is
+  concrete, and the duplicate relative-reset line is removed from the summary.
+- The full 420×420 comparison is also the focused component comparison: the changed
+  heading, axis labels, and highlighted endpoint are readable at their delivered size,
+  so a separate crop would not add evidence.
+- Primary interactions tested: native menu opened; `暂停采集` changed to `继续采集`;
+  collector was immediately resumed; Settings and Quit remained present. Browser
+  console contained no warnings or errors.
+- No actionable P0/P1/P2 findings remain for the requested tray refinement.
+
 final result: passed

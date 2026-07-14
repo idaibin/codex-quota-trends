@@ -43,10 +43,6 @@ export async function refreshQuota(): Promise<DashboardData> {
   return isTauriRuntime() ? invoke<DashboardData>("refresh_quota") : structuredClone(demoDashboard);
 }
 
-export async function pauseCollector(paused: boolean): Promise<void> {
-  if (isTauriRuntime()) await invoke("set_collector_paused", { paused });
-}
-
 export async function exportData(): Promise<string | null> {
   return isTauriRuntime() ? invoke<string | null>("export_data") : null;
 }
@@ -82,8 +78,4 @@ export async function resetLocalData(): Promise<DatabaseCleanupResult> {
     reclaimableBytes: 0,
   });
   return { deletedRows: 248, before, after: structuredClone(demoDatabaseStats) };
-}
-
-export async function quitApp(): Promise<void> {
-  if (isTauriRuntime()) await invoke("quit_app");
 }

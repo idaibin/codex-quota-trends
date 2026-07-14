@@ -121,12 +121,16 @@ export function TrayRemainingChart({ history }: { history: TrendPoint[] }) {
     0,
   );
   const labelIndexes = new Set([0, middleIndex, source.length - 1]);
+  const lastIndex = source.length - 1;
   const data = source.map((point, index) => {
     const remainingPercent = 100 - point.usedPercent;
     return {
       ...point,
       remainingPercent,
-      displayPercent: labelIndexes.has(index) ? formatPercent(remainingPercent) : undefined,
+      displayPercent:
+        labelIndexes.has(index) && index !== lastIndex
+          ? formatPercent(remainingPercent)
+          : undefined,
     };
   });
   if (data.length === 0)
@@ -155,7 +159,12 @@ export function TrayRemainingChart({ history }: { history: TrendPoint[] }) {
     >
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart data={data} margin={{ top: 22, right: 20, bottom: 1, left: 0 }}>
-          <CartesianGrid stroke="var(--chart-grid)" strokeDasharray="3 4" vertical={false} />
+          <CartesianGrid
+            stroke="var(--chart-grid)"
+            strokeDasharray="2 4"
+            strokeOpacity={0.72}
+            vertical={false}
+          />
           <YAxis
             domain={[domainMin, domainMax]}
             tickCount={3}
@@ -217,14 +226,31 @@ export function TrayRemainingChart({ history }: { history: TrendPoint[] }) {
             />
           </Area>
           {last && (
-            <ReferenceDot
-              x={last.timestamp}
-              y={last.remainingPercent}
-              r={4}
-              fill="var(--accent)"
-              stroke="var(--panel)"
-              strokeWidth={2}
-            />
+            <>
+              <ReferenceDot
+                x={last.timestamp}
+                y={last.remainingPercent}
+                r={8}
+                fill="var(--accent-soft)"
+                stroke="none"
+              />
+              <ReferenceDot
+                x={last.timestamp}
+                y={last.remainingPercent}
+                r={4.5}
+                fill="var(--accent)"
+                stroke="var(--panel)"
+                strokeWidth={2}
+                label={{
+                  value: formatPercent(last.remainingPercent),
+                  position: "top",
+                  offset: 8,
+                  fill: "var(--accent)",
+                  fontSize: 11,
+                  fontWeight: 750,
+                }}
+              />
+            </>
           )}
         </AreaChart>
       </ResponsiveContainer>

@@ -3,7 +3,7 @@ mod state;
 
 use std::{
     fs,
-    sync::{Arc, Mutex},
+    sync::{Arc, Mutex, atomic::Ordering},
 };
 
 use codex_quota_core::{CollectorConfig, CollectorRuntime, Database};
@@ -11,7 +11,7 @@ use state::AppState;
 use tauri::{
     Manager, PhysicalPosition, RunEvent, WindowEvent,
     image::Image,
-    menu::{Menu, MenuItem},
+    menu::{Menu, MenuItem, PredefinedMenuItem},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
 };
 
@@ -86,10 +86,12 @@ pub fn run() {
             app.manage(state);
             tauri::async_runtime::spawn(runtime.run());
 
-            let settings = MenuItem::with_id(app, "settings", "Settings…", true, None::<&str>)?;
-            let quit =
-                MenuItem::with_id(app, "quit", "Quit Codex Quota Trends", true, None::<&str>)?;
-            let menu = Menu::with_items(app, &[&settings, &quit])?;
+            let pause = MenuItem::with_id(app, "pause", "暂停采集", true, None::<&str>)?;
+            let settings = MenuItem::with_id(app, "settings", "设置…", true, None::<&str>)?;
+            let separator = PredefinedMenuItem::separator(app)?;
+            let quit = MenuItem::with_id(app, "quit", "退出", true, None::<&str>)?;
+            let menu = Menu::with_items(app, &[&pause, &settings, &separator, &quit])?;
+            let pause_menu_item = pause.clone();
             let tray_icon = TrayIconBuilder::with_id("codex-quota-trends-tray")
                 .icon(Image::new(include_bytes!("../icons/tray-template.rgba"), 128, 128))
                 .icon_as_template(true)
@@ -121,7 +123,17 @@ pub fn run() {
                         );
                     }
                 })
-                .on_menu_event(|app, event| match event.id().as_ref() {
+                .on_menu_event(move |app, event| match event.id().as_ref() {
+                    "pause" => {
+                        let state = app.state::<AppState>();
+                        let paused = !state.collector_paused.load(Ordering::Relaxed);
+                        state.collector_paused.store(paused, Ordering::Relaxed);
+                        let _ = pause_menu_item.set_text(if paused {
+                            "继续采集"
+                        } else {
+                            "暂停采集"
+                        });
+                    }
                     "settings" => show_main(app, Some("settings")),
                     "quit" => app.exit(0),
                     _ => {}
@@ -147,13 +159,11 @@ pub fn run() {
             commands::get_alerts,
             commands::get_settings,
             commands::save_settings,
-            commands::set_collector_paused,
             commands::export_data,
             commands::open_data_folder,
             commands::get_database_stats,
             commands::cleanup_database,
             commands::reset_local_data,
-            commands::quit_app,
         ])
         .build(tauri::generate_context!())
         .expect("failed to build Codex Quota Trends");
