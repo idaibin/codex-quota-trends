@@ -140,9 +140,9 @@ export const demoSettings: AppSettings = {
   offlineThresholdMinutes: 5,
   launchAtLogin: true,
   launchMenuBarOnly: false,
-  desktopNotifications: true,
+  desktopNotifications: false,
   dailySummary: false,
-  retentionDays: 30,
+  retentionDays: 14,
   theme: "light",
 };
 

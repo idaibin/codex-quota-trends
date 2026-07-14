@@ -6,7 +6,7 @@ Codex Quota Trends is a Client/Tauri repository.
 
 ```text
 apps/gui/src         React presentation and interaction
-apps/gui/src-tauri   Tauri commands, tray, notifications, window lifecycle
+apps/gui/src-tauri   Tauri commands, tray, and window lifecycle
 crates/codex-quota-core
   codex              app-server JSONL process and protocol normalization
   quota              domain model, trend calculations, alert detection

@@ -14,7 +14,6 @@ use tauri::{
     menu::{Menu, MenuItem},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
 };
-use tauri_plugin_notification::NotificationExt;
 
 fn show_main(app: &tauri::AppHandle, route: Option<&str>) {
     if let Some(window) = app.get_webview_window("main") {
@@ -47,7 +46,6 @@ fn toggle_tray(app: &tauri::AppHandle, anchor_x: f64, anchor_y: f64) {
 pub fn run() {
     let app = tauri::Builder::default()
         .plugin(tauri_plugin_autostart::Builder::new().build())
-        .plugin(tauri_plugin_notification::init())
         .setup(|app| {
             #[cfg(target_os = "macos")]
             app.set_activation_policy(tauri::ActivationPolicy::Accessory);
@@ -55,7 +53,6 @@ pub fn run() {
             let data_dir = app.path().app_data_dir()?;
             fs::create_dir_all(&data_dir)?;
             let database = Arc::new(Mutex::new(Database::open(data_dir.join("quota-trends.db"))?));
-            let notification_database = Arc::clone(&database);
             let runtime = CollectorRuntime::new(Arc::clone(&database), CollectorConfig::default());
             let state = AppState {
                 database,
@@ -66,44 +63,6 @@ pub fn run() {
             };
             app.manage(state);
             tauri::async_runtime::spawn(runtime.run());
-
-            let notification_app = app.handle().clone();
-            tauri::async_runtime::spawn(async move {
-                let mut last_seen_id = notification_database
-                    .lock()
-                    .ok()
-                    .and_then(|database| database.recent_alerts(1).ok())
-                    .and_then(|alerts| alerts.first().map(|alert| alert.id))
-                    .unwrap_or_default();
-                loop {
-                    tokio::time::sleep(std::time::Duration::from_secs(5)).await;
-                    let Some((enabled, mut alerts)) =
-                        notification_database.lock().ok().and_then(|database| {
-                            Some((
-                                database.load_settings().ok()?.desktop_notifications,
-                                database.recent_alerts(25).ok()?,
-                            ))
-                        })
-                    else {
-                        continue;
-                    };
-                    alerts.sort_by_key(|alert| alert.id);
-                    for alert in alerts {
-                        if alert.id <= last_seen_id {
-                            continue;
-                        }
-                        last_seen_id = alert.id;
-                        if enabled {
-                            let _ = notification_app
-                                .notification()
-                                .builder()
-                                .title(&alert.title)
-                                .body(&alert.message)
-                                .show();
-                        }
-                    }
-                }
-            });
 
             let settings = MenuItem::with_id(app, "settings", "Settings…", true, None::<&str>)?;
             let quit =

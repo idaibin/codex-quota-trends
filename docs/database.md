@@ -15,7 +15,7 @@ events used by Activity and Alerts.
 `settings` stores the small user-controlled configuration surface.
 
 Indexes cover `(limit_id, window_minutes, created_at)` and recent event reads.
-New installs retain 30 days by default. Users can set any retention period from
+New installs retain 14 days by default. Users can set any retention period from
 1 to 365 days; saving the setting immediately deletes expired snapshots,
 events, and alerts in one transaction.
 

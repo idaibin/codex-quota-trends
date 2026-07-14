@@ -57,9 +57,9 @@ impl Default for AppSettings {
             offline_threshold_minutes: 5,
             launch_at_login: false,
             launch_menu_bar_only: false,
-            desktop_notifications: true,
+            desktop_notifications: false,
             daily_summary: false,
-            retention_days: 30,
+            retention_days: 14,
             theme: ThemeMode::System,
         }
     }
@@ -93,7 +93,8 @@ mod tests {
     #[test]
     fn default_settings_are_valid() {
         let settings = AppSettings::default();
-        assert_eq!(settings.retention_days, 30);
+        assert_eq!(settings.retention_days, 14);
+        assert!(!settings.desktop_notifications);
         assert!(settings.validate().is_ok());
     }
 

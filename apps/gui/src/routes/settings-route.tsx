@@ -1,12 +1,4 @@
-import {
-  Bell,
-  Broom,
-  CalendarBlank,
-  Database,
-  Export,
-  FolderOpen,
-  Gear,
-} from "@phosphor-icons/react";
+import { Broom, CalendarBlank, Database, Export, FolderOpen, Gear } from "@phosphor-icons/react";
 import { useEffect, useState } from "react";
 import {
   cleanupDatabase,
@@ -58,7 +50,7 @@ export function SettingsRoute({
   };
 
   const commitRetention = () => {
-    const retentionDays = Math.min(365, Math.max(1, Math.round(draft.retentionDays || 30)));
+    const retentionDays = Math.min(365, Math.max(1, Math.round(draft.retentionDays || 14)));
     const next = { ...draft, retentionDays };
     setDraft(next);
     setSaved(false);
@@ -87,7 +79,7 @@ export function SettingsRoute({
   };
 
   const confirmReset = async () => {
-    if (window.confirm("确定清除全部本地额度记录和提醒吗？此操作无法撤销。")) {
+    if (window.confirm("确定清除全部本地额度记录吗？此操作无法撤销。")) {
       setCleaning(true);
       try {
         const result = await resetLocalData();
@@ -129,53 +121,6 @@ export function SettingsRoute({
             label="仅显示菜单栏"
             checked={draft.launchMenuBarOnly}
             onChange={(value) => update("launchMenuBarOnly", value)}
-          />
-        </SettingRow>
-      </SettingsSection>
-      <SettingsSection icon={<Bell />} title="提醒">
-        <SettingRow title="用量突增">
-          <div className="threshold-control">
-            <input
-              aria-label="用量突增百分比"
-              type="number"
-              min="1"
-              max="100"
-              value={draft.rapidDrainPercent}
-              onChange={(event) => update("rapidDrainPercent", Number(event.target.value))}
-            />
-            <span>% /</span>
-            <SelectControl
-              value={draft.rapidDrainMinutes}
-              onChange={(event) => update("rapidDrainMinutes", Number(event.target.value))}
-            >
-              <option value="5">5 分钟</option>
-              <option value="10">10 分钟</option>
-              <option value="15">15 分钟</option>
-            </SelectControl>
-          </div>
-        </SettingRow>
-        <SettingRow title="离线提醒">
-          <SelectControl
-            value={draft.offlineThresholdMinutes}
-            onChange={(event) => update("offlineThresholdMinutes", Number(event.target.value))}
-          >
-            <option value="3">3 分钟</option>
-            <option value="5">5 分钟</option>
-            <option value="10">10 分钟</option>
-          </SelectControl>
-        </SettingRow>
-        <SettingRow title="桌面通知">
-          <Toggle
-            label="桌面通知"
-            checked={draft.desktopNotifications}
-            onChange={(value) => update("desktopNotifications", value)}
-          />
-        </SettingRow>
-        <SettingRow title="每日摘要">
-          <Toggle
-            label="每日摘要"
-            checked={draft.dailySummary}
-            onChange={(value) => update("dailySummary", value)}
           />
         </SettingRow>
       </SettingsSection>

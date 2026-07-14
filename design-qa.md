@@ -91,4 +91,17 @@
 - Spans near 24 hours include both date and time so identical clock times on adjacent
   days remain distinguishable; longer multi-day spans continue to use date labels.
 
+## Settings without reminders
+
+- Source visual truth: `/var/folders/33/1n65110j6_15vm1fd1fydb440000gn/T/codex-clipboard-739c0a6d-6458-49b4-b2be-d0719c68e99b.png`.
+- Implementation: `screenshots/actual/settings-no-reminders-14-days.png`.
+- Comparison: `screenshots/actual/settings-no-reminders-comparison.png`.
+- Viewport: 960×680, light theme, deterministic local data.
+- The entire reminder group is removed, leaving only general behavior, data storage,
+  and local-data removal on the Settings surface.
+- New installs and the deterministic browser adapter show a 14-day retention default;
+  the existing 1–365 day validation and user-configured persisted values remain intact.
+- The removed native notification task and Tauri notification plugin ensure hidden
+  reminder settings cannot continue producing desktop notifications in the background.
+
 final result: passed
