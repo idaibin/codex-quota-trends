@@ -2,11 +2,14 @@
 
 ## Evidence
 
-- Source visual truth: `/var/folders/33/1n65110j6_15vm1fd1fydb440000gn/T/codex-clipboard-76657db7-ffd9-41be-bd1d-343019640f06.png`.
-- Normalized source: `screenshots/actual/tray-zh-source.png`.
-- Implementation: `screenshots/actual/tray-zh-v2.png`.
-- Full-view comparison: `screenshots/actual/tray-zh-comparison.png`.
-- Viewport: 420×500, light theme, deterministic local quota data.
+- Source visual truth: `/var/folders/33/1n65110j6_15vm1fd1fydb440000gn/T/codex-clipboard-70e8982a-2269-46c3-b872-d92441ff2b49.png`.
+- Normalized source: `screenshots/actual/tray-compact-source.png`.
+- Implementation: `screenshots/actual/tray-compact-preview.png`.
+- Full-view comparison: `screenshots/actual/tray-compact-comparison.png`.
+- Native viewport contract: 420×420, light theme, deterministic local quota data.
+- The fallback Chromium capture uses a 500×420 viewport because the local browser
+  enforces a 500px minimum width; the 420px native width is verified by the Tauri
+  configuration and the layout uses shrink-safe flex containers.
 - Focused-region comparison was unnecessary because the normalized comparison
   keeps the header controls, all Chinese copy, axes, endpoint, and corners legible.
 
@@ -21,14 +24,17 @@
   content now uses Chinese and Chinese date/time formatting.
 - P2: the frameless native surface had square corners. The tray webview is transparent,
   while root, popover, and content clipping all resolve to an 8px border radius.
+- P2: the 500px-tall popover repeated trend context and used oversized whitespace.
+  The native height is now 420px, the trend subtitle is removed, the status and quota
+  rows are denser, and the chart is reduced from 230px to 205px without losing axes.
 - No actionable P0/P1/P2 findings remain after the implementation comparison.
 
 ## Required fidelity surfaces
 
 - Fonts and typography: the macOS system stack and tabular quota figures are retained;
   Chinese hierarchy remains readable without clipping or unintended wrapping.
-- Spacing and layout rhythm: moving the former footer content to the top frees enough
-  height for a 230px trend chart while preserving the 420×500 outer geometry.
+- Spacing and layout rhythm: the top status row, quota summary, and trend heading are
+  compressed into a 420×420 surface while preserving a readable 205px trend chart.
 - Colors and tokens: the purple trend, neutral surface, and semantic collector state
   reuse the existing light/dark design tokens.
 - Image quality and assets: no visible raster asset remains after the requested brand
@@ -37,9 +43,10 @@
 
 ## Runtime evidence
 
-- Browser DOM exposes `采集器已连接`, Chinese update time, `暂停采集`, `退出应用`,
-  `打开设置`, Chinese quota/reset/change labels, and `剩余额度趋势`.
-- Computed styles report 8px radii for the root, popover, and main card with hidden
-  overflow. Browser console warnings and errors: none.
+- The rendered capture exposes `采集器已连接`, Chinese update time, all three action
+  icons, Chinese quota/reset/change labels, `剩余额度趋势`, axes, and endpoint.
+- The in-app browser bridge could not initialize in this run because of a runtime
+  property conflict. Visual QA used isolated local Chromium against the same Vite
+  surface; browser console inspection was therefore not repeated.
 
 final result: passed

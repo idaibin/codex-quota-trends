@@ -27,7 +27,7 @@ The app must not access `~/.codex/auth.json` or a `chatgpt.com/backend-api` URL.
 
 ## Visual acceptance
 
-1. Capture the 420×500 tray popover with deterministic data.
+1. Capture the 420×420 tray popover with deterministic data.
 2. Verify Chinese copy, axis labels, endpoint, tooltip, top status controls,
    8px window corners, and absence of product branding or footer controls.
 3. Compare the supplied popover crop and implementation side by side.

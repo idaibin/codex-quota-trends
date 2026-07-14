@@ -126,10 +126,7 @@ export function TrayPopover({ data }: { data: DashboardData }) {
         </section>
         <section className="tray-trend-section">
           <div className="tray-chart-heading">
-            <div>
-              <h2>剩余额度趋势</h2>
-              <p>可用额度随时间变化</p>
-            </div>
+            <h2>剩余额度趋势</h2>
             <span>{rangeLabel}</span>
           </div>
           <TrayRemainingChart history={data.history} />

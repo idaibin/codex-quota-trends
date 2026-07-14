@@ -29,7 +29,7 @@
         "title": "Codex Quota Trends",
         "url": "/?surface=tray",
         "width": 420,
-        "height": 500,
+        "height": 420,
         "visible": false,
         "decorations": false,
         "transparent": true,

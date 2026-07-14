@@ -9,7 +9,7 @@ and used only for Settings. The generated transparent PNG app mark under
 
 ## Shell
 
-- Menu bar popover: 420×500, frameless, opaque, shadowless, and hidden on blur.
+- Menu bar popover: 420×420, frameless, opaque, shadowless, and hidden on blur.
 - Header: collector state, last-update time, pause/resume, Quit, and Settings.
   The product mark and name are intentionally omitted from this compact surface.
 - Remaining summary: current percentage, quota-window label, reset countdown,
@@ -46,7 +46,7 @@ Icons use Phosphor's regular outline weight; the app mark is a transparent PNG.
 
 ## Responsive behavior
 
-- The tray surface is fixed at 420×500 and is not treated as a mobile page.
+- The tray surface is fixed at 420×420 and is not treated as a mobile page.
 - Chart labels and plot margins are sized to remain fully visible at that width.
 
 ## Interaction states

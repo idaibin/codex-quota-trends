@@ -1225,7 +1225,7 @@ select {
   height: 100%;
   flex-direction: column;
   overflow: hidden;
-  padding: 14px;
+  padding: 10px;
   border: 0;
   border-radius: 8px;
   color: var(--text);
@@ -1234,21 +1234,21 @@ select {
 }
 .tray-statusbar {
   display: flex;
-  min-height: 42px;
+  min-height: 34px;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 12px;
-  padding: 0 2px;
+  gap: 10px;
+  margin-bottom: 8px;
+  padding: 0 1px;
 }
 .tray-statusbar-actions button {
   display: grid;
-  width: 34px;
-  height: 34px;
+  width: 30px;
+  height: 30px;
   place-items: center;
   padding: 0;
   border: 1px solid transparent;
-  border-radius: 9px;
+  border-radius: 8px;
   color: var(--muted);
   background: transparent;
   cursor: pointer;
@@ -1274,88 +1274,83 @@ select {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 18px;
-  padding: 16px 18px 15px;
+  gap: 12px;
+  padding: 11px 14px 10px;
   border-bottom: 1px solid var(--border);
 }
 .tray-remaining-copy {
   display: grid;
-  gap: 4px;
+  gap: 2px;
 }
 .tray-remaining-copy > span {
   color: var(--muted);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 650;
   letter-spacing: 0.2px;
   text-transform: uppercase;
 }
 .tray-remaining-copy > strong {
   color: var(--accent);
-  font-size: 43px;
+  font-size: 37px;
   line-height: 0.98;
   letter-spacing: -2px;
   font-variant-numeric: tabular-nums;
 }
 .tray-remaining-copy > small {
   color: var(--muted);
-  font-size: 12px;
+  font-size: 11px;
 }
 .tray-remaining-change {
   display: grid;
-  grid-template-columns: 18px auto;
+  grid-template-columns: 16px auto;
   align-items: center;
-  column-gap: 5px;
+  column-gap: 4px;
   color: var(--muted);
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 .tray-remaining-change svg {
   grid-row: span 2;
-  width: 17px;
-  height: 17px;
+  width: 15px;
+  height: 15px;
   color: var(--accent);
 }
 .tray-remaining-change strong {
   color: var(--text);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 650;
 }
 .tray-remaining-change span {
-  font-size: 11px;
+  font-size: 10px;
 }
 .tray-trend-section {
-  padding: 15px 14px 10px;
+  padding: 10px 10px 7px;
 }
 .tray-chart-heading {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 4px;
+  padding: 0 3px;
 }
 .tray-chart-heading h2 {
   margin: 0;
-  font-size: 14px;
+  font-size: 13px;
   letter-spacing: -0.15px;
 }
-.tray-chart-heading p {
-  margin: 2px 0 0;
-  color: var(--muted);
-  font-size: 11px;
-}
 .tray-chart-heading > span {
-  padding: 4px 8px;
+  padding: 3px 7px;
   border: 1px solid var(--border);
   border-radius: 7px;
   color: var(--muted);
   background: var(--panel-subtle);
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 700;
   letter-spacing: 0.5px;
 }
 .tray-trend-chart {
   width: 100%;
-  height: 230px;
-  margin-top: 5px;
+  height: 205px;
+  margin-top: 2px;
 }
 .tray-trend-chart .recharts-cartesian-axis-tick text {
   font-size: 10px;
@@ -1370,11 +1365,11 @@ select {
   display: flex;
   min-width: 0;
   align-items: center;
-  gap: 9px;
+  gap: 7px;
 }
 .status-dot {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
   flex: 0 0 auto;
   border-radius: 50%;
   background: var(--muted);
@@ -1389,26 +1384,26 @@ select {
 .tray-collector-summary > div {
   display: grid;
   min-width: 0;
-  gap: 2px;
+  gap: 1px;
 }
 .tray-collector-summary strong {
   overflow: hidden;
-  font-size: 12px;
+  font-size: 11px;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
 .tray-collector-summary span {
   color: var(--muted);
-  font-size: 11px;
+  font-size: 10px;
 }
 .tray-statusbar-actions {
   display: flex;
   flex: 0 0 auto;
-  gap: 4px;
+  gap: 2px;
 }
 .tray-statusbar-actions svg {
-  width: 19px;
-  height: 19px;
+  width: 17px;
+  height: 17px;
 }
 .tray-statusbar-actions .quit-action:hover,
 .tray-statusbar-actions .quit-action:hover svg {
