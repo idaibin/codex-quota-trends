@@ -159,6 +159,8 @@ pub fn run() {
             commands::set_collector_paused,
             commands::export_data,
             commands::open_data_folder,
+            commands::get_database_stats,
+            commands::cleanup_database,
             commands::reset_local_data,
             commands::quit_app,
         ])

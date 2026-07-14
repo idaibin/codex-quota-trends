@@ -1,4 +1,9 @@
-use std::path::Path;
+use std::{
+    ffi::OsString,
+    fs,
+    io::ErrorKind,
+    path::{Path, PathBuf},
+};
 
 use anyhow::{Context, Result};
 use rusqlite::{Connection, OptionalExtension, params};
@@ -17,25 +22,44 @@ pub struct ActivityEvent {
     pub delta: Option<f64>,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DatabaseStats {
+    pub database_bytes: u64,
+    pub wal_bytes: u64,
+    pub shm_bytes: u64,
+    pub total_bytes: u64,
+    pub reclaimable_bytes: u64,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DatabaseCleanupResult {
+    pub deleted_rows: usize,
+    pub before: DatabaseStats,
+    pub after: DatabaseStats,
+}
+
 pub struct Database {
     connection: Connection,
+    path: Option<PathBuf>,
 }
 
 impl Database {
     pub fn open(path: impl AsRef<Path>) -> Result<Self> {
-        let connection = Connection::open(path.as_ref()).with_context(|| {
-            format!("failed to open SQLite database at {}", path.as_ref().display())
-        })?;
+        let path = path.as_ref().to_path_buf();
+        let connection = Connection::open(&path)
+            .with_context(|| format!("failed to open SQLite database at {}", path.display()))?;
         connection.pragma_update(None, "journal_mode", "WAL")?;
         connection.pragma_update(None, "foreign_keys", "ON")?;
-        let mut database = Self { connection };
+        let mut database = Self { connection, path: Some(path) };
         database.migrate()?;
         Ok(database)
     }
 
     pub fn open_in_memory() -> Result<Self> {
         let connection = Connection::open_in_memory()?;
-        let mut database = Self { connection };
+        let mut database = Self { connection, path: None };
         database.migrate()?;
         Ok(database)
     }
@@ -264,9 +288,51 @@ impl Database {
         Ok(deleted)
     }
 
-    pub fn reset_local_data(&self) -> Result<()> {
-        self.connection.execute_batch("BEGIN; DELETE FROM quota_snapshots; DELETE FROM collector_events; DELETE FROM alerts; COMMIT;")?;
-        Ok(())
+    pub fn storage_stats(&self) -> Result<DatabaseStats> {
+        let page_size =
+            self.connection.pragma_query_value(None, "page_size", |row| row.get::<_, u64>(0))?;
+        let page_count =
+            self.connection.pragma_query_value(None, "page_count", |row| row.get::<_, u64>(0))?;
+        let freelist_count = self
+            .connection
+            .pragma_query_value(None, "freelist_count", |row| row.get::<_, u64>(0))?;
+        let logical_database_bytes = page_size.saturating_mul(page_count);
+        let (database_bytes, wal_bytes, shm_bytes) = if let Some(path) = &self.path {
+            (
+                file_size(path)?,
+                file_size(&companion_path(path, "-wal"))?,
+                file_size(&companion_path(path, "-shm"))?,
+            )
+        } else {
+            (logical_database_bytes, 0, 0)
+        };
+        Ok(DatabaseStats {
+            database_bytes,
+            wal_bytes,
+            shm_bytes,
+            total_bytes: database_bytes.saturating_add(wal_bytes).saturating_add(shm_bytes),
+            reclaimable_bytes: page_size.saturating_mul(freelist_count).saturating_add(wal_bytes),
+        })
+    }
+
+    pub fn cleanup_database(&self, now: i64, retention_days: u64) -> Result<DatabaseCleanupResult> {
+        let before = self.storage_stats()?;
+        let deleted_rows = self.apply_retention(now, retention_days)?;
+        self.compact()?;
+        let after = self.storage_stats()?;
+        Ok(DatabaseCleanupResult { deleted_rows, before, after })
+    }
+
+    pub fn reset_local_data(&self) -> Result<DatabaseCleanupResult> {
+        let before = self.storage_stats()?;
+        let transaction = self.connection.unchecked_transaction()?;
+        let mut deleted_rows = transaction.execute("DELETE FROM quota_snapshots", [])?;
+        deleted_rows += transaction.execute("DELETE FROM collector_events", [])?;
+        deleted_rows += transaction.execute("DELETE FROM alerts", [])?;
+        transaction.commit()?;
+        self.compact()?;
+        let after = self.storage_stats()?;
+        Ok(DatabaseCleanupResult { deleted_rows, before, after })
     }
 
     pub fn export_csv(&self) -> Result<String> {
@@ -291,6 +357,35 @@ impl Database {
             ));
         }
         Ok(output)
+    }
+
+    fn compact(&self) -> Result<()> {
+        self.checkpoint_wal()?;
+        self.connection.execute_batch("VACUUM")?;
+        self.checkpoint_wal()?;
+        Ok(())
+    }
+
+    fn checkpoint_wal(&self) -> Result<()> {
+        let busy = self
+            .connection
+            .query_row("PRAGMA wal_checkpoint(TRUNCATE)", [], |row| row.get::<_, i64>(0))?;
+        anyhow::ensure!(busy == 0, "SQLite WAL checkpoint is busy");
+        Ok(())
+    }
+}
+
+fn companion_path(path: &Path, suffix: &str) -> PathBuf {
+    let mut value = OsString::from(path.as_os_str());
+    value.push(suffix);
+    PathBuf::from(value)
+}
+
+fn file_size(path: &Path) -> Result<u64> {
+    match fs::metadata(path) {
+        Ok(metadata) => Ok(metadata.len()),
+        Err(error) if error.kind() == ErrorKind::NotFound => Ok(0),
+        Err(error) => Err(error).with_context(|| format!("failed to inspect {}", path.display())),
     }
 }
 
@@ -391,5 +486,39 @@ mod tests {
         let mut database = Database::open_in_memory().unwrap();
         database.save_snapshot_if_changed(&snapshot(100, 10.0), "{}").unwrap();
         assert_eq!(database.apply_retention(100 + 91 * 86_400, 90).unwrap(), 1);
+    }
+
+    #[test]
+    fn cleanup_reclaims_expired_database_space() {
+        let directory = tempfile::tempdir().unwrap();
+        let path = directory.path().join("quota.db");
+        let mut database = Database::open(&path).unwrap();
+        let raw_json = "x".repeat(32_768);
+        for index in 0..24 {
+            database
+                .save_snapshot_if_changed(&snapshot(index * 86_400, index as f64), &raw_json)
+                .unwrap();
+        }
+
+        let result = database.cleanup_database(40 * 86_400, 30).unwrap();
+
+        assert_eq!(result.deleted_rows, 10);
+        assert!(result.after.total_bytes <= result.before.total_bytes);
+        assert_eq!(result.after.reclaimable_bytes, 0);
+        assert_eq!(database.history("codex", Some(300), 0).unwrap().len(), 14);
+    }
+
+    #[test]
+    fn reset_deletes_rows_and_compacts_database() {
+        let directory = tempfile::tempdir().unwrap();
+        let path = directory.path().join("quota.db");
+        let mut database = Database::open(&path).unwrap();
+        database.save_snapshot_if_changed(&snapshot(100, 10.0), "{}").unwrap();
+
+        let result = database.reset_local_data().unwrap();
+
+        assert_eq!(result.deleted_rows, 1);
+        assert!(database.latest_any_snapshot().unwrap().is_none());
+        assert_eq!(result.after.reclaimable_bytes, 0);
     }
 }

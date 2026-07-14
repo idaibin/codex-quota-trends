@@ -1,4 +1,11 @@
-import type { ActivityEvent, AlertRecord, AppSettings, DashboardData, TrendPoint } from "../types";
+import type {
+  ActivityEvent,
+  AlertRecord,
+  AppSettings,
+  DashboardData,
+  DatabaseStats,
+  TrendPoint,
+} from "../types";
 
 const now = Math.floor(Date.now() / 1000);
 
@@ -135,6 +142,14 @@ export const demoSettings: AppSettings = {
   launchMenuBarOnly: false,
   desktopNotifications: true,
   dailySummary: false,
-  retentionDays: 90,
+  retentionDays: 30,
   theme: "light",
+};
+
+export const demoDatabaseStats: DatabaseStats = {
+  databaseBytes: 1_572_864,
+  walBytes: 196_608,
+  shmBytes: 32_768,
+  totalBytes: 1_802_240,
+  reclaimableBytes: 245_760,
 };

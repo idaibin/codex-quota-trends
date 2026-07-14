@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatPercent, formatResetDuration, formatWindow } from "./format";
+import { formatBytes, formatPercent, formatResetDuration, formatWindow } from "./format";
 
 describe("format helpers", () => {
   it("formats dynamic quota windows", () => {
@@ -11,6 +11,11 @@ describe("format helpers", () => {
   it("formats percentages without noisy decimals", () => {
     expect(formatPercent(32)).toBe("32%");
     expect(formatPercent(4.84)).toBe("4.8%");
+  });
+
+  it("formats database sizes", () => {
+    expect(formatBytes(512)).toBe("512 B");
+    expect(formatBytes(1_572_864)).toBe("1.50 MB");
   });
 
   it("formats time until reset", () => {

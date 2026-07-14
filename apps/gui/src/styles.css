@@ -1179,11 +1179,44 @@ progress::-webkit-progress-value {
   color: var(--text);
   background: var(--panel);
 }
+.retention-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+}
+.retention-control input {
+  width: 96px;
+  height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  color: var(--text);
+  background: var(--panel);
+  text-align: right;
+}
+.storage-size {
+  display: grid;
+  gap: 3px;
+  text-align: right;
+}
+.storage-size strong {
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+}
+.storage-size span {
+  color: var(--muted);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
 .settings-actions {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
   padding: 8px 0 4px;
+}
+.settings-actions--three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 .settings-actions button {
   display: flex;
@@ -1197,6 +1230,11 @@ progress::-webkit-progress-value {
   cursor: pointer;
   text-align: left;
 }
+.settings-actions button:disabled,
+.danger-zone > button:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
 .settings-actions button:hover {
   border-color: var(--accent-mid);
 }
@@ -1206,6 +1244,11 @@ progress::-webkit-progress-value {
 }
 .settings-actions small {
   color: var(--muted);
+}
+.storage-message {
+  margin: 4px 0 8px;
+  color: var(--muted);
+  font-size: 12px;
 }
 .danger-zone {
   display: flex;

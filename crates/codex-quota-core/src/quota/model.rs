@@ -59,7 +59,7 @@ impl Default for AppSettings {
             launch_menu_bar_only: false,
             desktop_notifications: true,
             daily_summary: false,
-            retention_days: 90,
+            retention_days: 30,
             theme: ThemeMode::System,
         }
     }
@@ -92,7 +92,9 @@ mod tests {
 
     #[test]
     fn default_settings_are_valid() {
-        assert!(AppSettings::default().validate().is_ok());
+        let settings = AppSettings::default();
+        assert_eq!(settings.retention_days, 30);
+        assert!(settings.validate().is_ok());
     }
 
     #[test]

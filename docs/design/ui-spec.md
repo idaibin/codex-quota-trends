@@ -56,6 +56,8 @@ Icons use Phosphor's regular outline weight; the app mark is a transparent PNG.
 
 Navigation, theme, filters, segmented ranges, refresh, alert detail expansion,
 settings, CSV export, reset confirmation, and tray actions are functional.
+The Settings data section also supports arbitrary retention days, live SQLite
+disk-size reporting, and an explicit database cleanup/compaction action.
 Every control has hover, focus-visible, disabled, selected, and pressed states.
 Reduced-motion users receive no animated chart/ring entrance.
 

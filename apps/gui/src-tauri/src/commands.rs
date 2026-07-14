@@ -2,8 +2,8 @@ use std::{fs, process::Command, sync::atomic::Ordering};
 
 use chrono::Utc;
 use codex_quota_core::{
-    ActivityEvent, AlertRecord, AppSettings, CollectorState, Pace, QuotaSnapshot, TrendPoint,
-    UsageSpeeds, calculate_pace, calculate_speeds,
+    ActivityEvent, AlertRecord, AppSettings, CollectorState, DatabaseCleanupResult, DatabaseStats,
+    Pace, QuotaSnapshot, TrendPoint, UsageSpeeds, calculate_pace, calculate_speeds,
 };
 use serde::Serialize;
 use tauri::{AppHandle, State};
@@ -104,12 +104,13 @@ pub fn save_settings(
     settings: AppSettings,
 ) -> Result<AppSettings, String> {
     settings.validate().map_err(str::to_owned)?;
-    state
-        .database
-        .lock()
-        .map_err(|_| "database lock poisoned".to_owned())?
-        .save_settings(&settings)
-        .map_err(|error| error.to_string())?;
+    {
+        let database = state.database.lock().map_err(|_| "database lock poisoned".to_owned())?;
+        database.save_settings(&settings).map_err(|error| error.to_string())?;
+        database
+            .apply_retention(Utc::now().timestamp(), settings.retention_days)
+            .map_err(|error| error.to_string())?;
+    }
     let autolaunch = app.autolaunch();
     if settings.launch_at_login { autolaunch.enable() } else { autolaunch.disable() }
         .map_err(|error| error.to_string())?;
@@ -144,7 +145,26 @@ pub fn open_data_folder(state: State<'_, AppState>) -> Result<(), String> {
 }
 
 #[tauri::command]
-pub fn reset_local_data(state: State<'_, AppState>) -> Result<(), String> {
+pub fn get_database_stats(state: State<'_, AppState>) -> Result<DatabaseStats, String> {
+    state
+        .database
+        .lock()
+        .map_err(|_| "database lock poisoned".to_owned())?
+        .storage_stats()
+        .map_err(|error| error.to_string())
+}
+
+#[tauri::command]
+pub fn cleanup_database(state: State<'_, AppState>) -> Result<DatabaseCleanupResult, String> {
+    let database = state.database.lock().map_err(|_| "database lock poisoned".to_owned())?;
+    let settings = database.load_settings().map_err(|error| error.to_string())?;
+    database
+        .cleanup_database(Utc::now().timestamp(), settings.retention_days)
+        .map_err(|error| error.to_string())
+}
+
+#[tauri::command]
+pub fn reset_local_data(state: State<'_, AppState>) -> Result<DatabaseCleanupResult, String> {
     state
         .database
         .lock()

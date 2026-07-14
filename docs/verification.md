@@ -10,8 +10,9 @@ just build-gui
 ```
 
 Rust tests cover protocol normalization, change-only persistence, trend speeds,
-pace comparison, rapid drain, reset detection, and retention. Frontend tests
-cover route/data presentation helpers and setting validation.
+pace comparison, rapid drain, reset detection, retention, SQLite size reporting,
+and post-delete compaction. Frontend tests cover route/data presentation helpers,
+byte-size formatting, and setting validation.
 
 ## App-server smoke test
 

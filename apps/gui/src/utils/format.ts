@@ -2,6 +2,20 @@ export function formatPercent(value: number): string {
   return `${Number.isInteger(value) ? value : value.toFixed(1)}%`;
 }
 
+export function formatBytes(value: number): string {
+  if (value < 1_024) return `${value} B`;
+  const units = ["KB", "MB", "GB", "TB"];
+  let amount = value / 1_024;
+  let unit = units[0];
+  for (const candidate of units.slice(1)) {
+    if (amount < 1_024) break;
+    amount /= 1_024;
+    unit = candidate;
+  }
+  const precision = amount >= 100 ? 0 : amount >= 10 ? 1 : 2;
+  return `${amount.toFixed(precision)} ${unit}`;
+}
+
 export function formatRelativeTime(timestamp: number | null, now = Date.now() / 1000): string {
   if (!timestamp) return "Not yet";
   const seconds = Math.max(0, now - timestamp);

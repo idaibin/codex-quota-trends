@@ -81,3 +81,17 @@ export interface AppSettings {
   retentionDays: number;
   theme: ThemeMode;
 }
+
+export interface DatabaseStats {
+  databaseBytes: number;
+  walBytes: number;
+  shmBytes: number;
+  totalBytes: number;
+  reclaimableBytes: number;
+}
+
+export interface DatabaseCleanupResult {
+  deletedRows: number;
+  before: DatabaseStats;
+  after: DatabaseStats;
+}

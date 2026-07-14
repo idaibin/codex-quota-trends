@@ -14,6 +14,7 @@ client screenshot. Browser-review captures use deterministic local data:
 | Activity | 960×680 | `screenshots/actual/activity-compact.png` |
 | Alerts | 960×680 | `screenshots/actual/alerts-compact.png` |
 | Settings | 960×680 | `screenshots/actual/settings-compact.png` |
+| Settings, storage controls | 960×680 | `screenshots/actual/settings-storage.png` |
 | Menu bar popover | 420×680 | `screenshots/actual/tray-compact.png` |
 
 The compact reference and Overview implementation were appended side by side
@@ -34,6 +35,9 @@ in `screenshots/actual/compact-reference-comparison.png` before review.
   remaining percentage; used percentage is secondary.
 - P3: Settings intentionally scrolls because it contains multiple configuration
   groups; all other primary routes fit without page scrolling.
+- P3: the Data section now shows custom retention days, total SQLite disk usage,
+  DB/WAL/SHM breakdown, reclaimable space, cleanup, export, and folder actions in
+  one compact row. The cleanup success state was exercised with demo data.
 
 ## Native client evidence
 

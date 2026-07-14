@@ -8,4 +8,4 @@ pub use quota::{
     AlertRecord, AlertSeverity, AlertStatus, AlertType, AppSettings, Pace, PaceStatus,
     QuotaSnapshot, QuotaWindow, TrendPoint, UsageSpeeds, calculate_pace, calculate_speeds,
 };
-pub use storage::{ActivityEvent, Database};
+pub use storage::{ActivityEvent, Database, DatabaseCleanupResult, DatabaseStats};
