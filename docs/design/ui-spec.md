@@ -18,6 +18,8 @@ and used only for Settings. The generated transparent PNG app mark under
   horizontal guides, contextual time labels, endpoint marker, area fill, and
   a precise hover tooltip. Three representative points display their remaining
   percentages above the curve; the axis and plot use compact left and bottom margins.
+  Timestamps use a continuous numeric axis so irregularly collected source points
+  retain their real temporal spacing instead of being rendered as equal categories.
 - Visible popover copy, chart labels, tooltips, and accessibility names use Chinese.
 - The native window and its content clip to an 8px corner radius.
 

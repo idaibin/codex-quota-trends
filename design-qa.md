@@ -78,4 +78,17 @@
   percentage ticks. First, middle, and latest remaining values appear above the
   curve; limiting labels to three avoids collisions and visual noise.
 
+## Tray time scale
+
+- Source visual truth: `/var/folders/33/1n65110j6_15vm1fd1fydb440000gn/T/codex-clipboard-7a18064c-9f6f-4d97-86d3-72b7752a94e4.png`.
+- Implementation: `screenshots/actual/tray-time-scale-v2.png`.
+- Comparison: `screenshots/actual/tray-time-scale-comparison.png`.
+- The X axis is numeric and continuous, and the area curve uses the original stored
+  timestamps. Uneven collection intervals therefore occupy proportional horizontal
+  distance instead of equal category slots.
+- Axis labels use actual first, temporal-middle, and latest source records. No
+  synthetic five-minute points or interpolated quota values are introduced.
+- Spans near 24 hours include both date and time so identical clock times on adjacent
+  days remain distinguishable; longer multi-day spans continue to use date labels.
+
 final result: passed

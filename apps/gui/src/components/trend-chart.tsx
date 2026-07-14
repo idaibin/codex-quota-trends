@@ -27,6 +27,15 @@ const formatTrayTime = (timestamp: number) =>
     new Date(timestamp * 1_000),
   );
 
+const formatTrayDateTime = (timestamp: number) =>
+  new Intl.DateTimeFormat("zh-CN", {
+    month: "numeric",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(new Date(timestamp * 1_000));
+
 export function UsageAreaChart({
   history,
   compact = false,
@@ -97,8 +106,21 @@ export function UsageAreaChart({
 export function TrayRemainingChart({ history }: { history: TrendPoint[] }) {
   const sevenDaysAgo = Date.now() / 1_000 - 7 * 24 * 60 * 60;
   const recentHistory = history.filter((point) => point.timestamp >= sevenDaysAgo);
-  const source = recentHistory.length > 1 ? recentHistory : history;
-  const labelIndexes = new Set([0, Math.floor((source.length - 1) / 2), source.length - 1]);
+  const source = [...(recentHistory.length > 1 ? recentHistory : history)].sort(
+    (left, right) => left.timestamp - right.timestamp,
+  );
+  const firstTimestamp = source[0]?.timestamp ?? 0;
+  const lastTimestamp = source.at(-1)?.timestamp ?? firstTimestamp;
+  const temporalMidpoint = firstTimestamp + (lastTimestamp - firstTimestamp) / 2;
+  const middleIndex = source.reduce(
+    (closest, point, index) =>
+      Math.abs(point.timestamp - temporalMidpoint) <
+      Math.abs(source[closest].timestamp - temporalMidpoint)
+        ? index
+        : closest,
+    0,
+  );
+  const labelIndexes = new Set([0, middleIndex, source.length - 1]);
   const data = source.map((point, index) => {
     const remainingPercent = 100 - point.usedPercent;
     return {
@@ -116,7 +138,15 @@ export function TrayRemainingChart({ history }: { history: TrendPoint[] }) {
   const domainMax = Math.min(100, Math.ceil((maximum + 4) / 5) * 5);
   const last = data.at(-1);
   const timeSpan = last && data[0] ? last.timestamp - data[0].timestamp : 0;
-  const formatTick = timeSpan >= 2 * 86_400 ? formatTrayDate : formatTrayTime;
+  const formatTick =
+    timeSpan >= 2 * 86_400
+      ? formatTrayDate
+      : timeSpan >= 20 * 60 * 60
+        ? formatTrayDateTime
+        : formatTrayTime;
+  const timeTicks = Array.from(
+    new Set([data[0]?.timestamp, data[middleIndex]?.timestamp, last?.timestamp]),
+  ).filter((timestamp): timestamp is number => timestamp !== undefined);
 
   return (
     <div
@@ -136,7 +166,10 @@ export function TrayRemainingChart({ history }: { history: TrendPoint[] }) {
           />
           <XAxis
             dataKey="timestamp"
-            tickCount={3}
+            type="number"
+            scale="linear"
+            domain={["dataMin", "dataMax"]}
+            ticks={timeTicks}
             tickFormatter={formatTick}
             tickLine={false}
             axisLine={false}
