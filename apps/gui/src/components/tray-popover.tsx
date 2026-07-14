@@ -15,15 +15,9 @@ export function TrayPopover({ data }: { data: DashboardData }) {
 
   if (!quotaWindow)
     return <div className="tray-popover tray-popover--empty">正在等待额度数据…</div>;
-  const remaining = 100 - Math.min(100, Math.max(0, quotaWindow.usedPercent));
   return (
     <div className="tray-popover">
       <main className="tray-overview">
-        <section className="tray-remaining-hero">
-          <div className="tray-remaining-copy">
-            <strong>{formatPercent(remaining)}</strong>
-          </div>
-        </section>
         <section className="tray-trend-section">
           <div className="tray-chart-heading">
             <h2>{formatResetDateZh(quotaWindow.resetAt)}</h2>

@@ -266,4 +266,22 @@
   only three clock-time X-axis values, and reports no console warnings or errors.
 - No actionable P0/P1/P2 findings remain for the compact fixed-24-hour tray.
 
+## Chart-only 128px tray
+
+- Previous implementation baseline: `screenshots/actual/tray-compact-24h-final.jpg`.
+- Browser-rendered implementation: `screenshots/actual/tray-chart-only-128.jpg`.
+- Full-view comparison: `screenshots/actual/tray-chart-only-128-comparison.jpg`.
+- Viewport and state: 420×184, light tray surface, deterministic 24-hour trend
+  with a fixed 128px chart.
+- The standalone 68% summary and its divider are removed. Reset time and cumulative
+  24-hour consumption now form the only header above the trend.
+- The Y-axis remains visually hidden, while its three grid positions use the observed
+  range directly: the upper guide intersects the 74% maximum and the lower guide
+  intersects the 68.1% minimum. Equal-value histories retain a safe two-point domain.
+- Plot margins move outward from 22/20px to 12/14px. The final capture keeps the first
+  and current value labels, endpoint halo, and time labels within the viewport.
+- Browser accessibility output contains no standalone current percentage or divider;
+  the tooltip contract remains available and no console warnings or errors were found.
+- No actionable P0/P1/P2 findings remain for the chart-only 128px tray.
+
 final result: passed

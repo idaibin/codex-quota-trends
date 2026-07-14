@@ -120,8 +120,8 @@ export function TrayRemainingChart({ history }: { history: TrendPoint[] }) {
   const values = data.map((point) => point.remainingPercent);
   const minimum = Math.min(...values);
   const maximum = Math.max(...values);
-  const domainMin = Math.max(0, Math.floor((minimum - 4) / 5) * 5);
-  const domainMax = Math.min(100, Math.ceil((maximum + 4) / 5) * 5);
+  const domainMin = minimum === maximum ? Math.max(0, minimum - 1) : minimum;
+  const domainMax = minimum === maximum ? Math.min(100, maximum + 1) : maximum;
   const last = data.at(-1);
   const timeTicks = Array.from(
     new Set([data[0]?.timestamp, data[middleIndex]?.timestamp, last?.timestamp]),
@@ -130,7 +130,7 @@ export function TrayRemainingChart({ history }: { history: TrendPoint[] }) {
   return (
     <div className="tray-trend-chart" aria-label="最近24小时的剩余额度">
       <ResponsiveContainer width="100%" height="100%">
-        <AreaChart data={data} margin={{ top: 22, right: 20, bottom: 1, left: 22 }}>
+        <AreaChart data={data} margin={{ top: 18, right: 14, bottom: 1, left: 12 }}>
           <CartesianGrid
             stroke="var(--chart-grid)"
             strokeDasharray="2 4"

@@ -1245,25 +1245,10 @@ select {
   border-radius: 0;
   background: transparent;
 }
-.tray-remaining-hero {
-  flex: 0 0 auto;
-  padding: 11px 14px 10px;
-  border-bottom: 1px solid var(--border);
-}
-.tray-remaining-copy {
-  line-height: 1;
-}
-.tray-remaining-copy > strong {
-  color: var(--accent);
-  font-size: 37px;
-  line-height: 0.98;
-  letter-spacing: -2px;
-  font-variant-numeric: tabular-nums;
-}
 .tray-trend-section {
   display: flex;
   min-height: 0;
-  flex: 1;
+  flex: 0 0 auto;
   flex-direction: column;
   padding: 8px 6px 3px;
 }
@@ -1298,8 +1283,8 @@ select {
 .tray-trend-chart {
   width: 100%;
   min-height: 0;
-  flex: 1;
-  height: auto;
+  height: 128px;
+  flex: 0 0 128px;
   margin-top: 2px;
 }
 .tray-trend-chart .recharts-cartesian-axis-tick text {
