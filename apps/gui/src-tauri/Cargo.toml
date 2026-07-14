@@ -1,0 +1,25 @@
+[package]
+name = "codex-quota-trends"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[lib]
+name = "codex_quota_trends_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+anyhow.workspace = true
+chrono.workspace = true
+codex-quota-core = { path = "../../../crates/codex-quota-core" }
+serde.workspace = true
+serde_json.workspace = true
+tauri = { version = "2", features = ["macos-private-api", "tray-icon"] }
+tauri-plugin-autostart = "2"
+tauri-plugin-notification = "2"
+tokio.workspace = true

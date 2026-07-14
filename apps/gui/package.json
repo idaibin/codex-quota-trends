@@ -1,0 +1,44 @@
+{
+  "name": "codex-quota-trends-gui",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "vp lint package.json tsconfig*.json vite.config.ts src --ignore-pattern 'src-tauri/**' --ignore-pattern 'dist/**'",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.node.json --noEmit",
+    "test": "vitest run",
+    "check": "npm run lint && npm run typecheck && npm run test",
+    "format": "vp fmt --check '{package.json,tsconfig*.json,vite.config.ts,src/**/*.{ts,tsx,css,json}}' '!{src-tauri,dist,node_modules}/**'",
+    "format:fix": "vp fmt --write '{package.json,tsconfig*.json,vite.config.ts,src/**/*.{ts,tsx,css,json}}' '!{src-tauri,dist,node_modules}/**'",
+    "lint:fix": "vp lint --fix package.json tsconfig*.json vite.config.ts src --ignore-pattern 'src-tauri/**' --ignore-pattern 'dist/**'",
+    "tauri": "tauri"
+  },
+  "dependencies": {
+    "@phosphor-icons/react": "2.1.10",
+    "@tauri-apps/api": "2.11.1",
+    "react": "19.2.7",
+    "react-dom": "19.2.7",
+    "recharts": "3.9.2"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "4.3.2",
+    "@tauri-apps/cli": "2.11.4",
+    "@types/node": "26.1.1",
+    "@types/react": "19.2.17",
+    "@types/react-dom": "19.2.3",
+    "@vitejs/plugin-react": "6.0.3",
+    "jsdom": "28.1.0",
+    "tailwindcss": "4.3.2",
+    "typescript": "6.0.3",
+    "vite": "8.1.4",
+    "vite-plus": "0.2.4",
+    "vitest": "4.1.10"
+  },
+  "volta": {
+    "node": "24.15.0"
+  },
+  "packageManager": "npm@12.0.1"
+}

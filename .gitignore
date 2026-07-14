@@ -1,0 +1,13 @@
+node_modules/
+dist/
+target/
+*.tsbuildinfo
+.DS_Store
+.env
+.env.*
+!.env.example
+*.db
+*.db-shm
+*.db-wal
+screenshots/actual/
+apps/gui/src-tauri/gen/
