@@ -49,4 +49,20 @@
   property conflict. Visual QA used isolated local Chromium against the same Vite
   surface; browser console inspection was therefore not repeated.
 
+## Settings simplification
+
+- Source visual truth: `/var/folders/33/1n65110j6_15vm1fd1fydb440000gn/T/codex-clipboard-4b970c34-9d01-4f02-ada2-802a5a06d871.png`.
+- Implementation: `screenshots/actual/settings-zh-compact-v3.png`.
+- Comparison: `screenshots/actual/settings-zh-comparison.png`.
+- Viewport: 960×680, light theme, deterministic local data.
+- English headings, labels, options, actions, confirmations, loading text, and
+  accessibility names are replaced with concise Chinese copy.
+- Collector and startup controls are grouped under `常规`; thresholds and
+  notifications are grouped under `提醒`; retention, disk usage, cleanup, export,
+  and folder access are grouped under `数据`.
+- Repeated explanatory paragraphs, the duplicate product name, the refresh action,
+  and the current-page Settings action are removed from the Settings surface.
+- The compact rows and action cards keep all controls, storage details, and the
+  destructive action visible in a single 960×680 window without scrolling.
+
 final result: passed

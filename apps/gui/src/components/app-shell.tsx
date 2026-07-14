@@ -19,7 +19,7 @@ export function AppShell({
   toolbar?: ReactNode;
   children: ReactNode;
 }) {
-  const title = route === "settings" ? "Settings" : "Overview";
+  const title = route === "settings" ? "设置" : "概览";
   return (
     <div className="app-frame">
       <div className="main-shell">
@@ -33,13 +33,11 @@ export function AppShell({
             <button
               className="topbar__brand"
               type="button"
-              aria-label="Open overview"
+              aria-label="打开概览"
               onClick={() => onRouteChange("overview")}
             >
               <img src="/app-mark.png" alt="" />
-              <span>Codex Quota Trends</span>
             </button>
-            <span className="topbar__divider" aria-hidden="true" />
             <h1>{title}</h1>
           </div>
           <div className="topbar__actions">
@@ -47,20 +45,21 @@ export function AppShell({
             <button
               className="icon-button theme-button"
               type="button"
-              aria-label="Toggle theme"
+              aria-label="切换主题"
               onClick={onThemeToggle}
             >
               {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
             </button>
-            <button
-              className="icon-button settings-button"
-              type="button"
-              aria-label="Open settings"
-              aria-current={route === "settings" ? "page" : undefined}
-              onClick={() => onRouteChange("settings")}
-            >
-              <Gear size={20} />
-            </button>
+            {route !== "settings" && (
+              <button
+                className="icon-button settings-button"
+                type="button"
+                aria-label="打开设置"
+                onClick={() => onRouteChange("settings")}
+              >
+                <Gear size={20} />
+              </button>
+            )}
           </div>
         </header>
         <main className="page-content">{children}</main>

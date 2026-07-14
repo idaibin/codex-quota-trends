@@ -43,6 +43,9 @@ Icons use Phosphor's regular outline weight; the app mark is a transparent PNG.
 - `TrayRemainingChart`: a library-rendered area chart with adaptive 24-hour or
   seven-day labels, dynamic bounds, endpoint marker, and tooltip.
 - `SettingsRoute`: the only on-demand main-window route.
+  It uses compact Chinese-only groups for general behavior, alerts, data storage,
+  and local-data removal. Supporting descriptions appear only when they add
+  actionable information such as reclaimable disk space.
 
 ## Responsive behavior
 

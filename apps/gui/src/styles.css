@@ -182,7 +182,7 @@ select {
   display: flex;
   min-width: 0;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 .topbar__brand {
   display: flex;
@@ -200,19 +200,6 @@ select {
   border-radius: 8px;
   box-shadow: 0 5px 14px rgba(84, 55, 241, 0.2);
 }
-.topbar__brand span {
-  overflow: hidden;
-  max-width: 190px;
-  font-size: 14px;
-  font-weight: 650;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-.topbar__divider {
-  width: 1px;
-  height: 24px;
-  background: var(--border);
-}
 .topbar h1 {
   margin: 0;
   font-size: 22px;
@@ -229,7 +216,7 @@ select {
 .page-content {
   min-width: 0;
   overflow: auto;
-  padding: 14px 16px 18px;
+  padding: 10px 14px 12px;
   scrollbar-color: var(--border-strong) transparent;
 }
 
@@ -1043,28 +1030,28 @@ select {
 
 .settings-page {
   display: grid;
-  gap: 12px;
+  gap: 8px;
 }
 .settings-section {
-  padding: 12px 16px 4px;
+  padding: 8px 12px 2px;
 }
 .settings-section > h2,
 .danger-zone h2 {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin: 0 0 6px;
-  font-size: 16px;
+  margin: 0 0 2px;
+  font-size: 14px;
 }
 .settings-section > h2 svg {
   color: var(--accent);
 }
 .setting-row {
   display: flex;
-  min-height: 48px;
+  min-height: 38px;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 14px;
   border-bottom: 1px solid var(--border);
 }
 .setting-row:last-child {
@@ -1072,7 +1059,7 @@ select {
 }
 .setting-row > div:first-child {
   display: grid;
-  gap: 4px;
+  gap: 2px;
 }
 .setting-row > div:first-child strong {
   font-weight: 550;
@@ -1083,15 +1070,16 @@ select {
 }
 .setting-row .select-control {
   min-width: 160px;
+  height: 30px;
 }
 .threshold-control {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
 }
 .threshold-control input {
   width: 82px;
-  height: 34px;
+  height: 30px;
   padding: 0 14px;
   border: 1px solid var(--border);
   border-radius: 9px;
@@ -1106,7 +1094,7 @@ select {
 }
 .retention-control input {
   width: 96px;
-  height: 34px;
+  height: 30px;
   padding: 0 12px;
   border: 1px solid var(--border);
   border-radius: 9px;
@@ -1131,18 +1119,18 @@ select {
 .settings-actions {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  padding: 8px 0 4px;
+  gap: 8px;
+  padding: 6px 0 3px;
 }
 .settings-actions--three {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 .settings-actions button {
   display: flex;
-  min-height: 48px;
+  min-height: 38px;
   align-items: center;
   gap: 10px;
-  padding: 0 14px;
+  padding: 0 12px;
   border: 1px solid var(--border);
   border-radius: 9px;
   background: var(--panel);
@@ -1171,24 +1159,26 @@ select {
 }
 .danger-zone {
   display: flex;
-  min-height: 72px;
+  min-height: 52px;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px;
+  padding: 7px 12px;
   border-color: color-mix(in srgb, var(--danger) 35%, var(--border));
   background: color-mix(in srgb, var(--danger-soft) 45%, var(--panel));
 }
-.danger-zone h2 {
-  margin: 0 0 5px;
+.danger-zone > div > strong {
+  display: flex;
+  align-items: center;
+  gap: 7px;
 }
-.danger-zone h2 svg,
+.danger-zone > div > strong svg,
 .danger-zone strong,
 .danger-zone p {
   color: var(--danger);
 }
 .danger-zone p {
-  margin: 4px 0 0;
-  font-size: 13px;
+  margin: 3px 0 0;
+  font-size: 12px;
 }
 .danger-zone > button {
   padding: 7px 14px;

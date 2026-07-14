@@ -13,7 +13,10 @@ type MainRoute = "overview" | "settings";
 
 export default function App() {
   const [route, setRoute] = useState<MainRoute>(() =>
-    localStorage.getItem("cqt:requested-route") === "settings" ? "settings" : "overview",
+    new URLSearchParams(window.location.search).get("route") === "settings" ||
+    localStorage.getItem("cqt:requested-route") === "settings"
+      ? "settings"
+      : "overview",
   );
   const [dashboard, setDashboard] = useState<DashboardData | null>(null);
   const [settings, setSettings] = useState<AppSettings | null>(null);
@@ -94,8 +97,8 @@ export default function App() {
     return (
       <div className="loading-screen">
         <img src="/app-mark.png" alt="" />
-        <strong>Loading local quota history…</strong>
-        {error && <span>{error}</span>}
+        <strong>正在读取本地额度记录…</strong>
+        {error && <span>读取失败，请稍后重试</span>}
       </div>
     );
   if (
@@ -108,16 +111,18 @@ export default function App() {
     <>
       {route === "overview" && (
         <SelectControl defaultValue={dashboard.snapshot.limitId}>
-          <option value={dashboard.snapshot.limitId}>All Windows</option>
+          <option value={dashboard.snapshot.limitId}>全部窗口</option>
         </SelectControl>
       )}
-      <IconButton
-        aria-label="Refresh quota"
-        disabled={refreshing}
-        onClick={() => void handleRefresh()}
-      >
-        <ArrowsClockwise size={21} />
-      </IconButton>
+      {route === "overview" && (
+        <IconButton
+          aria-label="刷新额度"
+          disabled={refreshing}
+          onClick={() => void handleRefresh()}
+        >
+          <ArrowsClockwise size={21} />
+        </IconButton>
+      )}
     </>
   );
 
@@ -129,7 +134,7 @@ export default function App() {
       onThemeToggle={handleThemeToggle}
       toolbar={toolbar}
     >
-      {error && <div className="error-banner">Collector error: {error}</div>}
+      {error && <div className="error-banner">采集器连接异常，请稍后重试</div>}
       {route === "overview" && <OverviewRoute data={dashboard} />}
       {route === "settings" && <SettingsRoute settings={settings} onSettingsChange={setSettings} />}
     </AppShell>

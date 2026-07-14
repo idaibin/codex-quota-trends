@@ -40,7 +40,7 @@ export function SettingsRoute({
         if (!cancelled) setStorageStats(stats);
       })
       .catch(() => {
-        if (!cancelled) setStorageMessage("Database size is currently unavailable.");
+        if (!cancelled) setStorageMessage("暂时无法读取数据库大小");
       });
     return () => {
       cancelled = true;
@@ -77,29 +77,27 @@ export function SettingsRoute({
       setStorageStats(result.after);
       const released = Math.max(0, result.before.totalBytes - result.after.totalBytes);
       setStorageMessage(
-        `Database optimized. Removed ${result.deletedRows} expired rows and released ${formatBytes(released)}.`,
+        `清理完成：删除 ${result.deletedRows} 条过期记录，释放 ${formatBytes(released)}`,
       );
-    } catch (reason) {
-      setStorageMessage(reason instanceof Error ? reason.message : String(reason));
+    } catch {
+      setStorageMessage("清理失败，请稍后重试");
     } finally {
       setCleaning(false);
     }
   };
 
   const confirmReset = async () => {
-    if (
-      window.confirm("Delete all local quota history, events, and alerts? This cannot be undone.")
-    ) {
+    if (window.confirm("确定清除全部本地额度记录和提醒吗？此操作无法撤销。")) {
       setCleaning(true);
       try {
         const result = await resetLocalData();
         setStorageStats(result.after);
         const released = Math.max(0, result.before.totalBytes - result.after.totalBytes);
         setStorageMessage(
-          `Local data reset. Removed ${result.deletedRows} rows and released ${formatBytes(released)}.`,
+          `本地数据已清除：删除 ${result.deletedRows} 条记录，释放 ${formatBytes(released)}`,
         );
-      } catch (reason) {
-        setStorageMessage(reason instanceof Error ? reason.message : String(reason));
+      } catch {
+        setStorageMessage("清除失败，请稍后重试");
       } finally {
         setCleaning(false);
       }
@@ -108,102 +106,84 @@ export function SettingsRoute({
 
   return (
     <div className="settings-page">
-      <SettingsSection icon={<CalendarBlank />} title="Collector">
-        <SettingRow title="Polling Interval" description="How often to poll quota data.">
+      <SettingsSection icon={<CalendarBlank />} title="常规">
+        <SettingRow title="采集频率">
           <SelectControl
             value={draft.pollIntervalSeconds}
             onChange={(event) => update("pollIntervalSeconds", Number(event.target.value))}
           >
-            <option value="30">30 seconds</option>
-            <option value="60">60 seconds</option>
-            <option value="120">2 minutes</option>
+            <option value="30">30 秒</option>
+            <option value="60">1 分钟</option>
+            <option value="120">2 分钟</option>
           </SelectControl>
         </SettingRow>
-        <SettingRow
-          title="Start at Login"
-          description="Automatically start Codex Quota Trends when you log in."
-        >
+        <SettingRow title="登录时启动">
           <Toggle
-            label="Start at login"
+            label="登录时启动"
             checked={draft.launchAtLogin}
             onChange={(value) => update("launchAtLogin", value)}
           />
         </SettingRow>
-        <SettingRow
-          title="Launch menu bar only"
-          description="Start the app in the menu bar without showing the main window."
-        >
+        <SettingRow title="仅显示菜单栏">
           <Toggle
-            label="Launch menu bar only"
+            label="仅显示菜单栏"
             checked={draft.launchMenuBarOnly}
             onChange={(value) => update("launchMenuBarOnly", value)}
           />
         </SettingRow>
-        <SettingRow
-          title="Rapid Usage Threshold"
-          description="Trigger an alert when usage increases by this amount within the time window."
-        >
+      </SettingsSection>
+      <SettingsSection icon={<Bell />} title="提醒">
+        <SettingRow title="用量突增">
           <div className="threshold-control">
             <input
-              aria-label="Rapid usage percentage"
+              aria-label="用量突增百分比"
               type="number"
               min="1"
               max="100"
               value={draft.rapidDrainPercent}
               onChange={(event) => update("rapidDrainPercent", Number(event.target.value))}
             />
-            <span>% in</span>
+            <span>% /</span>
             <SelectControl
               value={draft.rapidDrainMinutes}
               onChange={(event) => update("rapidDrainMinutes", Number(event.target.value))}
             >
-              <option value="5">5 minutes</option>
-              <option value="10">10 minutes</option>
-              <option value="15">15 minutes</option>
+              <option value="5">5 分钟</option>
+              <option value="10">10 分钟</option>
+              <option value="15">15 分钟</option>
             </SelectControl>
           </div>
         </SettingRow>
-        <SettingRow
-          title="Collector Offline Threshold"
-          description="Trigger an alert if the collector has not reported in."
-        >
+        <SettingRow title="离线提醒">
           <SelectControl
             value={draft.offlineThresholdMinutes}
             onChange={(event) => update("offlineThresholdMinutes", Number(event.target.value))}
           >
-            <option value="3">3 minutes</option>
-            <option value="5">5 minutes</option>
-            <option value="10">10 minutes</option>
+            <option value="3">3 分钟</option>
+            <option value="5">5 分钟</option>
+            <option value="10">10 分钟</option>
           </SelectControl>
         </SettingRow>
-      </SettingsSection>
-      <SettingsSection icon={<Bell />} title="Alerts">
-        <SettingRow
-          title="Enable Desktop Notifications"
-          description="Show system notifications for alerts."
-        >
+        <SettingRow title="桌面通知">
           <Toggle
-            label="Desktop notifications"
+            label="桌面通知"
             checked={draft.desktopNotifications}
             onChange={(value) => update("desktopNotifications", value)}
           />
         </SettingRow>
-        <SettingRow title="Daily Summary" description="Send a daily usage summary notification.">
+        <SettingRow title="每日摘要">
           <Toggle
-            label="Daily summary"
+            label="每日摘要"
             checked={draft.dailySummary}
             onChange={(value) => update("dailySummary", value)}
           />
         </SettingRow>
       </SettingsSection>
-      <SettingsSection icon={<Database />} title="Data">
-        <SettingRow
-          title="Data Retention"
-          description="Keep history for this many days. New installs default to 30 days."
-        >
+      <SettingsSection icon={<Database />} title="数据">
+        <SettingRow title="保留时间">
           <label className="retention-control">
             <input
-              aria-label="Data retention days"
+              aria-label="数据保留天数"
               type="number"
               min="1"
               max="365"
@@ -216,20 +196,16 @@ export function SettingsRoute({
                 if (event.key === "Enter") event.currentTarget.blur();
               }}
             />
-            <span>days</span>
+            <span>天</span>
           </label>
         </SettingRow>
-        <SettingRow
-          title="Database Size"
-          description="SQLite database, write-ahead log, and shared-memory files on disk."
-        >
+        <SettingRow title="磁盘占用">
           <div className="storage-size" aria-live="polite">
-            <strong>{storageStats ? formatBytes(storageStats.totalBytes) : "Loading…"}</strong>
+            <strong>{storageStats ? formatBytes(storageStats.totalBytes) : "读取中…"}</strong>
             {storageStats && (
               <span>
-                DB {formatBytes(storageStats.databaseBytes)} · WAL{" "}
-                {formatBytes(storageStats.walBytes)}
-                {" · "}SHM {formatBytes(storageStats.shmBytes)}
+                数据库 {formatBytes(storageStats.databaseBytes)} · 日志{" "}
+                {formatBytes(storageStats.walBytes)} · 临时 {formatBytes(storageStats.shmBytes)}
               </span>
             )}
           </div>
@@ -238,26 +214,22 @@ export function SettingsRoute({
           <button type="button" onClick={() => void cleanDatabase()} disabled={cleaning}>
             <Broom size={23} />
             <span>
-              <strong>{cleaning ? "Cleaning…" : "Clean Up Database"}</strong>
-              <small>
-                {storageStats && storageStats.reclaimableBytes > 0
-                  ? `${formatBytes(storageStats.reclaimableBytes)} can be reclaimed.`
-                  : "Remove expired rows and compact SQLite."}
-              </small>
+              <strong>{cleaning ? "正在清理…" : "清理数据库"}</strong>
+              {storageStats && storageStats.reclaimableBytes > 0 && (
+                <small>可释放 {formatBytes(storageStats.reclaimableBytes)}</small>
+              )}
             </span>
           </button>
           <button type="button" onClick={() => void exportData()}>
             <Export size={23} />
             <span>
-              <strong>Export Data…</strong>
-              <small>Export your usage data to a CSV file.</small>
+              <strong>导出数据</strong>
             </span>
           </button>
           <button type="button" onClick={() => void openDataFolder()}>
             <FolderOpen size={23} />
             <span>
-              <strong>Open Data Folder</strong>
-              <small>Open the folder containing local data files.</small>
+              <strong>打开目录</strong>
             </span>
           </button>
         </div>
@@ -265,20 +237,16 @@ export function SettingsRoute({
       </SettingsSection>
       <Panel className="danger-zone">
         <div>
-          <h2>
-            <Gear />
-            App
-          </h2>
-          <strong>Danger Zone</strong>
-          <p>Permanently delete all local data. This action cannot be undone.</p>
+          <strong>
+            <Gear /> 清除本地数据
+          </strong>
+          <p>删除全部记录，无法撤销</p>
         </div>
         <button type="button" onClick={() => void confirmReset()} disabled={cleaning}>
-          Reset Local Data…
+          清除数据
         </button>
       </Panel>
-      <div className={`save-indicator ${saved ? "save-indicator--visible" : ""}`}>
-        Settings saved
-      </div>
+      <div className={`save-indicator ${saved ? "save-indicator--visible" : ""}`}>已保存</div>
     </div>
   );
 }
@@ -309,14 +277,14 @@ function SettingRow({
   children,
 }: {
   title: string;
-  description: string;
+  description?: string;
   children: React.ReactNode;
 }) {
   return (
     <div className="setting-row">
       <div>
         <strong>{title}</strong>
-        <span>{description}</span>
+        {description && <span>{description}</span>}
       </div>
       {children}
     </div>
