@@ -16,7 +16,8 @@ and used only for Settings. The generated transparent PNG app mark under
   and the remaining-point change for the visible range.
 - Trend: the primary content region with a dynamic percentage domain, three
   horizontal guides, contextual time labels, endpoint marker, area fill, and
-  a precise hover tooltip.
+  a precise hover tooltip. Three representative points display their remaining
+  percentages above the curve; the axis and plot use compact left and bottom margins.
 - Visible popover copy, chart labels, tooltips, and accessibility names use Chinese.
 - The native window and its content clip to an 8px corner radius.
 

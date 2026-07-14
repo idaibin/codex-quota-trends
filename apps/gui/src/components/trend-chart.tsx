@@ -2,6 +2,7 @@ import {
   Area,
   AreaChart,
   CartesianGrid,
+  LabelList,
   Line,
   LineChart,
   ReferenceDot,
@@ -97,10 +98,15 @@ export function TrayRemainingChart({ history }: { history: TrendPoint[] }) {
   const sevenDaysAgo = Date.now() / 1_000 - 7 * 24 * 60 * 60;
   const recentHistory = history.filter((point) => point.timestamp >= sevenDaysAgo);
   const source = recentHistory.length > 1 ? recentHistory : history;
-  const data = source.map((point) => ({
-    ...point,
-    remainingPercent: 100 - point.usedPercent,
-  }));
+  const labelIndexes = new Set([0, Math.floor((source.length - 1) / 2), source.length - 1]);
+  const data = source.map((point, index) => {
+    const remainingPercent = 100 - point.usedPercent;
+    return {
+      ...point,
+      remainingPercent,
+      displayPercent: labelIndexes.has(index) ? formatPercent(remainingPercent) : undefined,
+    };
+  });
   if (data.length === 0)
     return <div className="tray-trend-chart tray-trend-chart--empty">暂无趋势数据</div>;
   const values = data.map((point) => point.remainingPercent);
@@ -118,7 +124,7 @@ export function TrayRemainingChart({ history }: { history: TrendPoint[] }) {
       aria-label={`最近${timeSpan >= 2 * 86_400 ? "七天" : "24小时"}的剩余额度`}
     >
       <ResponsiveContainer width="100%" height="100%">
-        <AreaChart data={data} margin={{ top: 12, right: 10, bottom: 2, left: 0 }}>
+        <AreaChart data={data} margin={{ top: 22, right: 20, bottom: 1, left: 0 }}>
           <CartesianGrid stroke="var(--chart-grid)" strokeDasharray="3 4" vertical={false} />
           <YAxis
             domain={[domainMin, domainMax]}
@@ -126,7 +132,7 @@ export function TrayRemainingChart({ history }: { history: TrendPoint[] }) {
             tickFormatter={formatPercent}
             tickLine={false}
             axisLine={false}
-            width={42}
+            width={36}
           />
           <XAxis
             dataKey="timestamp"
@@ -135,6 +141,8 @@ export function TrayRemainingChart({ history }: { history: TrendPoint[] }) {
             tickLine={false}
             axisLine={false}
             minTickGap={64}
+            height={18}
+            tickMargin={3}
           />
           <Tooltip
             formatter={(value) => [formatPercent(Number(value)), "剩余额度"]}
@@ -165,7 +173,16 @@ export function TrayRemainingChart({ history }: { history: TrendPoint[] }) {
             dot={false}
             activeDot={{ r: 4, fill: "var(--accent)", stroke: "var(--panel)", strokeWidth: 2 }}
             isAnimationActive={false}
-          />
+          >
+            <LabelList
+              dataKey="displayPercent"
+              position="top"
+              offset={7}
+              fill="var(--text)"
+              fontSize={10}
+              fontWeight={650}
+            />
+          </Area>
           {last && (
             <ReferenceDot
               x={last.timestamp}

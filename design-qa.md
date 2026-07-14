@@ -65,4 +65,17 @@
 - The compact rows and action cards keep all controls, storage details, and the
   destructive action visible in a single 960×680 window without scrolling.
 
+## Tray chart labels and spacing
+
+- Source visual truth: `/var/folders/33/1n65110j6_15vm1fd1fydb440000gn/T/codex-clipboard-e6d7f422-f818-4fec-afaa-21052d3f90e7.png`.
+- Implementation: `screenshots/actual/tray-labels-v2.png`.
+- Comparison: `screenshots/actual/tray-labels-comparison.png`.
+- Native viewport contract: 420×420. The fallback Chromium capture is 500×420
+  because its local headless window enforces a 500px minimum width.
+- The trend section now fills the remaining card height, moving the time axis close
+  to the lower edge instead of leaving an unused footer-sized area.
+- Horizontal padding and the Y-axis width are reduced while preserving complete
+  percentage ticks. First, middle, and latest remaining values appear above the
+  curve; limiting labels to three avoids collisions and visual noise.
+
 final result: passed
