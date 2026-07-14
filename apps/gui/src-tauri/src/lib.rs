@@ -15,7 +15,7 @@ use tauri::{
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
 };
 
-const TRAY_REFRESH_INTERVAL: std::time::Duration = std::time::Duration::from_secs(5);
+const TRAY_REFRESH_INTERVAL: std::time::Duration = std::time::Duration::from_secs(30);
 
 fn format_remaining_title(used_percent: Option<f64>) -> String {
     used_percent
