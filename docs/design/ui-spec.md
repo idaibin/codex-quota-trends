@@ -32,6 +32,8 @@ and used only for Settings. The generated transparent PNG app mark under
   The plot fills its Grid row and adds 5% of the observed range above the maximum
   and below the minimum, keeping the curve clear of the outer guides without
   introducing fixed percentage bounds. Quota percentages render as whole numbers.
+  The area uses a restrained vertical accent gradient, rounded strokes, and a
+  low-contrast grid so the current-value marker remains the strongest chart element.
 - Visible popover copy, chart labels, tooltips, and accessibility names use Chinese.
 - The native window and its content clip to an 8px corner radius.
 
@@ -50,6 +52,8 @@ and used only for Settings. The generated transparent PNG app mark under
 
 Typography uses the macOS system stack. Numeric metrics use tabular figures.
 Icons use Phosphor's regular outline weight; the app mark is a transparent PNG.
+Window, panel, and control radii are respectively 8px, 10px, and 8px across both
+the tray and Settings surfaces.
 
 ## Components
 
@@ -62,6 +66,9 @@ Icons use Phosphor's regular outline weight; the app mark is a transparent PNG.
   groups cover general behavior, data storage, and local-data removal;
   supporting descriptions appear only when they add actionable information
   such as reclaimable disk space.
+  Section cards use quiet one-pixel borders, compact 42px rows, 30px controls,
+  and matching icon/caret weights. Auto-save confirmation appears briefly in the
+  otherwise unused native titlebar area rather than covering destructive actions.
 
 ## Responsive behavior
 
@@ -77,6 +84,8 @@ functional. The dashboard entry is intentionally absent.
 The Settings data section also supports arbitrary retention days, live SQLite
 disk-size reporting, and an explicit database cleanup/compaction action.
 Every control has hover, focus-visible, disabled, selected, and pressed states.
+Settings selects have explicit accessible names and auto-save changes are announced
+through a polite status region.
 Reduced-motion users receive no animated chart/ring entrance.
 
 ## Tailwind and Tauri rules

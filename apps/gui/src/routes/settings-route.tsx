@@ -34,6 +34,11 @@ export function SettingsRoute({
   const [cleaning, setCleaning] = useState(false);
   useEffect(() => setDraft(settings), [settings]);
   useEffect(() => {
+    if (!saved) return undefined;
+    const timer = window.setTimeout(() => setSaved(false), 1_600);
+    return () => window.clearTimeout(timer);
+  }, [saved]);
+  useEffect(() => {
     let cancelled = false;
     void getDatabaseStats()
       .then((stats) => {
@@ -109,6 +114,7 @@ export function SettingsRoute({
       <SettingsSection icon={<CalendarBlank />} title="常规">
         <SettingRow title="采集频率">
           <SelectControl
+            aria-label="采集频率"
             value={draft.pollIntervalSeconds}
             onChange={(event) => update("pollIntervalSeconds", Number(event.target.value))}
           >
@@ -133,6 +139,7 @@ export function SettingsRoute({
         </SettingRow>
         <SettingRow title="主题">
           <SelectControl
+            aria-label="主题"
             value={draft.theme}
             onChange={(event) => update("theme", event.target.value as AppSettings["theme"])}
           >
@@ -212,7 +219,13 @@ export function SettingsRoute({
           清除数据
         </button>
       </Panel>
-      <div className={`save-indicator ${saved ? "save-indicator--visible" : ""}`}>已保存</div>
+      <div
+        className={`save-indicator ${saved ? "save-indicator--visible" : ""}`}
+        role="status"
+        aria-live="polite"
+      >
+        已保存
+      </div>
     </div>
   );
 }

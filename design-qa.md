@@ -1,5 +1,34 @@
 # Design QA
 
+## Unified tray and Settings refinement
+
+- Current-run audit evidence: `screenshots/actual/unified-tray-before.png` and
+  `screenshots/actual/unified-settings-before.png`.
+- Accepted implementation: `screenshots/actual/unified-tray-final.png`,
+  `screenshots/actual/unified-settings-final.png`, and
+  `screenshots/actual/unified-settings-dark-final.png`.
+- Side-by-side review: `screenshots/actual/unified-tray-comparison.png` and
+  `screenshots/actual/unified-settings-comparison.png`.
+- Viewports: tray 420×170; Settings 520×580; deterministic local browser data.
+- P2 visual finding: the two surfaces used similar colors but inconsistent window,
+  panel, and control radii. Named 8px/10px/8px geometry now keeps the native window,
+  preference cards, selects, inputs, range pill, and destructive action aligned.
+- P2 chart finding: the tray trend used a flat area fill and comparatively strong
+  guides. A restrained accent gradient, round line joins, softer grid, smaller
+  tooltip, and balanced 30px heading row now improve depth without reintroducing a
+  card, outer padding, or duplicated content.
+- P2 Settings finding: action icons and controls carried mixed sizes, and the save
+  toast could cover the destructive action. Controls and icons now share a compact
+  scale; the temporary save status occupies the unused native titlebar area.
+- Accessibility finding: the two Settings selects had no accessible names and the
+  save acknowledgement was not announced. Both selects are explicitly named and
+  the temporary status uses a polite live region. Screenshot evidence cannot prove
+  complete keyboard or assistive-technology compatibility; semantic snapshots and
+  focused interaction checks cover the changed controls.
+- Light and dark Settings states were rendered at the delivered size. Browser logs
+  contained no warnings or errors, and the theme selector remained functional.
+- No actionable P0/P1/P2 findings remain for the requested consistency pass.
+
 ## Evidence
 
 - Source visual truth: `/var/folders/33/1n65110j6_15vm1fd1fydb440000gn/T/codex-clipboard-70e8982a-2269-46c3-b872-d92441ff2b49.png`.

@@ -143,10 +143,16 @@ export function TrayRemainingChart({ history }: { history: TrendPoint[] }) {
     <div className="tray-trend-chart" aria-label="最近24小时的剩余额度">
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart data={data} margin={{ top: 18, right: 28, bottom: 1, left: 20 }}>
+          <defs>
+            <linearGradient id="tray-remaining-fill" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="var(--accent)" stopOpacity={0.18} />
+              <stop offset="100%" stopColor="var(--accent)" stopOpacity={0.035} />
+            </linearGradient>
+          </defs>
           <CartesianGrid
             stroke="var(--chart-grid)"
             strokeDasharray="2 4"
-            strokeOpacity={0.72}
+            strokeOpacity={0.62}
             vertical={false}
           />
           <YAxis hide domain={[domainMin, domainMax]} tickCount={3} width={0} />
@@ -177,18 +183,20 @@ export function TrayRemainingChart({ history }: { history: TrendPoint[] }) {
             contentStyle={{
               background: "var(--panel)",
               border: "1px solid var(--border-strong)",
-              borderRadius: 10,
-              boxShadow: "0 10px 28px rgba(15, 23, 42, 0.12)",
-              fontSize: 12,
+              borderRadius: 8,
+              boxShadow: "0 8px 24px rgba(15, 23, 42, 0.1)",
+              fontSize: 11,
             }}
           />
           <Area
             type="monotoneX"
             dataKey="remainingPercent"
             stroke="var(--accent)"
-            fill="var(--chart-fill)"
-            fillOpacity={0.72}
-            strokeWidth={2.75}
+            fill="url(#tray-remaining-fill)"
+            fillOpacity={1}
+            strokeWidth={2.5}
+            strokeLinecap="round"
+            strokeLinejoin="round"
             dot={false}
             activeDot={{ r: 4, fill: "var(--accent)", stroke: "var(--panel)", strokeWidth: 2 }}
             isAnimationActive={false}

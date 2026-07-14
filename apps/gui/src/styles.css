@@ -30,6 +30,9 @@
   --chart-grid: #dce3eb;
   --chart-fill: rgba(91, 61, 245, 0.12);
   --shadow: 0 26px 70px rgba(15, 23, 42, 0.12);
+  --radius-window: 8px;
+  --radius-panel: 10px;
+  --radius-control: 8px;
 }
 
 :root[data-theme="dark"] {
@@ -111,7 +114,7 @@ select {
   overflow: hidden;
   background: var(--canvas);
   border: 1px solid var(--border-strong);
-  border-radius: 16px;
+  border-radius: var(--radius-window);
   box-shadow: var(--shadow);
 }
 .app-frame--settings {
@@ -232,7 +235,7 @@ select {
 .panel {
   min-width: 0;
   border: 1px solid var(--border);
-  border-radius: 11px;
+  border-radius: var(--radius-panel);
   background: var(--panel);
 }
 .section-title {
@@ -298,7 +301,7 @@ select {
   appearance: none;
   padding: 0 34px 0 12px;
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: var(--radius-control);
   color: var(--text);
   background: var(--panel);
   cursor: pointer;
@@ -1039,22 +1042,28 @@ select {
 
 .settings-page {
   display: grid;
-  gap: 10px;
+  gap: 8px;
 }
 .settings-section {
-  padding: 8px 12px 2px;
+  overflow: hidden;
+  padding: 7px 11px 2px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.025);
 }
 .settings-section > h2,
 .danger-zone h2 {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin: 0 0 3px;
+  gap: 6px;
+  min-height: 22px;
+  margin: 0 0 2px;
   color: var(--muted);
   font-size: 12px;
-  font-weight: 650;
+  font-weight: 680;
+  letter-spacing: 0.02em;
 }
 .settings-section > h2 svg {
+  width: 13px;
+  height: 13px;
   color: var(--accent);
 }
 .setting-row {
@@ -1062,7 +1071,7 @@ select {
   min-height: 42px;
   align-items: center;
   justify-content: space-between;
-  gap: 14px;
+  gap: 12px;
   border-bottom: 1px solid var(--border);
 }
 .setting-row:last-child {
@@ -1073,14 +1082,15 @@ select {
   gap: 2px;
 }
 .setting-row > div:first-child strong {
-  font-weight: 580;
+  font-size: 13px;
+  font-weight: 620;
 }
 .setting-row > div:first-child span {
   color: var(--muted);
   font-size: 13px;
 }
 .setting-row .select-control {
-  min-width: 132px;
+  min-width: 118px;
   height: 30px;
 }
 .threshold-control {
@@ -1104,7 +1114,7 @@ select {
   color: var(--muted);
 }
 .retention-control input {
-  width: 96px;
+  width: 88px;
   height: 30px;
   padding: 0 12px;
   border: 1px solid var(--border);
@@ -1135,7 +1145,7 @@ select {
   display: flex;
   min-height: 42px;
   align-items: center;
-  gap: 10px;
+  gap: 9px;
   padding: 0;
   border: 0;
   border-top: 1px solid var(--border);
@@ -1143,12 +1153,21 @@ select {
   cursor: pointer;
   text-align: left;
 }
+.settings-actions button > svg:first-child {
+  width: 20px;
+  height: 20px;
+  color: var(--muted);
+}
 .settings-actions button:disabled,
 .danger-zone > button:disabled {
   cursor: wait;
   opacity: 0.6;
 }
 .settings-actions button:hover {
+  color: var(--accent);
+}
+.settings-actions button:hover > svg:first-child,
+.settings-actions button:hover > svg:last-child {
   color: var(--accent);
 }
 .settings-actions button > span {
@@ -1174,8 +1193,9 @@ select {
   align-items: center;
   justify-content: space-between;
   padding: 7px 12px;
-  border-color: color-mix(in srgb, var(--danger) 35%, var(--border));
-  background: color-mix(in srgb, var(--danger-soft) 45%, var(--panel));
+  border-color: color-mix(in srgb, var(--danger) 28%, var(--border));
+  background: color-mix(in srgb, var(--danger-soft) 24%, var(--panel));
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.02);
 }
 .danger-zone > div > strong {
   display: flex;
@@ -1192,23 +1212,27 @@ select {
   font-size: 11px;
 }
 .danger-zone > button {
-  padding: 7px 14px;
+  height: 30px;
+  padding: 0 13px;
   border: 1px solid var(--danger);
-  border-radius: 9px;
+  border-radius: var(--radius-control);
   color: var(--danger);
   background: transparent;
   cursor: pointer;
 }
 .save-indicator {
   position: fixed;
-  right: 16px;
-  bottom: 14px;
-  padding: 7px 12px;
+  top: 9px;
+  right: 12px;
+  padding: 4px 9px;
+  border: 1px solid color-mix(in srgb, var(--success) 30%, var(--border));
   border-radius: 99px;
-  color: white;
-  background: var(--success);
+  color: var(--success);
+  background: color-mix(in srgb, var(--success-soft) 72%, var(--panel));
+  font-size: 11px;
+  font-weight: 650;
   opacity: 0;
-  transform: translateY(8px);
+  transform: translateY(-5px);
   pointer-events: none;
   transition:
     opacity 0.18s ease,
@@ -1228,7 +1252,7 @@ select {
   overflow: hidden;
   padding: 0;
   border: 0;
-  border-radius: 8px;
+  border-radius: var(--radius-window);
   color: var(--text);
   background: var(--canvas);
   box-shadow: none;
@@ -1246,7 +1270,7 @@ select {
 }
 .tray-trend-section {
   display: grid;
-  grid-template-rows: 28px minmax(0, 1fr) 6px;
+  grid-template-rows: 30px minmax(0, 1fr) 5px;
   min-height: 0;
   padding: 0;
 }
@@ -1254,23 +1278,26 @@ select {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 4px 8px 0;
+  padding: 4px 10px 0;
 }
 .tray-chart-heading h2 {
   margin: 0;
   color: var(--muted);
-  font-size: 11px;
-  font-weight: 560;
+  font-size: 10.5px;
+  font-weight: 600;
   letter-spacing: -0.05px;
 }
 .tray-chart-heading > span {
-  padding: 3px 7px;
+  display: inline-flex;
+  min-height: 20px;
+  align-items: center;
+  padding: 0 7px;
   border: 1px solid var(--border);
-  border-radius: 7px;
+  border-radius: var(--radius-control);
   color: var(--muted);
   background: var(--panel-subtle);
-  font-size: 9px;
-  font-weight: 700;
+  font-size: 9.5px;
+  font-weight: 650;
   font-variant-numeric: tabular-nums;
 }
 .tray-chart-heading > span strong {
@@ -1287,7 +1314,7 @@ select {
 .tray-trend-chart .recharts-cartesian-axis-tick text {
   fill: var(--muted);
   font-size: 9px;
-  font-weight: 450;
+  font-weight: 500;
   letter-spacing: -0.05px;
 }
 .tray-trend-chart--empty {
@@ -1328,7 +1355,7 @@ select {
 
 @media (max-width: 680px) {
   .app-frame {
-    border-radius: 0;
+    border-radius: var(--radius-window);
   }
   .topbar__brand span,
   .topbar__divider {
