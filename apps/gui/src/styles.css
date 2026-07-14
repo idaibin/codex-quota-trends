@@ -107,6 +107,10 @@ select {
   border-radius: 16px;
   box-shadow: var(--shadow);
 }
+:root[data-runtime="tauri"] .app-frame {
+  border: 0;
+  box-shadow: none;
+}
 .sidebar {
   display: flex;
   min-width: 0;

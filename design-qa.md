@@ -42,6 +42,9 @@ in `screenshots/actual/compact-reference-comparison.png` before review.
   all four edges in dark mode. The tray surface now owns the full rectangular
   window background with no outer border, radius, transparency, or native shadow;
   internal cards retain their spacing and radii.
+- P2: the browser-preview border and shadow were also visible around the real
+  Tauri main window. They are now disabled only in the native runtime; rounded
+  clipping and all internal panel borders remain unchanged.
 
 ## Native client evidence
 
