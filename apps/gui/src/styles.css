@@ -1258,9 +1258,9 @@ select {
   flex: 1;
   flex-direction: column;
   overflow: hidden;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--panel);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
 }
 .tray-remaining-hero {
   display: flex;

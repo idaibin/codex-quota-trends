@@ -104,4 +104,24 @@
 - The removed native notification task and Tauri notification plugin ensure hidden
   reminder settings cannot continue producing desktop notifications in the background.
 
+## Flat tray content
+
+- Source visual truth: `/var/folders/33/1n65110j6_15vm1fd1fydb440000gn/T/codex-clipboard-7a0c56dc-064e-4dea-86ad-0e645a08b4d6.png`.
+- Implementation: `screenshots/actual/tray-flat-layout-v1.jpg`.
+- Full-view comparison: `screenshots/actual/tray-flat-layout-comparison.png`.
+- Viewport: 420×420, light theme, tray surface. The reference and implementation
+  contain different live quota values, so comparison is limited to the annotated
+  container treatment and preserved information hierarchy.
+- Earlier P2 finding: the remaining summary and chart were enclosed by a white card
+  with a visible border and 8px inner radius, contrary to the requested direct layout.
+- Fix: `.tray-overview` now has no border or radius and uses a transparent background;
+  its semantic `main` container and the summary-to-chart divider remain intact.
+- Post-fix evidence: the implementation shows the summary and trend directly on the
+  popover canvas with no enclosing card edge, corner, or elevated background.
+- Focused-region comparison was unnecessary because the changed container occupies
+  the complete 420×420 surface and its edges are clearly visible in the full view.
+- Fonts and typography, token colors, icon assets, chart rendering, copy, controls,
+  and hover/focus behavior are unchanged; no new image assets were required.
+- No actionable P0/P1/P2 findings remain for the requested flat-container change.
+
 final result: passed

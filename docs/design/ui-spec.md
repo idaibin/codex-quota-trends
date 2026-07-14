@@ -14,6 +14,8 @@ and used only for Settings. The generated transparent PNG app mark under
   The product mark and name are intentionally omitted from this compact surface.
 - Remaining summary: current percentage, quota-window label, reset countdown,
   and the remaining-point change for the visible range.
+- The remaining summary and trend render directly on the popover canvas without
+  an enclosing card, border, radius, or elevated panel background.
 - Trend: the primary content region with a dynamic percentage domain, three
   horizontal guides, contextual time labels, endpoint marker, area fill, and
   a precise hover tooltip. Three representative points display their remaining
