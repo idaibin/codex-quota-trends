@@ -247,4 +247,23 @@
   expose an app window, so the exact 420×420 browser render is the visual proof.
 - No actionable P0/P1/P2 findings remain for the requested cumulative metric.
 
+## Compact fixed-24-hour tray
+
+- Previous implementation baseline: `screenshots/actual/tray-cumulative-consumption-browser.png`.
+- Browser-rendered implementation: `screenshots/actual/tray-compact-24h-final.jpg`.
+- Full-view comparison: `screenshots/actual/tray-compact-24h-comparison.png`.
+- Viewport and state: 420×360, light tray surface, deterministic 24-hour trend.
+- Requested simplifications: the quota-window label above the current percentage is
+  removed, Y-axis tick labels are hidden, and every X-axis tick uses time-only copy.
+- The backend history query and cumulative-consumption calculation now share the same
+  fixed 24-hour window, preventing a seven-day statistic from being presented as 24 hours.
+- First visual pass exposed a clipped first data label after reclaiming the Y-axis width.
+  The plot keeps a 22px safety inset without restoring visible Y-axis content; the final
+  capture shows all three value labels and all three time ticks fully visible.
+- The popover height is reduced from 420px to 360px. The summary, divider, reset time,
+  range pill, chart endpoint, and 8px outer radius remain aligned and readable.
+- Browser accessibility output contains no quota-window label or Y-axis ticks, lists
+  only three clock-time X-axis values, and reports no console warnings or errors.
+- No actionable P0/P1/P2 findings remain for the compact fixed-24-hour tray.
+
 final result: passed

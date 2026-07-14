@@ -17,24 +17,10 @@ import { formatChartTime, formatPercent } from "../utils/format";
 const normalize = (history: TrendPoint[]) =>
   history.map((point) => ({ ...point, label: formatChartTime(point.timestamp) }));
 
-const formatTrayDate = (timestamp: number) =>
-  new Intl.DateTimeFormat("zh-CN", { month: "numeric", day: "numeric" }).format(
-    new Date(timestamp * 1_000),
-  );
-
 const formatTrayTime = (timestamp: number) =>
   new Intl.DateTimeFormat("zh-CN", { hour: "2-digit", minute: "2-digit", hour12: false }).format(
     new Date(timestamp * 1_000),
   );
-
-const formatTrayDateTime = (timestamp: number) =>
-  new Intl.DateTimeFormat("zh-CN", {
-    month: "numeric",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  }).format(new Date(timestamp * 1_000));
 
 export function UsageAreaChart({
   history,
@@ -104,11 +90,7 @@ export function UsageAreaChart({
 }
 
 export function TrayRemainingChart({ history }: { history: TrendPoint[] }) {
-  const sevenDaysAgo = Date.now() / 1_000 - 7 * 24 * 60 * 60;
-  const recentHistory = history.filter((point) => point.timestamp >= sevenDaysAgo);
-  const source = [...(recentHistory.length > 1 ? recentHistory : history)].sort(
-    (left, right) => left.timestamp - right.timestamp,
-  );
+  const source = [...history].sort((left, right) => left.timestamp - right.timestamp);
   const firstTimestamp = source[0]?.timestamp ?? 0;
   const lastTimestamp = source.at(-1)?.timestamp ?? firstTimestamp;
   const temporalMidpoint = firstTimestamp + (lastTimestamp - firstTimestamp) / 2;
@@ -141,45 +123,28 @@ export function TrayRemainingChart({ history }: { history: TrendPoint[] }) {
   const domainMin = Math.max(0, Math.floor((minimum - 4) / 5) * 5);
   const domainMax = Math.min(100, Math.ceil((maximum + 4) / 5) * 5);
   const last = data.at(-1);
-  const timeSpan = last && data[0] ? last.timestamp - data[0].timestamp : 0;
-  const formatTick =
-    timeSpan >= 2 * 86_400
-      ? formatTrayDate
-      : timeSpan >= 20 * 60 * 60
-        ? formatTrayDateTime
-        : formatTrayTime;
   const timeTicks = Array.from(
     new Set([data[0]?.timestamp, data[middleIndex]?.timestamp, last?.timestamp]),
   ).filter((timestamp): timestamp is number => timestamp !== undefined);
 
   return (
-    <div
-      className="tray-trend-chart"
-      aria-label={`最近${timeSpan >= 2 * 86_400 ? "七天" : "24小时"}的剩余额度`}
-    >
+    <div className="tray-trend-chart" aria-label="最近24小时的剩余额度">
       <ResponsiveContainer width="100%" height="100%">
-        <AreaChart data={data} margin={{ top: 22, right: 20, bottom: 1, left: 0 }}>
+        <AreaChart data={data} margin={{ top: 22, right: 20, bottom: 1, left: 22 }}>
           <CartesianGrid
             stroke="var(--chart-grid)"
             strokeDasharray="2 4"
             strokeOpacity={0.72}
             vertical={false}
           />
-          <YAxis
-            domain={[domainMin, domainMax]}
-            tickCount={3}
-            tickFormatter={formatPercent}
-            tickLine={false}
-            axisLine={false}
-            width={36}
-          />
+          <YAxis hide domain={[domainMin, domainMax]} tickCount={3} width={0} />
           <XAxis
             dataKey="timestamp"
             type="number"
             scale="linear"
             domain={["dataMin", "dataMax"]}
             ticks={timeTicks}
-            tickFormatter={formatTick}
+            tickFormatter={formatTrayTime}
             tickLine={false}
             axisLine={false}
             minTickGap={64}

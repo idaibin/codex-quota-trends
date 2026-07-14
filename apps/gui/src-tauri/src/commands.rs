@@ -38,7 +38,7 @@ fn dashboard(state: &AppState) -> Result<DashboardData, String> {
     let history = snapshot
         .windows
         .first()
-        .map(|window| database.history(&snapshot.limit_id, window.window_minutes, now - 7 * 86_400))
+        .map(|window| database.history(&snapshot.limit_id, window.window_minutes, now - 86_400))
         .transpose()
         .map_err(|error| error.to_string())?
         .unwrap_or_default();

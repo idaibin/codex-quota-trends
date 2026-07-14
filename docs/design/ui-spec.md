@@ -12,16 +12,16 @@ and used only for Settings. The generated transparent PNG app mark under
 - Menu bar item: a monochrome template version of the existing quota curve with
   no purple tile, followed by the rounded current remaining percentage. The title
   refreshes from the latest local quota snapshot without opening the popover.
-- Menu bar popover: 420×420, frameless, opaque, shadowless, and hidden on blur.
+- Menu bar popover: 420×360, frameless, opaque, shadowless, and hidden on blur.
 - The popover has no header or inline utility actions. Right-clicking the menu-bar
   item exposes pause/resume, Settings, and Quit in a compact native Chinese menu.
-- Remaining summary: current percentage and quota-window label. Reset timing belongs
-  to the chart heading; the range badge shows cumulative consumption for the visible
-  history by adding every usage increase and ignoring reset decreases.
+- Remaining summary: current percentage only. Reset timing belongs to the chart
+  heading; the range badge shows cumulative consumption for the visible history by
+  adding every usage increase and ignoring reset decreases.
 - The remaining summary and trend render directly on the popover canvas without
   an enclosing card, border, radius, or elevated panel background.
 - Trend: the primary content region with a dynamic percentage domain, three
-  horizontal guides, contextual time labels, reset time in the upper-left heading,
+  horizontal guides, time-only X-axis labels, a hidden Y axis, reset time in the upper-left heading,
   endpoint marker, area fill, and a precise hover tooltip. The first and middle
   representative values are quiet labels; the latest value uses an accent label
   and halo marker. Axis labels use smaller, muted type with compact margins.
@@ -50,8 +50,8 @@ Icons use Phosphor's regular outline weight; the app mark is a transparent PNG.
 
 - `TrayPopover`: the primary product surface and owner of remaining summary,
   trend, collector state, and compact utility controls.
-- `TrayRemainingChart`: a library-rendered area chart with adaptive 24-hour or
-  seven-day labels, dynamic bounds, endpoint marker, and tooltip.
+- `TrayRemainingChart`: a library-rendered 24-hour area chart with time-only labels,
+  hidden Y-axis ticks, dynamic bounds, endpoint marker, and tooltip.
 - `SettingsRoute`: the only on-demand main-window route.
   It uses a 520×580 single-column preferences window with no branded top bar.
   Theme selection is a normal row in the General group. Compact Chinese-only
@@ -61,7 +61,7 @@ Icons use Phosphor's regular outline weight; the app mark is a transparent PNG.
 
 ## Responsive behavior
 
-- The tray surface is fixed at 420×420 and is not treated as a mobile page.
+- The tray surface is fixed at 420×360 and is not treated as a mobile page.
 - Chart labels and plot margins are sized to remain fully visible at that width.
 - The Settings surface is fixed to a compact 520px width. Its native titlebar
   area is left clear for macOS traffic lights, and all controls flow in one column.
