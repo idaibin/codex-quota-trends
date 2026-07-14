@@ -120,8 +120,9 @@ export function TrayRemainingChart({ history }: { history: TrendPoint[] }) {
   const values = data.map((point) => point.remainingPercent);
   const minimum = Math.min(...values);
   const maximum = Math.max(...values);
-  const domainMin = minimum === maximum ? Math.max(0, minimum - 1) : minimum;
-  const domainMax = minimum === maximum ? Math.min(100, maximum + 1) : maximum;
+  const domainPadding = minimum === maximum ? 1 : (maximum - minimum) * 0.05;
+  const domainMin = Math.max(0, minimum - domainPadding);
+  const domainMax = Math.min(100, maximum + domainPadding);
   const last = data.at(-1);
   const timeTicks = Array.from(
     new Set([data[0]?.timestamp, data[middleIndex]?.timestamp, last?.timestamp]),

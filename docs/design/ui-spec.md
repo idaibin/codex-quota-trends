@@ -12,7 +12,7 @@ and used only for Settings. The generated transparent PNG app mark under
 - Menu bar item: a monochrome template version of the existing quota curve with
   no purple tile, followed by the rounded current remaining percentage. The title
   refreshes from the latest local quota snapshot without opening the popover.
-- Menu bar popover: 420×184, frameless, opaque, shadowless, and hidden on blur.
+- Menu bar popover: 420×170, frameless, opaque, shadowless, and hidden on blur.
 - The popover has no header or inline utility actions. Right-clicking the menu-bar
   item exposes pause/resume, Settings, and Quit in a compact native Chinese menu.
 - The popover has no separate remaining-summary block. Reset timing belongs to the
@@ -27,8 +27,8 @@ and used only for Settings. The generated transparent PNG app mark under
   and halo marker. Axis labels use smaller, muted type with compact margins.
   Timestamps use a continuous numeric axis so irregularly collected source points
   retain their real temporal spacing instead of being rendered as equal categories.
-  The 128px plot uses the observed minimum and maximum as its lower and upper bounds,
-  so the outer horizontal guides align with the data range.
+  The 128px plot adds 5% of the observed range above the maximum and below the minimum,
+  keeping the curve clear of the outer guides without introducing fixed percentage bounds.
 - Visible popover copy, chart labels, tooltips, and accessibility names use Chinese.
 - The native window and its content clip to an 8px corner radius.
 
@@ -62,7 +62,7 @@ Icons use Phosphor's regular outline weight; the app mark is a transparent PNG.
 
 ## Responsive behavior
 
-- The tray surface is fixed at 420×184 and is not treated as a mobile page.
+- The tray surface is fixed at 420×170 and is not treated as a mobile page.
 - Chart labels and plot margins are sized to remain fully visible at that width.
 - The Settings surface is fixed to a compact 520px width. Its native titlebar
   area is left clear for macOS traffic lights, and all controls flow in one column.

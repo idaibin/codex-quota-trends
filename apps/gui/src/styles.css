@@ -916,7 +916,7 @@ select {
   min-height: 82px;
   align-items: center;
   gap: 10px;
-  padding: 10px;
+  padding: 6px;
 }
 .alert-summary > div {
   display: grid;
@@ -1250,13 +1250,13 @@ select {
   min-height: 0;
   flex: 0 0 auto;
   flex-direction: column;
-  padding: 8px 6px 3px;
+  padding: 4px 2px 1px;
 }
 .tray-chart-heading {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 3px;
+  padding: 0 1px;
 }
 .tray-chart-heading h2 {
   margin: 0;

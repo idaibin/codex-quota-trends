@@ -284,4 +284,20 @@
   the tooltip contract remains available and no console warnings or errors were found.
 - No actionable P0/P1/P2 findings remain for the chart-only 128px tray.
 
+## Five-percent chart breathing room
+
+- Previous implementation baseline: `screenshots/actual/tray-chart-only-128.jpg`.
+- Browser-rendered implementation: `screenshots/actual/tray-padding-5-final.jpg`.
+- Full-view comparison: `screenshots/actual/tray-padding-5-comparison.jpg`.
+- Viewport and state: 420×170, light tray surface, deterministic 24-hour trend
+  with a fixed 128px chart.
+- The chart domain now extends by 5% of the observed value span above the maximum
+  and below the minimum. Flat histories retain a safe one-point fallback margin.
+- Outer tray padding is reduced from 10px to 6px, chart-section padding from
+  `8px 6px 3px` to `4px 2px 1px`, and heading inline padding from 3px to 1px.
+- The compacted 170px window keeps the reset time, consumption pill, first/current
+  labels, endpoint halo, and time ticks readable without clipping.
+- Browser accessibility output and console inspection report no warnings or errors.
+- No actionable P0/P1/P2 findings remain for the requested spacing adjustment.
+
 final result: passed
