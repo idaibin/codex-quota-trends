@@ -79,8 +79,8 @@ impl AppSettings {
         if !(1..=1_440).contains(&self.offline_threshold_minutes) {
             return Err("offline threshold must be between 1 and 1440 minutes");
         }
-        if !(1..=3_650).contains(&self.retention_days) {
-            return Err("retention must be between 1 and 3650 days");
+        if !(1..=365).contains(&self.retention_days) {
+            return Err("retention must be between 1 and 365 days");
         }
         Ok(())
     }
@@ -101,5 +101,11 @@ mod tests {
     fn rejects_unsafe_poll_interval() {
         let settings = AppSettings { poll_interval_seconds: 1, ..AppSettings::default() };
         assert_eq!(settings.validate(), Err("poll interval must be between 15 and 3600 seconds"));
+    }
+
+    #[test]
+    fn rejects_retention_over_one_year() {
+        let settings = AppSettings { retention_days: 366, ..AppSettings::default() };
+        assert_eq!(settings.validate(), Err("retention must be between 1 and 365 days"));
     }
 }

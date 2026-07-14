@@ -58,7 +58,7 @@ export function SettingsRoute({
   };
 
   const commitRetention = () => {
-    const retentionDays = Math.min(3_650, Math.max(1, Math.round(draft.retentionDays || 30)));
+    const retentionDays = Math.min(365, Math.max(1, Math.round(draft.retentionDays || 30)));
     const next = { ...draft, retentionDays };
     setDraft(next);
     setSaved(false);
@@ -206,7 +206,7 @@ export function SettingsRoute({
               aria-label="Data retention days"
               type="number"
               min="1"
-              max="3650"
+              max="365"
               value={draft.retentionDays}
               onChange={(event) =>
                 setDraft({ ...draft, retentionDays: Number(event.target.value) })
