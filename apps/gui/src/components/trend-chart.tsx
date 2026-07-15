@@ -63,6 +63,12 @@ export function buildResetAwareTrayHistory(history: TrendPoint[]): {
   return { data, hasReset };
 }
 
+export function buildContinuousTimeTicks(firstTimestamp: number, lastTimestamp: number): number[] {
+  return Array.from(
+    new Set([firstTimestamp, firstTimestamp + (lastTimestamp - firstTimestamp) / 2, lastTimestamp]),
+  );
+}
+
 function TrayTimeTick({ x, y, payload, index, visibleTicksCount }: XAxisTickContentProps) {
   const textAnchor = index === 0 ? "start" : index === visibleTicksCount - 1 ? "end" : "middle";
 
@@ -144,15 +150,6 @@ export function TrayRemainingChart({ history }: { history: TrendPoint[] }) {
   const source = [...history].sort((left, right) => left.timestamp - right.timestamp);
   const firstTimestamp = source[0]?.timestamp ?? 0;
   const lastTimestamp = source.at(-1)?.timestamp ?? firstTimestamp;
-  const temporalMidpoint = firstTimestamp + (lastTimestamp - firstTimestamp) / 2;
-  const middleIndex = source.reduce(
-    (closest, point, index) =>
-      Math.abs(point.timestamp - temporalMidpoint) <
-      Math.abs(source[closest].timestamp - temporalMidpoint)
-        ? index
-        : closest,
-    0,
-  );
   const lastIndex = source.length - 1;
   const minimumIndex = source.reduce(
     (lowest, point, index) => (point.usedPercent > source[lowest].usedPercent ? index : lowest),
@@ -184,9 +181,7 @@ export function TrayRemainingChart({ history }: { history: TrendPoint[] }) {
       data[index - 1]?.resetBoundary &&
       data[index - 1]?.timestamp === point.timestamp,
   );
-  const timeTicks = Array.from(
-    new Set([source[0]?.timestamp, source[middleIndex]?.timestamp, last?.timestamp]),
-  ).filter((timestamp): timestamp is number => timestamp !== undefined);
+  const timeTicks = buildContinuousTimeTicks(firstTimestamp, lastTimestamp);
 
   return (
     <div className="tray-trend-chart" aria-label="最近24小时的剩余额度">

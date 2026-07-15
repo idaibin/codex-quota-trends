@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildResetAwareTrayHistory } from "./trend-chart";
+import { buildContinuousTimeTicks, buildResetAwareTrayHistory } from "./trend-chart";
 
 describe("tray trend reset rendering", () => {
   it("inserts a vertical boundary when remaining quota resets", () => {
@@ -31,5 +31,10 @@ describe("tray trend reset rendering", () => {
 
     expect(hasReset).toBe(false);
     expect(data).toHaveLength(2);
+  });
+
+  it("places time ticks at the exact start, midpoint, and end", () => {
+    expect(buildContinuousTimeTicks(100, 400)).toEqual([100, 250, 400]);
+    expect(buildContinuousTimeTicks(100, 100)).toEqual([100]);
   });
 });

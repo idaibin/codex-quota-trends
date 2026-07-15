@@ -32,6 +32,8 @@ and used only for Settings. The generated transparent PNG app mark under
   is labeled explicitly, including 100% after a complete reset.
   Timestamps use a continuous numeric axis so irregularly collected source points
   retain their real temporal spacing instead of being rendered as equal categories.
+  The visible ticks are the exact range start, mathematical time midpoint, and range
+  end; they never snap to nearby samples when collection has gaps.
   The plot fills its Grid row and adds 5% of the observed range above the maximum
   and below the minimum, keeping the curve clear of the outer guides without
   introducing fixed percentage bounds. The hidden display domain may extend from

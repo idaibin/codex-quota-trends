@@ -412,6 +412,20 @@ final result: passed
   clipping or overlap.
 - No actionable visual issue remains for reset-value visibility.
 
+## Continuous time ticks
+
+- User clarification: X-axis time must be continuous rather than selected from
+  nearby recorded samples.
+- Browser-rendered implementation: `screenshots/actual/tray-continuous-time.png`.
+- Viewport and state: 420×170, light tray surface, deterministic 24-hour history.
+- The three visible ticks are calculated directly from the numeric time domain:
+  start, exact midpoint, and end. The capture shows 12:16, 00:16, and 12:16 at
+  equal horizontal intervals.
+- Missing or irregular samples no longer shift the center label; sample timestamps
+  still retain their real continuous positions for the curve and tooltip.
+- The minimum, 100% reset, and current-value labels remain visible without overlap.
+- No actionable visual issue remains for continuous time-axis labeling.
+
 ## Compact Settings updater control
 
 - Browser-rendered implementation: `screenshots/actual/settings-updater-final.png`.
