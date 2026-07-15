@@ -23,6 +23,46 @@ const formatTrayTime = (timestamp: number) =>
     new Date(timestamp * 1_000),
   );
 
+const RESET_JUMP_THRESHOLD = 20;
+
+interface TrayTrendDatum extends TrendPoint {
+  remainingPercent: number;
+  sourceIndex: number;
+  resetBoundary: boolean;
+}
+
+export function buildResetAwareTrayHistory(history: TrendPoint[]): {
+  data: TrayTrendDatum[];
+  hasReset: boolean;
+} {
+  const source = [...history]
+    .sort((left, right) => left.timestamp - right.timestamp)
+    .map((point, sourceIndex) => ({
+      ...point,
+      remainingPercent: 100 - point.usedPercent,
+      sourceIndex,
+      resetBoundary: false,
+    }));
+  const data: TrayTrendDatum[] = [];
+  let hasReset = false;
+
+  source.forEach((point, index) => {
+    const previous = source[index - 1];
+    if (previous && point.remainingPercent - previous.remainingPercent >= RESET_JUMP_THRESHOLD) {
+      hasReset = true;
+      data.push({
+        ...point,
+        usedPercent: previous.usedPercent,
+        remainingPercent: previous.remainingPercent,
+        resetBoundary: true,
+      });
+    }
+    data.push(point);
+  });
+
+  return { data, hasReset };
+}
+
 function TrayTimeTick({ x, y, payload, index, visibleTicksCount }: XAxisTickContentProps) {
   const textAnchor = index === 0 ? "start" : index === visibleTicksCount - 1 ? "end" : "middle";
 
@@ -113,19 +153,19 @@ export function TrayRemainingChart({ history }: { history: TrendPoint[] }) {
         : closest,
     0,
   );
-  const labelIndexes = new Set([0, middleIndex, source.length - 1]);
   const lastIndex = source.length - 1;
-  const data = source.map((point, index) => {
-    const remainingPercent = 100 - point.usedPercent;
-    return {
-      ...point,
-      remainingPercent,
-      displayPercent:
-        labelIndexes.has(index) && index !== lastIndex
-          ? formatPercent(remainingPercent)
-          : undefined,
-    };
-  });
+  const minimumIndex = source.reduce(
+    (lowest, point, index) => (point.usedPercent > source[lowest].usedPercent ? index : lowest),
+    0,
+  );
+  const { data: resetAwareData, hasReset } = buildResetAwareTrayHistory(source);
+  const data = resetAwareData.map((point) => ({
+    ...point,
+    displayPercent:
+      point.sourceIndex === 0 && minimumIndex !== 0 && lastIndex !== 0
+        ? formatPercent(point.remainingPercent)
+        : undefined,
+  }));
   if (data.length === 0)
     return <div className="tray-trend-chart tray-trend-chart--empty">暂无趋势数据</div>;
   const values = data.map((point) => point.remainingPercent);
@@ -135,8 +175,11 @@ export function TrayRemainingChart({ history }: { history: TrendPoint[] }) {
   const domainMin = Math.max(0, minimum - domainPadding);
   const domainMax = Math.min(100, maximum + domainPadding);
   const last = data.at(-1);
+  const minimumPoint = data.find(
+    (point) => point.sourceIndex === minimumIndex && !point.resetBoundary,
+  );
   const timeTicks = Array.from(
-    new Set([data[0]?.timestamp, data[middleIndex]?.timestamp, last?.timestamp]),
+    new Set([source[0]?.timestamp, source[middleIndex]?.timestamp, last?.timestamp]),
   ).filter((timestamp): timestamp is number => timestamp !== undefined);
 
   return (
@@ -189,7 +232,7 @@ export function TrayRemainingChart({ history }: { history: TrendPoint[] }) {
             }}
           />
           <Area
-            type="monotoneX"
+            type={hasReset ? "linear" : "monotoneX"}
             dataKey="remainingPercent"
             stroke="var(--accent)"
             fill="url(#tray-remaining-fill)"
@@ -210,6 +253,24 @@ export function TrayRemainingChart({ history }: { history: TrendPoint[] }) {
               fontWeight={650}
             />
           </Area>
+          {minimumPoint && minimumPoint !== last && (
+            <ReferenceDot
+              x={minimumPoint.timestamp}
+              y={minimumPoint.remainingPercent}
+              r={3}
+              fill="var(--panel)"
+              stroke="var(--text)"
+              strokeWidth={1.5}
+              label={{
+                value: formatPercent(minimumPoint.remainingPercent),
+                position: "top",
+                offset: 7,
+                fill: "var(--text)",
+                fontSize: 10,
+                fontWeight: 650,
+              }}
+            />
+          )}
           {last && (
             <>
               <ReferenceDot

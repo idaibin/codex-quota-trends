@@ -8,6 +8,8 @@ describe("tray demo data", () => {
 
     expect(latestHistory?.usedPercent).toBe(currentWindow?.usedPercent);
     expect(demoHistory.every((point) => Number.isInteger(point.usedPercent))).toBe(true);
-    expect(100 - (latestHistory?.usedPercent ?? 0)).toBe(53);
+    expect(100 - (latestHistory?.usedPercent ?? 0)).toBe(97);
+    expect(Math.max(...demoHistory.map((point) => point.usedPercent))).toBe(49);
+    expect(demoDashboard.consumedPercent).toBe(20);
   });
 });

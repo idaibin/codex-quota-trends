@@ -12,7 +12,8 @@ const now = Math.floor(Date.now() / 1000);
 export const demoHistory: TrendPoint[] = Array.from({ length: 49 }, (_, index) => {
   return {
     timestamp: now - (48 - index) * 1_800,
-    usedPercent: 34 + Math.round((index * 13) / 48),
+    usedPercent:
+      index <= 24 ? 32 + Math.round((index * 17) / 24) : Math.round(((index - 25) * 3) / 23),
   };
 });
 
@@ -24,7 +25,7 @@ export const demoDashboard: DashboardData = {
     windows: [
       {
         windowMinutes: 10_080,
-        usedPercent: 47,
+        usedPercent: 3,
         resetAt: now + 6 * 86_400 + 18 * 3_600 + 42 * 60,
       },
       {
@@ -35,7 +36,7 @@ export const demoDashboard: DashboardData = {
     ],
   },
   history: demoHistory,
-  consumedPercent: 13,
+  consumedPercent: 20,
   speeds: { fifteenMinutes: 1.2, oneHour: 4.8, twentyFourHours: 15.3 },
   pace: { timeProgress: 40, usageProgress: 65, status: "above" },
   collector: { status: "connected", lastUpdateAt: now - 60, nextPollSeconds: 58 },

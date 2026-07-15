@@ -1,0 +1,32 @@
+import { describe, expect, it } from "vitest";
+import { buildResetAwareTrayHistory } from "./trend-chart";
+
+describe("tray trend reset rendering", () => {
+  it("inserts a vertical boundary when remaining quota resets", () => {
+    const { data, hasReset } = buildResetAwareTrayHistory([
+      { timestamp: 100, usedPercent: 32 },
+      { timestamp: 200, usedPercent: 48 },
+      { timestamp: 300, usedPercent: 0 },
+      { timestamp: 400, usedPercent: 3 },
+    ]);
+
+    expect(hasReset).toBe(true);
+    expect(data.map((point) => [point.timestamp, point.remainingPercent])).toEqual([
+      [100, 68],
+      [200, 52],
+      [300, 52],
+      [300, 100],
+      [400, 97],
+    ]);
+  });
+
+  it("does not add a boundary for ordinary quota corrections", () => {
+    const { data, hasReset } = buildResetAwareTrayHistory([
+      { timestamp: 100, usedPercent: 32 },
+      { timestamp: 200, usedPercent: 28 },
+    ]);
+
+    expect(hasReset).toBe(false);
+    expect(data).toHaveLength(2);
+  });
+});

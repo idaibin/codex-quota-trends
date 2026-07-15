@@ -380,6 +380,23 @@
 
 final result: passed
 
+## Reset discontinuity and minimum value
+
+- Source visual truth: `/var/folders/33/1n65110j6_15vm1fd1fydb440000gn/T/codex-clipboard-2c85ad90-5d57-4ef0-a86b-a81686a957e3.png`.
+- Browser-rendered implementation: `screenshots/actual/tray-reset-jump.png`.
+- Viewport and state: 420×170, light tray surface, deterministic 24-hour history
+  containing one weekly-quota reset.
+- The minimum remaining value is always labeled independently of the temporal
+  midpoint. The deterministic capture shows 51% as the minimum and 97% as current.
+- The reset is represented by two samples at the same timestamp: the final
+  pre-reset value and the reset value. Linear rendering therefore produces a
+  vertical 51%→100% discontinuity rather than a gradual recovery curve.
+- Unit coverage verifies the inserted reset boundary and confirms ordinary small
+  quota corrections do not create a false reset.
+- The 420×170 capture keeps the minimum marker, reset jump, current-value halo,
+  cumulative consumption, and all three time labels visible without clipping.
+- No actionable visual issue remains for the requested reset semantics.
+
 ## Compact Settings updater control
 
 - Browser-rendered implementation: `screenshots/actual/settings-updater-final.png`.

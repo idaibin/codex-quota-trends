@@ -24,16 +24,20 @@ and used only for Settings. The generated transparent PNG app mark under
 - Trend: the primary content region with a dynamic percentage domain, three
   horizontal guides, fixed left/center/right time-only X-axis labels, a hidden
   Y axis, reset time in the upper-left heading,
-  endpoint marker, area fill, and a precise hover tooltip. The first and middle
-  representative values are quiet labels; the latest value uses an accent label
-  and halo marker. Axis labels use smaller, muted type with compact margins.
+  endpoint marker, area fill, and a precise hover tooltip. The first and minimum
+  values are quiet labels; the latest value uses an accent label and halo marker.
+  Axis labels use smaller, muted type with compact margins. A quota reset inserts
+  two values at the same timestamp, so the line jumps vertically from the previous
+  minimum to the reset value instead of implying gradual recovery.
   Timestamps use a continuous numeric axis so irregularly collected source points
   retain their real temporal spacing instead of being rendered as equal categories.
   The plot fills its Grid row and adds 5% of the observed range above the maximum
   and below the minimum, keeping the curve clear of the outer guides without
   introducing fixed percentage bounds. Quota percentages render as whole numbers.
-  The area uses a restrained vertical accent gradient, rounded strokes, and a
-  low-contrast grid so the current-value marker remains the strongest chart element.
+  Reset-bearing histories use exact linear interpolation to preserve the discrete
+  jump; histories without a reset retain the restrained smooth curve. The area uses
+  a vertical accent gradient, rounded strokes, and a low-contrast grid so the
+  current-value marker remains the strongest chart element.
 - Visible popover copy, chart labels, tooltips, and accessibility names use Chinese.
 - The native window and its content clip to an 8px corner radius.
 
