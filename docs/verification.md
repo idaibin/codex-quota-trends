@@ -44,5 +44,7 @@ The app must not access `~/.codex/auth.json` or a `chatgpt.com/backend-api` URL.
    signed artifact, and changes to `重新启动`.
 4. Reject a manifest or artifact signed by any key other than the public key in
    `tauri.conf.json`.
-5. Verify the published GitHub release includes `latest.json`, a universal macOS
-   updater archive, its signature, and the normal app/DMG downloads.
+5. Run `just release-gui` locally and verify its output includes `latest.json`, a
+   universal macOS updater archive, its signature, and the normal app/DMG bundles.
+6. If publishing, upload only those already-built files to the matching GitHub
+   Release; do not delegate application builds or signing to GitHub Actions.

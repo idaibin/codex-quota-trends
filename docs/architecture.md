@@ -57,4 +57,6 @@ reviewed in a browser; it is not a production transport fallback.
 
 Release builds enable updater artifacts and use a project-specific signing key.
 Only the public key is stored in `tauri.conf.json`; the private key belongs in the
-local secret store and GitHub Actions secrets.
+local secret store and never leaves the build machine. `just release-gui` creates
+the universal app, DMG, updater archive, signature, and manifest locally. GitHub
+Releases may host the finished files, but GitHub Actions never builds or signs them.

@@ -46,16 +46,29 @@ The Settings titlebar exposes the installed version and a compact update action.
 Production builds use Tauri's signed updater with the single endpoint
 `https://github.com/idaibin/codex-quota-trends/releases/latest/download/latest.json`.
 
-To publish a release:
+Build every release locally; GitHub Actions is not part of the release path.
 
-1. Update the matching versions in `Cargo.toml`, `apps/gui/package.json`, and
+1. Install both macOS Rust targets once:
+
+   ```bash
+   rustup target add aarch64-apple-darwin x86_64-apple-darwin
+   ```
+
+2. Update the matching versions in `Cargo.toml`, `apps/gui/package.json`, and
    `apps/gui/src-tauri/tauri.conf.json`.
-2. Create and push a `vX.Y.Z` tag.
-3. Run the `Release macOS app` workflow with that tag and confirmation `RELEASE`.
+3. Run the signed universal build:
 
-The repository needs `TAURI_SIGNING_PRIVATE_KEY` and
-`TAURI_SIGNING_PRIVATE_KEY_PASSWORD`. Keep both values in GitHub Actions secrets
-and never commit either the updater private key or its password.
+   ```bash
+   just release-gui
+   ```
+
+The command reads the project key and password from `~/.codex/secrets`, creates
+the app, DMG, updater archive, signature, and `latest.json` under
+`target/universal-apple-darwin/release/bundle`, and never uploads them.
+
+After inspecting the local artifacts, create the `vX.Y.Z` tag and upload those
+files to the matching GitHub Release manually. GitHub Releases is only the
+download endpoint; it does not build or sign the application.
 
 ## Privacy
 
