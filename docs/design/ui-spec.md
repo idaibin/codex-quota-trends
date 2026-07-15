@@ -28,12 +28,15 @@ and used only for Settings. The generated transparent PNG app mark under
   values are quiet labels; the latest value uses an accent label and halo marker.
   Axis labels use smaller, muted type with compact margins. A quota reset inserts
   two values at the same timestamp, so the line jumps vertically from the previous
-  minimum to the reset value instead of implying gradual recovery.
+  minimum to the reset value instead of implying gradual recovery. The reset value
+  is labeled explicitly, including 100% after a complete reset.
   Timestamps use a continuous numeric axis so irregularly collected source points
   retain their real temporal spacing instead of being rendered as equal categories.
   The plot fills its Grid row and adds 5% of the observed range above the maximum
   and below the minimum, keeping the curve clear of the outer guides without
-  introducing fixed percentage bounds. Quota percentages render as whole numbers.
+  introducing fixed percentage bounds. The hidden display domain may extend from
+  -5% to 105% only to protect endpoint labels; quota values remain their real
+  percentages and render as whole numbers.
   Reset-bearing histories use exact linear interpolation to preserve the discrete
   jump; histories without a reset retain the restrained smooth curve. The area uses
   a vertical accent gradient, rounded strokes, and a low-contrast grid so the

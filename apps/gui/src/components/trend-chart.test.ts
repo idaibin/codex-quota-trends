@@ -18,6 +18,9 @@ describe("tray trend reset rendering", () => {
       [300, 100],
       [400, 97],
     ]);
+    expect(
+      data.findIndex((point, index) => data[index - 1]?.resetBoundary && !point.resetBoundary),
+    ).toBe(3);
   });
 
   it("does not add a boundary for ordinary quota corrections", () => {

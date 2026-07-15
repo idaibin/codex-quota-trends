@@ -172,11 +172,17 @@ export function TrayRemainingChart({ history }: { history: TrendPoint[] }) {
   const minimum = Math.min(...values);
   const maximum = Math.max(...values);
   const domainPadding = minimum === maximum ? 1 : (maximum - minimum) * 0.05;
-  const domainMin = Math.max(0, minimum - domainPadding);
-  const domainMax = Math.min(100, maximum + domainPadding);
+  const domainMin = Math.max(-5, minimum - domainPadding);
+  const domainMax = Math.min(105, maximum + domainPadding);
   const last = data.at(-1);
   const minimumPoint = data.find(
     (point) => point.sourceIndex === minimumIndex && !point.resetBoundary,
+  );
+  const resetPoints = data.filter(
+    (point, index) =>
+      !point.resetBoundary &&
+      data[index - 1]?.resetBoundary &&
+      data[index - 1]?.timestamp === point.timestamp,
   );
   const timeTicks = Array.from(
     new Set([source[0]?.timestamp, source[middleIndex]?.timestamp, last?.timestamp]),
@@ -271,6 +277,25 @@ export function TrayRemainingChart({ history }: { history: TrendPoint[] }) {
               }}
             />
           )}
+          {resetPoints.map((point) => (
+            <ReferenceDot
+              key={`reset-${point.timestamp}`}
+              x={point.timestamp}
+              y={point.remainingPercent}
+              r={3.5}
+              fill="var(--panel)"
+              stroke="var(--accent)"
+              strokeWidth={1.75}
+              label={{
+                value: formatPercent(point.remainingPercent),
+                position: "top",
+                offset: 7,
+                fill: "var(--text)",
+                fontSize: 10,
+                fontWeight: 650,
+              }}
+            />
+          ))}
           {last && (
             <>
               <ReferenceDot

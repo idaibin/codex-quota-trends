@@ -397,6 +397,21 @@ final result: passed
   cumulative consumption, and all three time labels visible without clipping.
 - No actionable visual issue remains for the requested reset semantics.
 
+## Visible reset value
+
+- Source visual truth: `/var/folders/33/1n65110j6_15vm1fd1fydb440000gn/T/codex-clipboard-7325e170-49ca-43a4-8f99-a2a6c3fef8db.png`.
+- Browser-rendered implementation: `screenshots/actual/tray-reset-label.png`.
+- Viewport and state: 420×170, light tray surface, deterministic history with a
+  complete quota reset.
+- The first post-reset point now has its own integer percentage label. The capture
+  shows 100% above the vertical reset line while retaining the 51% minimum and 97%
+  current labels.
+- The hidden chart domain extends by the existing 5% range padding, capped at 105%,
+  so a real 100% value has label clearance without changing the underlying value.
+- All three time labels and the cumulative-consumption badge remain visible without
+  clipping or overlap.
+- No actionable visual issue remains for reset-value visibility.
+
 ## Compact Settings updater control
 
 - Browser-rendered implementation: `screenshots/actual/settings-updater-final.png`.
