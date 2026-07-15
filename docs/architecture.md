@@ -45,3 +45,16 @@ reviewed in a browser; it is not a production transport fallback.
 - Dynamic windows: primary/secondary app-server windows become a vector.
 - No private API access and no credential file reads.
 - No cloud sync, user system, AI analysis, or cost estimation.
+
+## Update lifecycle
+
+1. The Settings titlebar reads the installed package version locally.
+2. A manual check calls the Rust updater command; the frontend never downloads or
+   verifies release files itself.
+3. The Tauri updater reads one signed `latest.json` manifest from GitHub Releases.
+4. The Rust command downloads and installs a verified universal macOS artifact.
+5. The user explicitly restarts the app after installation completes.
+
+Release builds enable updater artifacts and use a project-specific signing key.
+Only the public key is stored in `tauri.conf.json`; the private key belongs in the
+local secret store and GitHub Actions secrets.

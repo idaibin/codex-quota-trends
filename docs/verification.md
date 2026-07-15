@@ -35,3 +35,14 @@ The app must not access `~/.codex/auth.json` or a `chatgpt.com/backend-api` URL.
    acceptance must use the Tauri window or be checked against the latest SQLite
    snapshot; demo snapshots must remain internally consistent and clearly identified.
 5. Record evidence and remaining P3 differences in `design-qa.md`.
+
+## Updater acceptance
+
+1. Confirm the Settings titlebar shows the installed version without network access.
+2. With no newer release, `检查更新` resolves to `已是最新`.
+3. With a signed newer test release, the control exposes its version, installs the
+   signed artifact, and changes to `重新启动`.
+4. Reject a manifest or artifact signed by any key other than the public key in
+   `tauri.conf.json`.
+5. Verify the published GitHub release includes `latest.json`, a universal macOS
+   updater archive, its signature, and the normal app/DMG downloads.

@@ -1,0 +1,85 @@
+name: Release macOS app
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Version tag, for example v0.2.0
+        required: true
+        type: string
+      confirm_release:
+        description: Type RELEASE to publish
+        required: true
+        type: string
+
+concurrency:
+  group: codex-quota-trends-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    if: ${{ inputs.confirm_release == 'RELEASE' }}
+    runs-on: macos-14
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout release tag
+        uses: actions/checkout@v4
+        with:
+          ref: refs/tags/${{ inputs.release_tag }}
+
+      - name: Verify tag and version
+        env:
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        run: |
+          case "$RELEASE_TAG" in
+            v*) ;;
+            *) echo "release_tag must start with v"; exit 1 ;;
+          esac
+          tag_version="${RELEASE_TAG#v}"
+          app_version="$(node -p "require('./apps/gui/package.json').version")"
+          tauri_version="$(node -p "require('./apps/gui/src-tauri/tauri.conf.json').version")"
+          workspace_version="$(sed -n 's/^version = "\([^"]*\)"/\1/p' Cargo.toml | head -1)"
+          test "$tag_version" = "$app_version"
+          test "$app_version" = "$tauri_version"
+          test "$app_version" = "$workspace_version"
+
+      - name: Verify updater signing secrets
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        run: |
+          test -n "$TAURI_SIGNING_PRIVATE_KEY"
+          test -n "$TAURI_SIGNING_PRIVATE_KEY_PASSWORD"
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin,x86_64-apple-darwin
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24.15.0
+          cache: npm
+          cache-dependency-path: apps/gui/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: apps/gui
+        run: npm ci --no-audit --no-fund
+
+      - name: Build and publish signed updater artifacts
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          projectPath: apps/gui
+          tagName: ${{ inputs.release_tag }}
+          releaseName: Codex Quota Trends ${{ inputs.release_tag }}
+          releaseBody: Signed macOS application and automatic-update artifacts.
+          releaseDraft: false
+          prerelease: false
+          args: --target universal-apple-darwin --bundles app,dmg --config '{"bundle":{"macOS":{"signingIdentity":"-"}}}'

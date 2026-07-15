@@ -1,5 +1,6 @@
 mod commands;
 mod state;
+mod update;
 
 use std::{
     fs,
@@ -64,8 +65,10 @@ fn toggle_tray(app: &tauri::AppHandle, anchor_x: f64, anchor_y: f64) {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    let updater = tauri_plugin_updater::Builder::new().target("darwin-universal");
     let app = tauri::Builder::default()
         .plugin(tauri_plugin_autostart::Builder::new().build())
+        .plugin(updater.build())
         .setup(|app| {
             #[cfg(target_os = "macos")]
             app.set_activation_policy(tauri::ActivationPolicy::Accessory);
@@ -164,6 +167,10 @@ pub fn run() {
             commands::get_database_stats,
             commands::cleanup_database,
             commands::reset_local_data,
+            update::get_app_version,
+            update::check_for_update,
+            update::install_update,
+            update::restart_app,
         ])
         .build(tauri::generate_context!())
         .expect("failed to build Codex Quota Trends");

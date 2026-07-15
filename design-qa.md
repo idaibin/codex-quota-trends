@@ -379,3 +379,21 @@
 - No actionable P0/P1/P2 findings remain for the grid and quota-value corrections.
 
 final result: passed
+
+## Compact Settings updater control
+
+- Browser-rendered implementation: `screenshots/actual/settings-updater-final.png`.
+- Viewport and state: 520×580, light Settings surface, browser adapter reporting
+  installed version 0.1.0 and the idle `检查更新` action.
+- The updater occupies the otherwise unused upper-right native-titlebar area. Its
+  26px action and 10px version metadata preserve the existing compact preferences
+  hierarchy without adding another settings card or changing the window height.
+- The update action remains clear of macOS traffic lights and the temporary save
+  acknowledgement. Available, installing, ready, latest, and retry states reuse the
+  same control geometry and existing accent, success, muted, and danger tokens.
+- The version is loaded locally; network access starts only after the user activates
+  the control. The combined version and action use a polite live region, and busy
+  states disable repeat input.
+- The 520×580 capture contains no horizontal or vertical clipping. All existing
+  settings and the destructive local-data action remain visible without scrolling.
+- No actionable P0/P1/P2 visual findings remain for the updater entry point.

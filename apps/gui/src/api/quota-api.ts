@@ -13,6 +13,8 @@ import type {
   DashboardData,
   DatabaseCleanupResult,
   DatabaseStats,
+  UpdateCheckResult,
+  UpdateInstallResult,
 } from "../types";
 
 export const isTauriRuntime = () => Boolean(window.__TAURI_INTERNALS__);
@@ -78,4 +80,24 @@ export async function resetLocalData(): Promise<DatabaseCleanupResult> {
     reclaimableBytes: 0,
   });
   return { deletedRows: 248, before, after: structuredClone(demoDatabaseStats) };
+}
+
+export async function getAppVersion(): Promise<string> {
+  return isTauriRuntime() ? invoke<string>("get_app_version") : "0.1.0";
+}
+
+export async function checkForUpdate(): Promise<UpdateCheckResult> {
+  return isTauriRuntime()
+    ? invoke<UpdateCheckResult>("check_for_update")
+    : { currentVersion: "0.1.0", available: false, targetVersion: null, notes: null };
+}
+
+export async function installUpdate(): Promise<UpdateInstallResult> {
+  return isTauriRuntime()
+    ? invoke<UpdateInstallResult>("install_update")
+    : { installed: false, targetVersion: null };
+}
+
+export async function restartApp(): Promise<void> {
+  if (isTauriRuntime()) await invoke("restart_app");
 }

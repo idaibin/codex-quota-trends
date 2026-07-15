@@ -19,6 +19,7 @@ import {
 import type { AppSettings, DatabaseStats } from "../types";
 import { formatBytes } from "../utils/format";
 import { Panel, SelectControl, Toggle } from "../components/ui";
+import { UpdateControl } from "../components/update-control";
 
 export function SettingsRoute({
   settings,
@@ -111,6 +112,7 @@ export function SettingsRoute({
 
   return (
     <div className="settings-page">
+      <UpdateControl />
       <SettingsSection icon={<CalendarBlank />} title="常规">
         <SettingRow title="采集频率">
           <SelectControl

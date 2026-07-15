@@ -96,3 +96,15 @@ export interface DatabaseCleanupResult {
   before: DatabaseStats;
   after: DatabaseStats;
 }
+
+export interface UpdateCheckResult {
+  currentVersion: string;
+  available: boolean;
+  targetVersion: string | null;
+  notes: string | null;
+}
+
+export interface UpdateInstallResult {
+  installed: boolean;
+  targetVersion: string | null;
+}

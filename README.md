@@ -18,7 +18,8 @@ The first implementation includes:
 - a menu-bar-first remaining-quota surface with a detailed seven-day trend and
   an on-demand Settings window;
 - rapid-drain, stale-collector, and reset detection;
-- CSV export, retention settings, notifications, and launch-at-login controls.
+- CSV export, retention settings, database cleanup, and launch-at-login controls;
+- signed in-app updates delivered from GitHub Releases.
 
 ## Development
 
@@ -38,6 +39,23 @@ just build-gui
 ```
 
 Architecture, database, design, and verification details live in [`docs`](docs).
+
+## Releases and updates
+
+The Settings titlebar exposes the installed version and a compact update action.
+Production builds use Tauri's signed updater with the single endpoint
+`https://github.com/idaibin/codex-quota-trends/releases/latest/download/latest.json`.
+
+To publish a release:
+
+1. Update the matching versions in `Cargo.toml`, `apps/gui/package.json`, and
+   `apps/gui/src-tauri/tauri.conf.json`.
+2. Create and push a `vX.Y.Z` tag.
+3. Run the `Release macOS app` workflow with that tag and confirmation `RELEASE`.
+
+The repository needs `TAURI_SIGNING_PRIVATE_KEY` and
+`TAURI_SIGNING_PRIVATE_KEY_PASSWORD`. Keep both values in GitHub Actions secrets
+and never commit either the updater private key or its password.
 
 ## Privacy
 

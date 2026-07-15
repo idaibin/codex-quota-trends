@@ -46,10 +46,21 @@
   "bundle": {
     "active": true,
     "targets": ["app", "dmg"],
+    "createUpdaterArtifacts": true,
     "icon": ["icons/icon.png"],
     "category": "Productivity",
     "shortDescription": "Local Codex quota trends",
     "longDescription": "A local-first macOS menu bar app for Codex quota history, trends, and alerts.",
     "copyright": "Copyright 2026 Daibin"
+  },
+  "plugins": {
+    "updater": {
+      "active": true,
+      "dialog": false,
+      "endpoints": [
+        "https://github.com/idaibin/codex-quota-trends/releases/latest/download/latest.json"
+      ],
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDJFQTA3NTIyNjE1RTc3NUUKUldSZWQxNWhJbldnTHJsMWpyK2RkV2p3aWhGdmdPWnQzSG9mVkRGRzZpWmFrWEZwcHFVMU45Mi8K"
+    }
   }
 }

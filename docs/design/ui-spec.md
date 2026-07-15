@@ -69,6 +69,10 @@ the tray and Settings surfaces.
   Section cards use quiet one-pixel borders, compact 42px rows, 30px controls,
   and matching icon/caret weights. Auto-save confirmation appears briefly in the
   otherwise unused native titlebar area rather than covering destructive actions.
+- `UpdateControl`: a compact native-titlebar utility aligned to the upper right of
+  Settings. It shows the installed version locally, then exposes one progressive
+  action for check, download/install, and restart. Checking and installing use a
+  spinner; available, ready, latest, and error states reuse existing semantic tokens.
 
 ## Responsive behavior
 
@@ -86,6 +90,9 @@ disk-size reporting, and an explicit database cleanup/compaction action.
 Every control has hover, focus-visible, disabled, selected, and pressed states.
 Settings selects have explicit accessible names and auto-save changes are announced
 through a polite status region.
+The update control is manual rather than interruptive: it never checks on launch,
+keeps status in a polite live region, disables repeat input while busy, and exposes
+retry after network or signature failures.
 Reduced-motion users receive no animated chart/ring entrance.
 
 ## Tailwind and Tauri rules

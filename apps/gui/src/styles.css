@@ -1044,6 +1044,56 @@ select {
   display: grid;
   gap: 8px;
 }
+.settings-update-control {
+  position: fixed;
+  z-index: 20;
+  top: 6px;
+  right: 10px;
+  display: flex;
+  height: 26px;
+  align-items: center;
+  gap: 7px;
+}
+.settings-update-control > span {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.settings-update-control > button {
+  display: inline-flex;
+  min-width: 82px;
+  height: 26px;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 0 9px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  color: var(--muted);
+  background: var(--panel);
+  font-size: 10px;
+  font-weight: 650;
+  cursor: pointer;
+}
+.settings-update-control > button:hover {
+  border-color: var(--accent-mid);
+  color: var(--accent);
+}
+.settings-update-control > button:disabled {
+  cursor: wait;
+  opacity: 0.72;
+}
+.settings-update-control[data-state="available"] > button,
+.settings-update-control[data-state="ready"] > button {
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--border));
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+.settings-update-control[data-state="error"] > button {
+  border-color: color-mix(in srgb, var(--danger) 35%, var(--border));
+  color: var(--danger);
+}
 .settings-section {
   overflow: hidden;
   padding: 7px 11px 2px;
@@ -1223,7 +1273,7 @@ select {
 .save-indicator {
   position: fixed;
   top: 9px;
-  right: 12px;
+  right: 176px;
   padding: 4px 9px;
   border: 1px solid color-mix(in srgb, var(--success) 30%, var(--border));
   border-radius: 99px;
