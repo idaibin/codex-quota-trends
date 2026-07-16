@@ -4,7 +4,7 @@ mod update;
 
 use std::{
     fs,
-    sync::{Arc, Mutex, atomic::Ordering},
+    sync::{Arc, Mutex},
 };
 
 use codex_quota_core::{CollectorConfig, CollectorRuntime, Database};
@@ -49,6 +49,11 @@ fn show_main(app: &tauri::AppHandle, route: Option<&str>) {
     }
 }
 
+#[tauri::command]
+fn open_settings(app: tauri::AppHandle) {
+    show_main(&app, Some("settings"));
+}
+
 fn toggle_tray(app: &tauri::AppHandle, anchor_x: f64, anchor_y: f64) {
     let Some(window) = app.get_webview_window("tray") else { return };
     if window.is_visible().unwrap_or(false) {
@@ -57,8 +62,7 @@ fn toggle_tray(app: &tauri::AppHandle, anchor_x: f64, anchor_y: f64) {
     }
     let scale = window.scale_factor().unwrap_or(1.0);
     let width = window.outer_size().map(|size| size.width as f64).unwrap_or(420.0 * scale);
-    let _ = window
-        .set_position(PhysicalPosition::new((anchor_x - width / 2.0).max(8.0), anchor_y + 10.0));
+    let _ = window.set_position(PhysicalPosition::new((anchor_x - width / 2.0).max(8.0), anchor_y));
     let _ = window.show();
     let _ = window.set_focus();
 }
@@ -82,19 +86,17 @@ pub fn run() {
             let state = AppState {
                 database,
                 collector_state: runtime.state(),
-                collector_paused: runtime.paused_flag(),
                 collector_refresh: runtime.refresh_notifier(),
+                collector_reload: runtime.reload_notifier(),
                 data_dir,
             };
             app.manage(state);
             tauri::async_runtime::spawn(runtime.run());
 
-            let pause = MenuItem::with_id(app, "pause", "暂停采集", true, None::<&str>)?;
-            let settings = MenuItem::with_id(app, "settings", "设置…", true, None::<&str>)?;
+            let settings = MenuItem::with_id(app, "settings", "设置", true, Some("CmdOrCtrl+,"))?;
             let separator = PredefinedMenuItem::separator(app)?;
             let quit = MenuItem::with_id(app, "quit", "退出", true, None::<&str>)?;
-            let menu = Menu::with_items(app, &[&pause, &settings, &separator, &quit])?;
-            let pause_menu_item = pause.clone();
+            let menu = Menu::with_items(app, &[&settings, &separator, &quit])?;
             let tray_icon = TrayIconBuilder::with_id("codex-quota-trends-tray")
                 .icon(Image::new(include_bytes!("../icons/tray-template.rgba"), 128, 128))
                 .icon_as_template(true)
@@ -110,15 +112,8 @@ pub fn run() {
                         ..
                     } = event
                     {
-                        let scale = tray
-                            .app_handle()
-                            .primary_monitor()
-                            .ok()
-                            .flatten()
-                            .map(|monitor| monitor.scale_factor())
-                            .unwrap_or(1.0);
-                        let position = rect.position.to_physical::<f64>(scale);
-                        let size = rect.size.to_physical::<f64>(scale);
+                        let position = rect.position.to_physical::<f64>(1.0);
+                        let size = rect.size.to_physical::<f64>(1.0);
                         toggle_tray(
                             tray.app_handle(),
                             position.x + size.width / 2.0,
@@ -126,17 +121,7 @@ pub fn run() {
                         );
                     }
                 })
-                .on_menu_event(move |app, event| match event.id().as_ref() {
-                    "pause" => {
-                        let state = app.state::<AppState>();
-                        let paused = !state.collector_paused.load(Ordering::Relaxed);
-                        state.collector_paused.store(paused, Ordering::Relaxed);
-                        let _ = pause_menu_item.set_text(if paused {
-                            "继续采集"
-                        } else {
-                            "暂停采集"
-                        });
-                    }
+                .on_menu_event(|app, event| match event.id().as_ref() {
                     "settings" => show_main(app, Some("settings")),
                     "quit" => app.exit(0),
                     _ => {}
@@ -167,6 +152,7 @@ pub fn run() {
             commands::get_database_stats,
             commands::cleanup_database,
             commands::reset_local_data,
+            open_settings,
             update::get_app_version,
             update::check_for_update,
             update::install_update,

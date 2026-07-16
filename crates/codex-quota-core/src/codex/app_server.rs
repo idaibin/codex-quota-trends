@@ -1,4 +1,9 @@
-use std::{process::Stdio, time::Duration};
+use std::{
+    env,
+    path::{Path, PathBuf},
+    process::Stdio,
+    time::Duration,
+};
 
 use serde_json::{Value, json};
 use thiserror::Error;
@@ -36,8 +41,9 @@ pub struct AppServerClient {
 }
 
 impl AppServerClient {
-    pub async fn start() -> Result<Self, AppServerError> {
-        let mut child = Command::new("codex")
+    pub async fn start(configured_path: &str) -> Result<Self, AppServerError> {
+        let program = resolve_codex_program(configured_path);
+        let mut child = Command::new(program)
             .args(["app-server", "--listen", "stdio://"])
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
@@ -106,8 +112,61 @@ impl AppServerClient {
     }
 }
 
+fn resolve_codex_program(configured_path: &str) -> PathBuf {
+    let configured_path = configured_path.trim();
+    if !configured_path.is_empty() {
+        return expand_home(configured_path);
+    }
+
+    if let Some(program) = env::var_os("PATH")
+        .into_iter()
+        .flat_map(|paths| env::split_paths(&paths).collect::<Vec<_>>())
+        .map(|directory| directory.join("codex"))
+        .find(|candidate| candidate.is_file())
+    {
+        return program;
+    }
+
+    let mut candidates = env::var_os("HOME")
+        .map(PathBuf::from)
+        .into_iter()
+        .map(|home| home.join(".volta/bin/codex"))
+        .collect::<Vec<_>>();
+    candidates
+        .extend([PathBuf::from("/opt/homebrew/bin/codex"), PathBuf::from("/usr/local/bin/codex")]);
+    candidates
+        .into_iter()
+        .find(|candidate| candidate.is_file())
+        .unwrap_or_else(|| PathBuf::from("codex"))
+}
+
+fn expand_home(path: &str) -> PathBuf {
+    if path == "~" {
+        return env::var_os("HOME").map(PathBuf::from).unwrap_or_else(|| PathBuf::from(path));
+    }
+    if let Some(relative) = path.strip_prefix("~/")
+        && let Some(home) = env::var_os("HOME")
+    {
+        return Path::new(&home).join(relative);
+    }
+    PathBuf::from(path)
+}
+
 impl Drop for AppServerClient {
     fn drop(&mut self) {
         let _ = self.child.start_kill();
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::resolve_codex_program;
+
+    #[test]
+    fn preserves_an_explicit_absolute_codex_path() {
+        assert_eq!(
+            resolve_codex_program(" /Applications/Codex/bin/codex "),
+            std::path::PathBuf::from("/Applications/Codex/bin/codex")
+        );
     }
 }

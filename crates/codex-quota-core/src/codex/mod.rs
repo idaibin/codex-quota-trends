@@ -3,5 +3,7 @@ mod protocol;
 
 pub use app_server::{AppServerClient, AppServerError};
 pub use protocol::{
-    AppServerMessage, RATE_LIMITS_UPDATED_METHOD, RateLimitsResponse, normalize_rate_limits,
+    AppServerMessage, CreditsSnapshot, RATE_LIMITS_UPDATED_METHOD, RateLimitResetCredit,
+    RateLimitResetCreditsSummary, RateLimitSnapshot, RateLimitWindow, RateLimitsResponse,
+    SpendControlLimitSnapshot, normalize_rate_limits,
 };

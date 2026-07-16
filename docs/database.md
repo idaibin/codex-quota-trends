@@ -5,19 +5,24 @@ application opens the database.
 
 ## Tables
 
-`quota_snapshots` stores one row per changed window. `limit_id` and
-`window_minutes` form the semantic window identity; `raw_json` preserves the
-source response for diagnosis without becoming the query contract.
+`quota_snapshots` stores one row whenever a window's displayed integer percentage
+changes. `limit_id` and `window_minutes` form the semantic window identity;
+`raw_json` preserves the source response for diagnosis without becoming the query contract.
 
 `collector_events` stores connection, schema, quota-change, reset, and alert
 events used by Activity and Alerts.
 
-`settings` stores the small user-controlled configuration surface.
+`settings` stores the small user-controlled configuration surface, including the
+persisted 24-hour or seven-day tray trend range. Older settings rows default this
+new preference to 24 hours during deserialization.
 
 Indexes cover `(limit_id, window_minutes, created_at)` and recent event reads.
-New installs retain 14 days by default. Users can set any retention period from
-1 to 365 days; saving the setting immediately deletes expired snapshots,
-events, and alerts in one transaction.
+New installs retain 14 days by default. Users can choose 7, 14, 30, or 90 days,
+or keep data long-term. Saving a bounded period immediately deletes expired
+snapshots, events, and alerts in one transaction; long-term retention skips
+automatic expiry deletion.
+Legacy custom retention values are normalized to long-term storage on load so an
+upgrade cannot shorten retention and delete existing history unexpectedly.
 
 The Settings page reports the on-disk size of `quota-trends.db` plus its `-wal`
 and `-shm` companions. **Clean Up Database** applies the configured retention,

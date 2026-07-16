@@ -83,8 +83,11 @@ export function UpdateControl() {
           : ArrowClockwise;
 
   return (
-    <div className="settings-update-control" data-state={state} aria-live="polite">
-      <span>v{currentVersion}</span>
+    <div className="panel settings-update-control" data-state={state} aria-live="polite">
+      <span>
+        <strong>软件更新</strong>
+        <small>当前版本 v{currentVersion}</small>
+      </span>
       <button type="button" onClick={() => void handleAction()} disabled={busy}>
         <Icon className={busy ? "spin" : undefined} size={14} aria-hidden="true" />
         {label}

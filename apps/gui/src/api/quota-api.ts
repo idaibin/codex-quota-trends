@@ -53,6 +53,10 @@ export async function openDataFolder(): Promise<void> {
   if (isTauriRuntime()) await invoke("open_data_folder");
 }
 
+export async function openSettings(): Promise<void> {
+  if (isTauriRuntime()) await invoke("open_settings");
+}
+
 export async function getDatabaseStats(): Promise<DatabaseStats> {
   return isTauriRuntime()
     ? invoke<DatabaseStats>("get_database_stats")

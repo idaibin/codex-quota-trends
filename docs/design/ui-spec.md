@@ -12,71 +12,73 @@ and used only for Settings. The generated transparent PNG app mark under
 - Menu bar item: a monochrome template version of the existing quota curve with
   no purple tile, followed by the rounded current remaining percentage. The title
   refreshes from the latest local quota snapshot without opening the popover.
-- Menu bar popover: 420×170, frameless, opaque, shadowless, and hidden on blur.
-- The popover has no header or inline utility actions. Right-clicking the menu-bar
-  item exposes pause/resume, Settings, and Quit in a compact native Chinese menu.
-- The popover has no separate remaining-summary block. Reset timing belongs to the
-  chart heading; the range badge shows cumulative consumption for the visible history
-  by adding every usage increase and ignoring reset decreases.
-- The trend renders directly on the popover canvas without an enclosing card,
-  border, radius, outer padding, or elevated panel background. CSS Grid owns the
-  heading/chart rows; the chart's own plot margin controls its four safe insets.
-- Trend: the primary content region with a dynamic percentage domain, three
-  horizontal guides, fixed left/center/right time-only X-axis labels, a hidden
-  Y axis, reset time in the upper-left heading,
-  endpoint marker, area fill, and a precise hover tooltip. The first and minimum
-  values are quiet labels; the latest value uses an accent label and halo marker.
-  Axis labels use smaller, muted type with compact margins. A quota reset inserts
-  two values at the same timestamp, so the line jumps vertically from the previous
-  minimum to the reset value instead of implying gradual recovery. The reset value
-  is labeled explicitly, including 100% after a complete reset.
-  Timestamps use a continuous numeric axis so irregularly collected source points
-  retain their real temporal spacing instead of being rendered as equal categories.
-  The visible ticks are the exact range start, mathematical time midpoint, and range
-  end; they never snap to nearby samples when collection has gaps.
-  The plot fills its Grid row and adds 5% of the observed range above the maximum
-  and below the minimum, keeping the curve clear of the outer guides without
-  introducing fixed percentage bounds. The hidden display domain may extend from
-  -5% to 105% only to protect endpoint labels; quota values remain their real
-  percentages and render as whole numbers.
-  Reset-bearing histories use exact linear interpolation to preserve the discrete
-  jump; histories without a reset retain the restrained smooth curve. The area uses
-  a vertical accent gradient, rounded strokes, and a low-contrast grid so the
-  current-value marker remains the strongest chart element.
+- Menu bar popover: Medium 338×158, frameless, translucent, flush with the menu bar, and
+  hidden on blur. A native macOS HUD material, fine light border, and nested
+  translucent panels provide real desktop-backed glass without a decorative pointer.
+- The popover includes a reset summary and the remaining-quota trend, without
+  decorative traffic-light controls. The
+  summary shows the real reset time and available reset-credit count from the latest
+  app-server response.
+- The trend header shows a quiet `过去 24 小时` or `过去 7 天` status badge matching
+  the persisted General setting.
+- Trend: a fixed 0–100% stepped line chart with 100%, 50%, and 0% guides, continuous
+  timestamps, start/midpoint/now labels, the latest pre-reset value, and the reset
+  time. The current point keeps an accent halo. Reset
+  boundaries remain vertical by
+  inserting the previous value at the reset timestamp before the reset value.
+- The heatmap is a 24-week UTC-day aggregation of positive consumption deltas from
+  persisted snapshots; reset jumps are ignored and missing days stay empty. Recent
+  events come directly from persisted collector events, with reset, increase, and
+  decrease states using the established success and danger colors.
 - Visible popover copy, chart labels, tooltips, and accessibility names use Chinese.
-- The native window and its content clip to an 8px corner radius.
+- The native window and its content clip to a 12px continuous corner radius.
 
 ## Tokens
 
 | Role | Light | Dark |
 | --- | --- | --- |
-| canvas | `#f7f8fb` | `#07111d` |
-| panel | `#ffffff` | `#0b1623` |
-| text | `#111827` | `#f8fafc` |
-| secondary | `#64748b` | `#9aa9bd` |
-| border | `#dbe2ea` | `#263445` |
-| accent | `#5b3df5` | `#8067ff` |
-| danger | `#ff4545` | `#ff5252` |
-| success | `#23b954` | `#33d16b` |
+| canvas | `#ececef` | `#1c1c1e` |
+| panel | translucent system fill | translucent white 7% |
+| text | `#1d1d1f` | `#f5f5f7` |
+| secondary | `#6e6e73` | `#aeaeb2` |
+| border | system separator 14% | system separator 13% |
+| accent | `#007aff` | `#0a84ff` |
+| danger | `#ff3b30` | `#ff453a` |
+| success | `#34c759` | `#30d158` |
 
 Typography uses the macOS system stack. Numeric metrics use tabular figures.
 Icons use Phosphor's regular outline weight; the app mark is a transparent PNG.
-Window, panel, and control radii are respectively 8px, 10px, and 8px across both
+Window, panel, and control radii are respectively 12px, 10–12px, and 9px across both
 the tray and Settings surfaces.
+
+The tray and Settings share system-aware light and dark materials. System blue is
+reserved for quota data and active controls; red and green remain semantic. The
+layout follows a compact native-menu rhythm: 8px between tray groups, 12px internal
+content insets, 6px dense text spacing, and 16px between Settings groups.
 
 ## Components
 
-- `TrayPopover`: the primary product surface and owner of the trend heading and chart.
-- `TrayRemainingChart`: a library-rendered 24-hour area chart with time-only labels,
-  hidden Y-axis ticks, dynamic bounds, endpoint marker, and tooltip.
+- `TrayPopover`: the primary product surface and owner of reset timing, reset-credit
+  availability, and the remaining-quota trend. It has no branded toolbar, decorative
+  traffic-light strip, or popover pointer.
+- `TrayRemainingChart`: a library-rendered stepped line chart with a continuous
+  persisted 24-hour or seven-day domain, visible percentage scale, reset markers,
+  and tooltip.
 - `SettingsRoute`: the only on-demand main-window route.
   It uses a 520×580 single-column preferences window with no branded top bar.
   Theme selection is a normal row in the General group. Compact Chinese-only
-  groups cover general behavior, data storage, and local-data removal;
+  groups cover general behavior and data storage. Data storage shows only the
+  retention period and total disk usage;
   supporting descriptions appear only when they add actionable information
   such as reclaimable disk space.
-  Section cards use quiet one-pixel borders, compact 42px rows, 30px controls,
-  and matching icon/caret weights. Auto-save confirmation appears briefly in the
+  Software version and update actions appear as the final settings item rather
+  than occupying the native titlebar.
+  Collection intervals are limited to practical fallback cadences of 1, 2, 5,
+  and 10 minutes; event-driven quota updates still refresh immediately.
+  The tray trend defaults to 24 hours and can be changed to seven days only from
+  General settings; the preference is persisted in SQLite.
+  Group headings sit outside softly filled cards. Cards use inset system separators,
+  compact 44px rows, 28px controls, and matching icon/caret weights. Auto-save confirmation appears briefly in the
   otherwise unused native titlebar area rather than covering destructive actions.
 - `UpdateControl`: a compact native-titlebar utility aligned to the upper right of
   Settings. It shows the installed version locally, then exposes one progressive
@@ -85,17 +87,19 @@ the tray and Settings surfaces.
 
 ## Responsive behavior
 
-- The tray surface is fixed at 420×170 and is not treated as a mobile page.
+- The tray surface uses the fixed Medium 338×158 preset and is not treated as a
+  mobile page. Its reset summary owns the top row; the lower card is reserved for
+  the compressed trend and its persisted-range status badge.
 - Chart labels and plot margins are sized to remain fully visible at that width.
 - The Settings surface is fixed to a compact 520px width. Its native titlebar
   area is left clear for macOS traffic lights, and all controls flow in one column.
 
 ## Interaction states
 
-Settings, collector pause/resume, Quit, CSV export, and reset confirmation are
-functional. The dashboard entry is intentionally absent.
-The Settings data section also supports arbitrary retention days, live SQLite
-disk-size reporting, and an explicit database cleanup/compaction action.
+Settings and Quit are functional. The dashboard, collector pause/resume, CSV export,
+directory, manual cleanup, and destructive reset entries are intentionally absent.
+The Settings data section offers fixed retention choices of 7, 14, 30, and 90
+days plus long-term storage, alongside live SQLite disk-size reporting.
 Every control has hover, focus-visible, disabled, selected, and pressed states.
 Settings selects have explicit accessible names and auto-save changes are announced
 through a polite status region.
@@ -112,6 +116,7 @@ Reduced-motion users receive no animated chart/ring entrance.
   use a named component class backed by tokens.
 - Tauri commands return typed DTOs; the React layer never imports storage logic.
 - Window labels are `main` and `tray`. `main` starts hidden; `tray` is frameless,
-  opaque, shadowless, always on top, hidden on blur, and toggled from the tray icon.
+  transparent over a native macOS HUD material, shadowless, always on top,
+  hidden on blur, and toggled from the tray icon.
 - On macOS the app uses accessory activation policy so it behaves as a menu bar
   utility rather than a permanent Dock app.

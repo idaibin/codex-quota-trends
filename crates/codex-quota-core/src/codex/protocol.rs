@@ -1,7 +1,7 @@
 use std::collections::BTreeMap;
 
 use anyhow::{Context, Result};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use crate::quota::{QuotaSnapshot, QuotaWindow};
@@ -22,28 +22,69 @@ pub struct RpcError {
     pub message: String,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct RateLimitsResponse {
     pub rate_limits: RateLimitSnapshot,
     pub rate_limits_by_limit_id: Option<BTreeMap<String, RateLimitSnapshot>>,
+    pub rate_limit_reset_credits: Option<RateLimitResetCreditsSummary>,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct RateLimitSnapshot {
     pub limit_id: Option<String>,
     pub limit_name: Option<String>,
+    pub plan_type: Option<String>,
     pub primary: Option<RateLimitWindow>,
     pub secondary: Option<RateLimitWindow>,
+    pub credits: Option<CreditsSnapshot>,
+    pub individual_limit: Option<SpendControlLimitSnapshot>,
+    pub rate_limit_reached_type: Option<String>,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct RateLimitWindow {
     pub window_duration_mins: Option<u64>,
     pub used_percent: f64,
     pub resets_at: Option<i64>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CreditsSnapshot {
+    pub has_credits: bool,
+    pub unlimited: bool,
+    pub balance: Option<String>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SpendControlLimitSnapshot {
+    pub limit: String,
+    pub remaining_percent: i32,
+    pub resets_at: i64,
+    pub used: String,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RateLimitResetCreditsSummary {
+    pub available_count: i64,
+    pub credits: Option<Vec<RateLimitResetCredit>>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RateLimitResetCredit {
+    pub id: String,
+    pub status: String,
+    pub reset_type: String,
+    pub granted_at: i64,
+    pub expires_at: Option<i64>,
+    pub title: Option<String>,
+    pub description: Option<String>,
 }
 
 pub fn normalize_rate_limits(value: Value, created_at: i64) -> Result<Vec<QuotaSnapshot>> {

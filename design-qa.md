@@ -380,6 +380,174 @@
 
 final result: passed
 
+## Menu-bar alignment, chart density, and native glass correction
+
+- Source feedback: `docs/design/reference/tray-glass-feedback-2026-07-16.png`.
+- Final real Tauri capture: `docs/design/qa/tray-glass-native-hud-final-2026-07-16.png`.
+- Full-view comparison: `docs/design/qa/tray-glass-feedback-final-comparison-2026-07-16.png`.
+- Runtime evidence: macOS debug bundle PID 7610, tray CGWindowID 4315, layer 5,
+  470×410 points at screen position X=1202, Y=30.
+- First feedback P1: the CSS pointer and a second 10px native offset separated the
+  tray from the menu bar. Both offsets were removed. The final window top is Y=30,
+  aligned to the macOS menu-bar boundary.
+- First feedback P1: CSS translucency alone produced an opaque gray-blue panel. The
+  transparent Tauri window now owns a native active macOS HUD material at an 18px
+  radius; CSS supplies only a 10% tint and translucent inner groups. Window-only
+  CG captures flatten the live desktop backdrop to a neutral material sample, while
+  the production window composites the material against the desktop.
+- First feedback P2: the 454px frame gave the chart excessive vertical weight. The
+  final frame is 410px, the chart header is 48px, and outer vertical padding is 14px.
+- First feedback P2: a reset label near the live endpoint collided with the current
+  value capsule. Reset markers in the final 12% of the selected time domain retain
+  their dot but suppress their redundant text label; the current value remains clear.
+- Fonts and typography: the macOS system stack, tabular numerals, weights, and sizes
+  remain unchanged; the final capture has no collisions, clipping, or wrapping.
+- Spacing and layout rhythm: both cards retain their established alignment and radii,
+  while the reduced frame removes 44px of unnecessary chart height.
+- Colors and tokens: the outer tint is subordinate to the native HUD material; inner
+  panels, borders, selected state, text, and reset-credit accent remain translucent
+  and legible.
+- Image quality and assets: this surface contains no raster content or substituted
+  assets; the Recharts line, axes, markers, and labels render at native 2× scale.
+- Copy and content remain driven by live app-server and SQLite data.
+- Focused-region comparison was unnecessary because all changed regions and labels
+  are readable in the 1880×908 full-view comparison.
+- No actionable P0/P1/P2 findings remain.
+
+final result: passed
+
+## Glass reset-and-trend tray recreation
+
+- Source visual truth: `docs/design/reference/tray-glass-reference-2026-07-16.png`.
+- Normalized source crop: `docs/design/qa/tray-glass-reference-normalized-2026-07-16.png`.
+- Browser-rendered implementation: `docs/design/qa/tray-glass-browser-final-2026-07-16.png`.
+- Same-input full-view comparison: `docs/design/qa/tray-glass-comparison-2026-07-16.png`.
+- Viewport and state: 470×454 points, deterministic local quota history with one
+  reset, four available reset credits, and the 24-hour range selected.
+- First comparison P2: the outer pointer rendered as a detached diamond and the
+  trend annotated its minimum rather than the reference's mid-range checkpoint.
+  The pointer now merges into the outer glass border and the annotation follows the
+  temporal midpoint while retaining first, reset, and current values.
+- Second comparison P2: the implementation omitted the source's persistent current-
+  value capsule. The final chart renders the current percentage in a bordered glass
+  capsule beside the live endpoint.
+- Fonts and typography: the macOS system stack, 12–14px controls and labels, restrained
+  450–550 weights, and tabular numerals match the compact native hierarchy without
+  clipping or wrapping.
+- Spacing and layout rhythm: the 470×454 frame, 15px pointer allowance, 17px content
+  inset, 52px reset card, 12px group gap, and flexible chart card align with the
+  normalized reference.
+- Colors and visual tokens: translucent blue-gray glass, fine white separators,
+  white quota geometry, and the cyan reset-credit accent reproduce the source. The
+  browser capture uses a neutral canvas because desktop wallpaper is outside the app;
+  the production WebView remains transparent so the same material composites over
+  the user's desktop.
+- Image quality and asset fidelity: the target contains no in-panel raster assets.
+  Recharts renders the line, markers, axes, and value capsule at native resolution;
+  no placeholder imagery or custom image substitute is present.
+- Copy and content: visible Chinese copy follows the source. Reset time, reset-credit
+  availability, range history, and current percentage are all driven by real data.
+- Primary interactions tested in the Codex in-app Browser: both range buttons resolve
+  uniquely, 7 days becomes pressed after selection, 24 hours restores successfully,
+  and no console errors are present.
+- Focused-region comparison was unnecessary because every label, control, marker,
+  border, and chart guide is readable in the 940×454 full-view comparison.
+- No actionable P0/P1/P2 findings remain. Rolling live timestamps and the neutral
+  browser backdrop are expected product/runtime differences from the static mock.
+
+final result: passed
+
+## Fine-density tray polish
+
+- Source feedback image: `/var/folders/33/1n65110j6_15vm1fd1fydb440000gn/T/codex-clipboard-04b2896d-828c-445d-90f6-422ec46a3f83.png`.
+- Real Tauri implementation: `docs/design/qa/tray-polish-pass-1.png`.
+- Same-input full comparison: `docs/design/qa/tray-polish-comparison-pass-1.png`.
+- Focused control comparison: `docs/design/qa/tray-polish-control-comparison.png`.
+- Focused lower-section comparison: `docs/design/qa/tray-polish-lower-comparison.png`.
+- Viewport and state: 340×565 points / 680×1130 pixels, dark theme, populated live
+  quota data. The reference and implementation contain different live values and
+  timestamps; comparison therefore targets the three annotated visual regions.
+- Runtime evidence: macOS Tauri debug process PID 56639, tray CGWindowID 769,
+  captured at native 2× scale with the current Vite/Tauri development source.
+- Earlier P2 control finding: the one-hour selector had a comparatively heavy fill,
+  large radius, and loose internal geometry. It is now a 43×19px control with a
+  half-pixel edge, restrained shadow, tighter caret, and visible focus-within state.
+- Earlier P1 heatmap finding: the legend occupied more vertical space than its fixed
+  card allowed and could visually collide with the next card. The heatmap receives
+  six additional pixels, uses responsive grid width, smaller legend swatches, and an
+  11px verified bottom inset with zero scroll overflow.
+- Earlier P2 event finding: four rows used large icons, broad timestamp columns, and
+  high-contrast full-pixel separators. The rows now use a compact four-column grid,
+  16px semantic icons, tabular right-aligned times, half-pixel separators, and a
+  quieter title weight. The final row retains a 2px bottom inset with no clipping.
+- Fonts and typography: SF system typography remains unchanged; headings use a more
+  controlled 640 weight, event copy uses optical 8.5–9.5px weights, and all numeric
+  columns retain tabular alignment without wrapping.
+- Spacing and layout rhythm: the fixed 565px window is preserved. Six pixels move
+  from the events card to the heatmap, while the 8px card rhythm and footer remain
+  unchanged; document and component overflow both measure zero.
+- Colors and tokens: the existing macOS system-blue, neutral material, semantic red,
+  and separator tokens are reused. The control edge and event dividers are derived
+  from those tokens rather than introducing a parallel palette.
+- Image and asset fidelity: no raster assets were added or substituted. Existing
+  Phosphor icons and Recharts output remain sharp at native scale.
+- Copy and content: visible Chinese labels, live quota values, true heatmap data, and
+  persisted activity rows are unchanged.
+- Primary interaction tested in the in-app Codex Browser: the unique `图表粒度`
+  combobox changed from one hour to six hours and back; its measured geometry is
+  43×19px. Browser console inspection returned no warnings or errors.
+- No actionable P0/P1/P2 findings remain in the annotated regions. Light theme was
+  not part of the supplied state and is retained as a follow-up visual check.
+
+final result: passed
+
+## Header removal and real-data tray verification
+
+- Real Tauri tray capture: `docs/design/qa/tray-real-24h-2026-07-15.png`.
+- Real Settings capture: `docs/design/qa/settings-real-tray-range-2026-07-15.png`.
+- Runtime evidence: macOS debug process PID 14928, tray CGWindowID 354, 340×565
+  points captured at native 2× scale. The process was started by the repository's
+  `just dev-gui` / `npm run tauri dev` path.
+- The decorative traffic-light strip and branded toolbar are absent. The remaining
+  summary begins at the top edge and the four data cards plus footer fill the reduced
+  surface without clipping.
+- The default 24-hour chart uses four time ticks, removing the overlapping labels from
+  the supplied feedback capture. Value annotations, the y-axis, and the resolution
+  control remain separated in the real window.
+- Heatmap cells come from Rust's UTC-day aggregation of persisted snapshot deltas;
+  resets and missing days do not create synthetic intensity. The captured database
+  has two recent non-zero days, and only those cells are colored.
+- Recent rows come from persisted `collector_events`; the capture shows the four latest
+  quota-change rows and their recorded timestamps and deltas. Reset rows use the
+  truthful state label instead of inventing a percentage value.
+- The Settings real-window capture confirms the persisted `浮窗趋势范围` control and
+  its default `最近 24 小时` selection.
+- No actionable P0/P1/P2 visual findings remain.
+
+final result: passed
+
+## Fixed retention choices
+
+- Source visual truth: `/var/folders/33/1n65110j6_15vm1fd1fydb440000gn/T/codex-clipboard-8a5e9f3c-2867-4df5-9c81-77afbc525e7e.png`.
+- Native implementation: `screenshots/actual/settings-retention-fixed.png`.
+- Focused implementation: `screenshots/actual/settings-retention-fixed-focus.png`.
+- Focused comparison: `screenshots/actual/settings-retention-fixed-comparison.png`.
+- Real-window evidence: macOS Tauri Debug bundle, PID 20349, CGWindowID 823,
+  title `Codex Quota Trends`, bounds 520×580 points, dark theme.
+- P2: the numeric stepper allowed arbitrary values and exposed implementation
+  limits in a compact preferences surface. It is replaced by the existing native-
+  styled select control with 7, 14, 30, 90 days, and long-term choices.
+- P1 behavior: long-term storage maps to zero internally and skips automatic expiry
+  deletion. Unsupported legacy custom values normalize to long-term on load so an
+  upgrade cannot shorten retention and delete history unexpectedly.
+- The closed select, row spacing, typography, caret, and panel bounds match the
+  existing settings controls. Expanding the WebView select through macOS Accessibility
+  was not available, so the open menu itself is not part of the native capture; option
+  membership and long-term behavior are covered by source validation and Rust tests.
+- No actionable P0/P1/P2 visual findings remain for the fixed retention control.
+
+final result: passed
+
 ## Reset discontinuity and minimum value
 
 - Source visual truth: `/var/folders/33/1n65110j6_15vm1fd1fydb440000gn/T/codex-clipboard-2c85ad90-5d57-4ef0-a86b-a81686a957e3.png`.
@@ -443,3 +611,170 @@ final result: passed
 - The 520×580 capture contains no horizontal or vertical clipping. All existing
   settings and the destructive local-data action remain visible without scrolling.
 - No actionable P0/P1/P2 visual findings remain for the updater entry point.
+
+## Option 2 reset summary refinement
+
+- Selected concept: `docs/design/reference/tray-popover-option-2.png`.
+- Annotated feedback: `docs/design/reference/tray-popover-feedback.png`.
+- Implementation: `docs/design/qa/tray-option-2-implementation.png`.
+- Same-input comparison: `docs/design/qa/tray-option-2-comparison.png`.
+- Viewport and state: 420×170 points / 840×340 pixels, dark tray surface,
+  deterministic history containing one reset in the latest 24 hours.
+- P1: the first option-2 implementation repeated remaining quota in the heading
+  and at the current chart endpoint. The heading value was removed so the endpoint
+  remains the single current-quota signal.
+- P1: the vacated heading now shows the next reset time and the number of resets
+  detected in the latest 24-hour window; cumulative consumption stays at right.
+- P2: reset-count behavior is covered by a unit test that excludes resets older
+  than the visible window.
+- The implementation was rendered from the current frontend in a macOS WKWebView
+  at the tray window's exact dimensions. The full-view comparison covers every
+  modified region, so a separate focused crop would not add useful evidence.
+- No actionable P0/P1/P2 visual findings remain for this refinement.
+
+## Full-height dark tray recreation
+
+- Source visual truth: `docs/design/qa/tray-full-reference-original.png`.
+- Normalized source crop: `docs/design/qa/tray-full-reference-crop.png`.
+- Browser-rendered implementation: `docs/design/qa/tray-full-implementation.png`.
+- Same-input full-view comparison: `docs/design/qa/tray-full-comparison.png`.
+- Viewport and state: 340×630 points, dark tray surface, deterministic local quota
+  data, default seven-day range and one-hour resolution.
+- The source and implementation use different language and quota values. Chinese is
+  the product's established visible-copy contract, and the implementation displays
+  live local values; comparison therefore treats copy language and metric values as
+  intentional constraints while checking hierarchy, geometry, typography, and states.
+- First comparison P2: the quota ring sat too far right, the trend plot's safe insets
+  differed from the reference, the heatmap stretched too wide, and recent-event times
+  were right-aligned instead of beginning in the reference column. The ring, plot
+  margins, heatmap width, and event grid were corrected.
+- Second comparison P2: the first trend annotation collided with the 100% axis label.
+  The annotation now uses its own reference marker with horizontal clearance; the
+  post-fix capture contains no overlapping chart text.
+- Fonts and typography: the macOS system stack, compact weights, tabular metrics, and
+  8–24px hierarchy reproduce the normalized source without clipping or wrapping.
+- Spacing and layout rhythm: the 25px window strip, 40px toolbar, 116px summary,
+  149px chart, 140px heatmap, 115px event card, and 25px footer fill the native window
+  exactly. Eleven-pixel outer corners and eight-pixel cards match the reference.
+- Colors and visual tokens: the tray owns a deep navy canvas, slightly raised panels,
+  quiet blue-gray separators, purple accent, and semantic red/green event states.
+- Image quality and asset fidelity: the canonical raster app mark is used directly;
+  Phosphor supplies UI icons, and Recharts renders the ring and charts at native scale.
+- Copy and content: every visible label and accessible name is Chinese; reset timing,
+  history, heatmap, and recent-event rows are populated from the local data adapters.
+- Focused-region comparison was unnecessary after normalization because every label,
+  marker, grid cell, border, and control is readable in the 680×630 combined image.
+- Primary interactions tested in the in-app Codex Browser: the range selector changed
+  to 24 hours, resolution changed to six hours, and the overflow menu opened its
+  Settings action. The final default-state capture has no browser warnings or errors.
+- No actionable P0/P1/P2 findings remain. The remaining differences are expected live
+  data, Chinese localization, and the canonical product mark.
+
+final result: passed
+
+## CodexBar-inspired native material theme
+
+- External visual reference: `steipete/CodexBar`, especially `MenuCardView`,
+  `UsageProgressBar`, `UsageMenuCardLayout`, and the repository screenshots.
+- Real Tauri tray capture: `docs/design/qa/tray-codexbar-theme-dark-final-2026-07-15.png`.
+- Real Settings capture: `docs/design/qa/settings-codexbar-theme-dark-2026-07-15.png`.
+- Runtime evidence: macOS debug process PID 14928, tray CGWindowID 354 at 340×565,
+  and Settings CGWindowID 353 at 520×580, both captured at native 2× scale.
+- The visual system now uses system blue plus semantic system red/green, translucent
+  neutral group fills, system separators, and SF Pro typography instead of a dedicated
+  deep-navy/purple dashboard palette.
+- Layout rhythm follows an 8px outer group gap, 12px module insets, and 6px dense
+  internal spacing. Settings uses 16px group separation with headings outside cards.
+- The quota ring remains the product-specific signature; supporting cards are quieter
+  so the reset metric and chart hierarchy carry the visual emphasis.
+- First real-window review found the heatmap legend clipped by the fixed tray height.
+  Height was reallocated from the summary and trend cards to the heatmap without
+  changing the 565px window. The final capture shows the legend, event rows, and footer
+  fully visible with no overlaps or truncation.
+- Dark mode is verified in the real Tauri client. Light-mode tokens compile and follow
+  the same ownership model but were not switched in the user's persisted settings.
+- No actionable P0/P1/P2 visual findings remain.
+
+final result: passed
+
+## Glass reset-and-trend tray final verification
+
+- Final real Tauri capture: `docs/design/qa/tray-glass-native-hud-final-2026-07-16.png`.
+- Final same-input comparison: `docs/design/qa/tray-glass-feedback-final-comparison-2026-07-16.png`.
+- Verified at the production 470×410 tray viewport with live data and the 24-hour
+  state selected.
+- The menu-bar-aligned border, reset summary, reset-credit value, stepped trend,
+  reference markers, current-value capsule, range control, and native HUD material
+  are visible without clipping or overlap; no decorative pointer remains.
+- The 24-hour and 7-day controls remain functional, and the final build contains no
+  frontend, Rust, or packaging errors.
+- No actionable P0/P1/P2 findings remain.
+
+final result: passed
+
+## Large glass tray reference reproduction
+
+- Source visual truth: `docs/design/reference/tray-glass-large-reference-2026-07-16.png`.
+- Browser implementation: `docs/design/qa/tray-glass-large-browser-final-2026-07-16.png`.
+- Browser same-input comparison: `docs/design/qa/tray-glass-large-browser-comparison-final-2026-07-16.png`.
+- Final real Tauri capture: `docs/design/qa/tray-glass-large-native-final-2026-07-16.png`.
+- Native same-input comparison: `docs/design/qa/tray-glass-large-native-comparison-final-2026-07-16.png`.
+- Verified at the production 652×492-point tray viewport. The source window crop and
+  final macOS capture are both 1304×984 pixels at native 2× scale.
+- Runtime evidence: final debug-bundle process PID 41518, tray CGWindowID 5615,
+  title `Codex Quota Trends`, layer 5, and bounds 652×492 at x=1113, y=30.
+- The outer radius, traffic-light strip, reset summary, icon boxes, two glass layers,
+  24-hour badge, current quota hierarchy, three percentage guides, reset boundary,
+  pre-reset annotation, stepped line, current halo, and time labels match the supplied
+  reference without clipping, collision, or overflow.
+- Browser QA uses deterministic 80% / 45% data to match the reference state. The native
+  capture intentionally shows the current locally collected quota and reset history;
+  no historical values are invented to force the live screenshot to match static copy.
+- The app uses the native macOS HUD material plus translucent layered gradients,
+  light borders, inset highlights, and restrained shadows. Phosphor supplies every
+  visible icon; no placeholder, emoji, inline SVG, or CSS-drawn icon was introduced.
+- The surface has no primary control in this design; the time-range badge is status
+  content and the chart continues to expose its real-data tooltip semantics.
+- `just check`, `just test`, and `just build-gui` pass. Rust tests: 30 passed. Frontend
+  tests: 11 passed. The final debug macOS application bundle was rebuilt after the
+  last typography and icon-color correction.
+- No actionable P0/P1/P2 visual findings remain. Remaining source/native differences
+  are live quota values, live timestamps, and real history coverage.
+
+final result: passed
+
+## Two-thirds compact tray without traffic lights
+
+- Browser capture: `docs/design/qa/tray-glass-compact-browser-final-2026-07-16.png`.
+- Real Tauri capture: `docs/design/qa/tray-glass-compact-native-final-2026-07-16.png`.
+- The tray window is 435×328 points, the rounded integer two-thirds size of the
+  previous 652×492 surface. The 652×492 design canvas is rendered at a 2/3 scale so
+  typography, cards, icons, radii, chart strokes, and spacing preserve their ratios.
+- The decorative red, yellow, and green traffic-light elements and their CSS have
+  been removed. The released top area is reassigned to the reset summary and chart.
+- Browser DOM and exact-viewport capture show every reset label, quota value, axis
+  label, time label, badge, and card edge without clipping or overflow.
+- macOS runtime evidence: debug-bundle PID 39907, CGWindowID 5787, title
+  `Codex Quota Trends`, layer 5, and bounds 435×328 at x=1152, y=30.
+- `just check`, `just test`, and `just build-gui` pass. Rust tests: 30 passed.
+  Frontend tests: 11 passed.
+- No actionable P0/P1/P2 findings remain.
+
+final result: passed
+
+## Medium tray with trend-only lower card
+
+- Final browser capture: `docs/design/qa/tray-glass-medium-no-metric-browser-final-2026-07-16.png`.
+- The native window preset is Medium 338×158 points with an 11px continuous radius.
+- The lower card no longer renders `额度变化`, the large remaining percentage, or
+  `当前剩余额度`. It contains only the 24-hour status badge and the trend chart.
+- The chart expands from the left card edge and retains the 100%, 50%, and 0% guides,
+  reset marker, pre-reset label, current halo, and three time-axis labels.
+- The final 338×158 browser DOM and screenshot show no clipping or stale metric copy.
+- The pre-removal native shell was verified at CGWindow bounds 338×158; the final
+  change is DOM/CSS-only and the same Tauri window configuration is unchanged.
+- `just check`, `just test`, and `just build-gui` pass. Rust tests: 30 passed.
+  Frontend tests: 11 passed.
+- No actionable P0/P1/P2 findings remain.
+
+final result: passed

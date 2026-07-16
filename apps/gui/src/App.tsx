@@ -1,7 +1,14 @@
 import { ArrowsClockwise } from "@phosphor-icons/react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { getDashboard, getSettings, refreshQuota, saveSettings } from "./api/quota-api";
+import {
+  getDashboard,
+  getSettings,
+  isTauriRuntime,
+  openSettings,
+  refreshQuota,
+  saveSettings,
+} from "./api/quota-api";
 import { AppShell } from "./components/app-shell";
 import { TrayPopover } from "./components/tray-popover";
 import { IconButton, SelectControl } from "./components/ui";
@@ -45,6 +52,27 @@ export default function App() {
   useEffect(() => {
     if (localStorage.getItem("cqt:requested-route")) localStorage.removeItem("cqt:requested-route");
   }, [route]);
+
+  useEffect(() => {
+    const preventContextMenu = (event: MouseEvent) => {
+      if (isTauriRuntime()) event.preventDefault();
+    };
+    const handleSettingsShortcut = (event: KeyboardEvent) => {
+      if (event.key !== "," || (!event.ctrlKey && !event.metaKey) || event.altKey) return;
+      event.preventDefault();
+      if (isTauriRuntime()) {
+        void openSettings();
+      } else {
+        setRoute("settings");
+      }
+    };
+    document.addEventListener("contextmenu", preventContextMenu);
+    window.addEventListener("keydown", handleSettingsShortcut);
+    return () => {
+      document.removeEventListener("contextmenu", preventContextMenu);
+      window.removeEventListener("keydown", handleSettingsShortcut);
+    };
+  }, []);
 
   useEffect(() => {
     const applyRoute = (value: unknown) => {
@@ -105,7 +133,7 @@ export default function App() {
     windowLabel === "tray" ||
     new URLSearchParams(window.location.search).get("surface") === "tray"
   )
-    return <TrayPopover data={dashboard} />;
+    return <TrayPopover data={dashboard} settings={settings} />;
 
   const toolbar = (
     <>

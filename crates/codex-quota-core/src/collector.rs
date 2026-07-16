@@ -70,6 +70,7 @@ pub struct CollectorRuntime {
     state: SharedCollectorState,
     paused: Arc<AtomicBool>,
     refresh: Arc<Notify>,
+    reload: Arc<Notify>,
     config: CollectorConfig,
 }
 
@@ -80,6 +81,7 @@ impl CollectorRuntime {
             state: Arc::new(RwLock::new(CollectorState::default())),
             paused: Arc::new(AtomicBool::new(false)),
             refresh: Arc::new(Notify::new()),
+            reload: Arc::new(Notify::new()),
             config,
         }
     }
@@ -93,12 +95,23 @@ impl CollectorRuntime {
     pub fn refresh_notifier(&self) -> Arc<Notify> {
         Arc::clone(&self.refresh)
     }
+    pub fn reload_notifier(&self) -> Arc<Notify> {
+        Arc::clone(&self.reload)
+    }
 
     pub async fn run(self) {
         let mut reconnect_seconds = 1;
         loop {
             self.update_state(CollectorStatus::Connecting, None, None);
-            match AppServerClient::start().await {
+            let codex_path = match self.settings() {
+                Ok(settings) => settings.codex_path,
+                Err(error) => {
+                    warn!(%error, "collector failed to load settings");
+                    self.record_disconnect(&error.to_string());
+                    String::new()
+                }
+            };
+            match AppServerClient::start(&codex_path).await {
                 Ok(client) => {
                     reconnect_seconds = 1;
                     if let Err(error) = self.run_connected(client).await {
@@ -111,7 +124,10 @@ impl CollectorRuntime {
                     self.record_disconnect(&error.to_string());
                 }
             }
-            sleep(Duration::from_secs(reconnect_seconds)).await;
+            tokio::select! {
+                _ = sleep(Duration::from_secs(reconnect_seconds)) => {}
+                _ = self.reload.notified() => reconnect_seconds = 1,
+            }
             reconnect_seconds = (reconnect_seconds * 2).min(self.config.reconnect_max_seconds);
         }
     }
@@ -144,6 +160,7 @@ impl CollectorRuntime {
             tokio::select! {
                 _ = poll.tick() => self.collect_once(&mut client).await?,
                 _ = self.refresh.notified() => self.collect_once(&mut client).await?,
+                _ = self.reload.notified() => return Ok(()),
                 message = client.next_message() => {
                     let message = message?;
                     if message.method.as_deref() == Some(RATE_LIMITS_UPDATED_METHOD) {

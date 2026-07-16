@@ -8,12 +8,34 @@ import type {
 } from "../types";
 
 const now = Math.floor(Date.now() / 1000);
+const demoResetAt = (() => {
+  const date = new Date(now * 1_000);
+  const daysUntilNextThursday = (4 - date.getDay() + 7) % 7 || 7;
+  date.setDate(date.getDate() + daysUntilNextThursday);
+  date.setHours(12, 15, 0, 0);
+  return Math.floor(date.getTime() / 1_000);
+})();
 
+const demoUsageSteps = [25, 26, 28, 31, 34, 38, 40, 42, 45, 47, 49, 51, 53, 55];
 export const demoHistory: TrendPoint[] = Array.from({ length: 49 }, (_, index) => {
+  const step = Math.min(demoUsageSteps.length - 1, Math.floor(index / 2));
+  const resetIndex = 28;
+  const usedPercent =
+    index < resetIndex
+      ? demoUsageSteps[step]
+      : ([0, 1, 2, 4, 6, 8, 10, 12, 14, 17, 20][Math.floor((index - resetIndex) / 2)] ?? 20);
+  return { timestamp: now - (48 - index) * 1_800, usedPercent };
+});
+
+export const demoWeekHistory: TrendPoint[] = Array.from({ length: 169 }, (_, index) => {
+  const hoursFromStart = index;
+  const beforeReset = index < 72;
+  const usedPercent = beforeReset
+    ? 16 + Math.round((hoursFromStart / 72) * 56)
+    : Math.round(((hoursFromStart - 72) / 96) * 39);
   return {
-    timestamp: now - (48 - index) * 1_800,
-    usedPercent:
-      index <= 24 ? 32 + Math.round((index * 17) / 24) : Math.round(((index - 25) * 3) / 23),
+    timestamp: now - (168 - index) * 3_600,
+    usedPercent,
   };
 });
 
@@ -25,8 +47,8 @@ export const demoDashboard: DashboardData = {
     windows: [
       {
         windowMinutes: 10_080,
-        usedPercent: 3,
-        resetAt: now + 6 * 86_400 + 18 * 3_600 + 42 * 60,
+        usedPercent: 20,
+        resetAt: demoResetAt,
       },
       {
         windowMinutes: 300,
@@ -35,7 +57,13 @@ export const demoDashboard: DashboardData = {
       },
     ],
   },
+  resetCreditsAvailable: 4,
   history: demoHistory,
+  weekHistory: demoWeekHistory,
+  heatmap: Array.from({ length: 24 }, (_, index) => ({
+    dayStart: Math.floor((now - (23 - index) * 86_400) / 86_400) * 86_400,
+    consumedPercent: [0, 2, 5, 1, 8, 13, 3][index % 7],
+  })),
   consumedPercent: 20,
   speeds: { fifteenMinutes: 1.2, oneHour: 4.8, twentyFourHours: 15.3 },
   pace: { timeProgress: 40, usageProgress: 65, status: "above" },
@@ -134,7 +162,9 @@ export const demoAlerts: AlertRecord[] = [
 ];
 
 export const demoSettings: AppSettings = {
-  pollIntervalSeconds: 60,
+  codexPath: "",
+  pollIntervalSeconds: 900,
+  trayHistoryHours: 24,
   rapidDrainPercent: 5,
   rapidDrainMinutes: 10,
   offlineThresholdMinutes: 5,

@@ -1,29 +1,45 @@
 # Codex Quota Trends
 
-Codex Quota Trends is a local-first macOS menu bar app that records Codex rate
-limit snapshots, shows consumption trends, and warns when usage changes faster
-than expected.
+Codex Quota Trends is a local-first observer for Codex quota pools. Its intended
+value is durable history, cross-cycle comparison, consumption pace, and honest
+exhaustion-risk signals rather than another copy of Codex's current-usage view.
 
 All product data stays on the Mac. Authentication remains owned by the installed
 Codex CLI through `codex app-server`; the app never reads Codex credentials or
 calls private ChatGPT endpoints.
 
-## Status
+## Status: acquisition feasibility gate
 
-The first implementation includes:
+Full desktop product development is paused while the data source is validated.
+The current Tauri interface is an experimental shell, not a statement that
+collection stability, pool semantics, prediction, or alerts have passed their
+product gates.
 
-- event-first collection with a 60-second polling fallback;
-- SQLite history with change-only writes;
-- dynamic quota windows keyed by app-server `limitId`;
-- a menu-bar-first remaining-quota surface with a detailed seven-day trend and
-  an on-demand Settings window;
-- rapid-drain, stale-collector, and reset detection;
-- CSV export, retention settings, database cleanup, and launch-at-login controls;
-- signed in-app updates delivered from GitHub Releases.
+The active phase-one deliverable is a minimal Rust PoC that:
+
+- reads only `account/rateLimits/read` through the installed Codex CLI;
+- stores no password, cookie, token, or Codex credential;
+- writes raw and normalized local JSONL evidence with opaque reset-credit IDs redacted;
+- distinguishes rolling, weekly, monthly, credits, and unknown pools without
+  treating an inferred pool label as an observed fact;
+- records success, unavailable, and error outcomes, plus payload hashes;
+- defaults to 15-minute collection and backs off after repeated unchanged payloads;
+- produces a report for the seven-day 95% acquisition-success gate.
+
+Run one acquisition sample:
+
+```bash
+just poc-once
+just poc-report
+```
+
+The complete seven-day procedure and stop criteria are in
+[`docs/feasibility-poc.md`](docs/feasibility-poc.md).
 
 ## Development
 
-Requirements: macOS, Codex CLI, Rust 1.95, Node 24, and npm.
+Requirements: macOS, Codex CLI 0.144.1 or later for the currently verified wire
+shape, Rust 1.94, Node 24, and npm.
 
 ```bash
 just install

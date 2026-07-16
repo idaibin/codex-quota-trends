@@ -1,5 +1,13 @@
 # Architecture
 
+## Current decision gate
+
+The repository is in acquisition-feasibility phase. The Tauri surface remains an
+experimental client while a seven-day local PoC verifies that Codex app-server
+collection is stable, safe, and able to distinguish multiple quota-pool shapes.
+No prediction or notification behavior should be promoted as a product capability
+until this gate passes. See `feasibility-poc.md`.
+
 ## Shape
 
 Codex Quota Trends is a Client/Tauri repository.
@@ -15,22 +23,29 @@ crates/codex-quota-core
 
 The dependency direction is `React -> Tauri commands -> core -> SQLite/app-server`.
 The frontend never reads the database or starts Codex directly.
+The dashboard command owns the presentation-ready 24-hour and seven-day histories
+plus the 24-week daily usage aggregation. The activity command returns recent
+persisted collector events; the tray does not synthesize either dataset.
 
 ## Collection lifecycle
 
 1. Tauri starts one background collector.
-2. The core starts `codex app-server --listen stdio://`.
+2. The core starts `codex app-server --listen stdio://` using the configured executable path, or
+   auto-detects Codex from `PATH`, Volta, Homebrew, and common local install locations.
 3. It sends `initialize`, then `initialized`.
 4. It reads `account/read` and `account/rateLimits/read`.
 5. A rate-limit response is normalized into one `QuotaSnapshot` per `limitId`.
-6. Only changed window values are persisted.
-7. `account/rateLimits/updated` triggers a fresh read; a configurable poll is
-   the liveness fallback.
+6. A snapshot is persisted only when a window's displayed integer percentage changes; quota-change
+   events and alerts follow the same boundary.
+7. `account/rateLimits/updated` is the primary refresh signal. A configurable poll remains the
+   liveness fallback for disconnects or missed notifications.
 8. Disconnects are recorded and retried with bounded exponential backoff.
 
 The current CLI schema was generated from Codex CLI 0.144.1. The wire model is
-kept tolerant of optional account metadata and additional fields, while the
-domain model stays strict about the fields it uses.
+kept tolerant of optional account metadata and additional fields. It currently
+includes window limits, plan type, credits, individual spend controls, reached
+reason, and reset-credit summaries. Phase-one evidence preserves these categories;
+the existing SQLite/UI domain remains intentionally narrower until the PoC passes.
 
 ## Runtime modes
 

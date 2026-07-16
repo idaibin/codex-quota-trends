@@ -112,10 +112,13 @@ impl Database {
         snapshot: &QuotaSnapshot,
         raw_json: &str,
     ) -> Result<bool> {
-        if self
-            .latest_snapshot(&snapshot.limit_id)?
-            .is_some_and(|previous| same_quota_usage(&previous.windows, &snapshot.windows))
+        if let Some(previous) = self.latest_snapshot(&snapshot.limit_id)?
+            && same_displayed_usage(&previous.windows, &snapshot.windows)
         {
+            self.connection.execute(
+                "UPDATE quota_snapshots SET raw_json = ?1 WHERE limit_id = ?2 AND created_at = ?3",
+                params![raw_json, snapshot.limit_id, previous.created_at],
+            )?;
             return Ok(false);
         }
         let transaction = self.connection.transaction()?;
@@ -127,6 +130,27 @@ impl Database {
         }
         transaction.commit()?;
         Ok(true)
+    }
+
+    pub fn latest_reset_credits_available(&self) -> Result<Option<i64>> {
+        let raw_json = self
+            .connection
+            .query_row(
+                "SELECT raw_json FROM quota_snapshots ORDER BY created_at DESC, id DESC LIMIT 1",
+                [],
+                |row| row.get::<_, String>(0),
+            )
+            .optional()?;
+        raw_json
+            .map(|raw_json| {
+                let value: serde_json::Value = serde_json::from_str(&raw_json)?;
+                Ok(value
+                    .get("rateLimitResetCredits")
+                    .and_then(|summary| summary.get("availableCount"))
+                    .and_then(serde_json::Value::as_i64))
+            })
+            .transpose()
+            .map(Option::flatten)
     }
 
     pub fn latest_snapshot(&self, limit_id: &str) -> Result<Option<QuotaSnapshot>> {
@@ -183,14 +207,27 @@ impl Database {
         window_minutes: Option<u64>,
         since: i64,
     ) -> Result<Vec<TrendPoint>> {
+        let window_minutes = window_minutes.map(|value| value as i64);
+        let leading = self
+            .connection
+            .query_row(
+                "SELECT created_at, used_percent FROM quota_snapshots WHERE limit_id = ?1 AND window_minutes IS ?2 AND created_at < ?3 ORDER BY created_at DESC LIMIT 1",
+                params![limit_id, window_minutes, since],
+                |row| Ok(TrendPoint { timestamp: row.get(0)?, used_percent: row.get(1)? }),
+            )
+            .optional()?;
         let mut statement = self.connection.prepare(
             "SELECT created_at, used_percent FROM quota_snapshots WHERE limit_id = ?1 AND window_minutes IS ?2 AND created_at >= ?3 ORDER BY created_at ASC",
         )?;
-        Ok(statement
-            .query_map(params![limit_id, window_minutes.map(|value| value as i64), since], |row| {
-                Ok(TrendPoint { timestamp: row.get(0)?, used_percent: row.get(1)? })
-            })?
-            .collect::<rusqlite::Result<Vec<_>>>()?)
+        let mut history = leading.into_iter().collect::<Vec<_>>();
+        history.extend(
+            statement
+                .query_map(params![limit_id, window_minutes, since], |row| {
+                    Ok(TrendPoint { timestamp: row.get(0)?, used_percent: row.get(1)? })
+                })?
+                .collect::<rusqlite::Result<Vec<_>>>()?,
+        );
+        Ok(history)
     }
 
     pub fn add_event(
@@ -264,9 +301,16 @@ impl Database {
             })
             .optional()?;
         value
-            .map(|json| serde_json::from_str(&json).context("invalid stored app settings"))
+            .map(|json| {
+                serde_json::from_str::<AppSettings>(&json).context("invalid stored app settings")
+            })
             .transpose()
-            .map(|settings| settings.unwrap_or_default())
+            .map(|settings| {
+                settings
+                    .unwrap_or_default()
+                    .normalize_legacy_retention()
+                    .normalize_legacy_poll_interval()
+            })
     }
 
     pub fn save_settings(&self, settings: &AppSettings) -> Result<()> {
@@ -277,6 +321,9 @@ impl Database {
     }
 
     pub fn apply_retention(&self, now: i64, retention_days: u64) -> Result<usize> {
+        if retention_days == 0 {
+            return Ok(0);
+        }
         let cutoff = now - retention_days as i64 * 86_400;
         let transaction = self.connection.unchecked_transaction()?;
         let mut deleted =
@@ -403,17 +450,17 @@ fn csv_escape(value: &str) -> String {
     format!("\"{}\"", value.replace('"', "\"\""))
 }
 
-fn same_quota_usage(previous: &[QuotaWindow], current: &[QuotaWindow]) -> bool {
+fn same_displayed_usage(previous: &[QuotaWindow], current: &[QuotaWindow]) -> bool {
     if previous.len() != current.len() {
         return false;
     }
     let mut previous_usage = previous
         .iter()
-        .map(|window| (window.window_minutes, window.used_percent.to_bits()))
+        .map(|window| (window.window_minutes, window.used_percent.clamp(0.0, 100.0).round() as i64))
         .collect::<Vec<_>>();
     let mut current_usage = current
         .iter()
-        .map(|window| (window.window_minutes, window.used_percent.to_bits()))
+        .map(|window| (window.window_minutes, window.used_percent.clamp(0.0, 100.0).round() as i64))
         .collect::<Vec<_>>();
     previous_usage.sort_unstable();
     current_usage.sort_unstable();
@@ -438,8 +485,8 @@ mod tests {
     }
 
     #[test]
-    fn persists_only_changed_snapshots() {
-        let mut unchanged = snapshot(200, 10.0);
+    fn persists_only_displayed_percentage_changes() {
+        let mut unchanged = snapshot(200, 10.4);
         unchanged.windows[0].reset_at = Some(10_999);
         unchanged.windows.push(QuotaWindow {
             window_minutes: Some(10_080),
@@ -456,14 +503,43 @@ mod tests {
         assert!(database.save_snapshot_if_changed(&initial, "{}").unwrap());
         unchanged.windows.reverse();
         assert!(!database.save_snapshot_if_changed(&unchanged, "{}").unwrap());
-        assert!(database.save_snapshot_if_changed(&snapshot(300, 11.0), "{}").unwrap());
+        assert!(database.save_snapshot_if_changed(&snapshot(300, 10.6), "{}").unwrap());
         assert_eq!(database.history("codex", Some(300), 0).unwrap().len(), 2);
+    }
+
+    #[test]
+    fn refreshes_reset_credit_metadata_without_adding_history() {
+        let mut database = Database::open_in_memory().unwrap();
+        let initial = snapshot(100, 10.0);
+        database
+            .save_snapshot_if_changed(&initial, r#"{"rateLimitResetCredits":{"availableCount":4}}"#)
+            .unwrap();
+        database
+            .save_snapshot_if_changed(
+                &snapshot(200, 10.2),
+                r#"{"rateLimitResetCredits":{"availableCount":3}}"#,
+            )
+            .unwrap();
+
+        assert_eq!(database.latest_reset_credits_available().unwrap(), Some(3));
+        assert_eq!(database.history("codex", Some(300), 0).unwrap().len(), 1);
+    }
+
+    #[test]
+    fn history_includes_the_last_value_before_the_visible_range() {
+        let mut database = Database::open_in_memory().unwrap();
+        database.save_snapshot_if_changed(&snapshot(100, 10.0), "{}").unwrap();
+        database.save_snapshot_if_changed(&snapshot(200, 11.0), "{}").unwrap();
+        database.save_snapshot_if_changed(&snapshot(300, 12.0), "{}").unwrap();
+
+        let history = database.history("codex", Some(300), 250).unwrap();
+        assert_eq!(history.iter().map(|point| point.timestamp).collect::<Vec<_>>(), [200, 300]);
     }
 
     #[test]
     fn settings_round_trip() {
         let database = Database::open_in_memory().unwrap();
-        let settings = AppSettings { retention_days: 180, ..AppSettings::default() };
+        let settings = AppSettings { retention_days: 90, ..AppSettings::default() };
         database.save_settings(&settings).unwrap();
         assert_eq!(database.load_settings().unwrap(), settings);
     }
@@ -486,6 +562,15 @@ mod tests {
         let mut database = Database::open_in_memory().unwrap();
         database.save_snapshot_if_changed(&snapshot(100, 10.0), "{}").unwrap();
         assert_eq!(database.apply_retention(100 + 91 * 86_400, 90).unwrap(), 1);
+    }
+
+    #[test]
+    fn long_term_retention_keeps_old_rows() {
+        let mut database = Database::open_in_memory().unwrap();
+        database.save_snapshot_if_changed(&snapshot(100, 10.0), "{}").unwrap();
+
+        assert_eq!(database.apply_retention(100 + 366 * 86_400, 0).unwrap(), 0);
+        assert_eq!(database.history("codex", Some(300), 0).unwrap().len(), 1);
     }
 
     #[test]

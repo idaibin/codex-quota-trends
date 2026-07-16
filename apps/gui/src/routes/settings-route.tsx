@@ -1,21 +1,6 @@
-import {
-  Broom,
-  CalendarBlank,
-  CaretRight,
-  Database,
-  Export,
-  FolderOpen,
-  Gear,
-} from "@phosphor-icons/react";
+import { CalendarBlank, Database } from "@phosphor-icons/react";
 import { useEffect, useState } from "react";
-import {
-  cleanupDatabase,
-  exportData,
-  getDatabaseStats,
-  openDataFolder,
-  resetLocalData,
-  saveSettings,
-} from "../api/quota-api";
+import { getDatabaseStats, saveSettings } from "../api/quota-api";
 import type { AppSettings, DatabaseStats } from "../types";
 import { formatBytes } from "../utils/format";
 import { Panel, SelectControl, Toggle } from "../components/ui";
@@ -31,8 +16,6 @@ export function SettingsRoute({
   const [draft, setDraft] = useState(settings);
   const [saved, setSaved] = useState(false);
   const [storageStats, setStorageStats] = useState<DatabaseStats | null>(null);
-  const [storageMessage, setStorageMessage] = useState("");
-  const [cleaning, setCleaning] = useState(false);
   useEffect(() => setDraft(settings), [settings]);
   useEffect(() => {
     if (!saved) return undefined;
@@ -45,9 +28,7 @@ export function SettingsRoute({
       .then((stats) => {
         if (!cancelled) setStorageStats(stats);
       })
-      .catch(() => {
-        if (!cancelled) setStorageMessage("暂时无法读取数据库大小");
-      });
+      .catch(() => undefined);
     return () => {
       cancelled = true;
     };
@@ -57,72 +38,53 @@ export function SettingsRoute({
     const next = { ...draft, [key]: value };
     setDraft(next);
     setSaved(false);
-    void saveSettings(next).then((stored) => {
-      onSettingsChange(stored);
-      setSaved(true);
-    });
-  };
-
-  const commitRetention = () => {
-    const retentionDays = Math.min(365, Math.max(1, Math.round(draft.retentionDays || 14)));
-    const next = { ...draft, retentionDays };
-    setDraft(next);
-    setSaved(false);
     void saveSettings(next).then(async (stored) => {
       onSettingsChange(stored);
       setSaved(true);
-      setStorageStats(await getDatabaseStats());
+      if (key === "retentionDays") setStorageStats(await getDatabaseStats());
     });
-  };
-
-  const cleanDatabase = async () => {
-    setCleaning(true);
-    setStorageMessage("");
-    try {
-      const result = await cleanupDatabase();
-      setStorageStats(result.after);
-      const released = Math.max(0, result.before.totalBytes - result.after.totalBytes);
-      setStorageMessage(
-        `清理完成：删除 ${result.deletedRows} 条过期记录，释放 ${formatBytes(released)}`,
-      );
-    } catch {
-      setStorageMessage("清理失败，请稍后重试");
-    } finally {
-      setCleaning(false);
-    }
-  };
-
-  const confirmReset = async () => {
-    if (window.confirm("确定清除全部本地额度记录吗？此操作无法撤销。")) {
-      setCleaning(true);
-      try {
-        const result = await resetLocalData();
-        setStorageStats(result.after);
-        const released = Math.max(0, result.before.totalBytes - result.after.totalBytes);
-        setStorageMessage(
-          `本地数据已清除：删除 ${result.deletedRows} 条记录，释放 ${formatBytes(released)}`,
-        );
-      } catch {
-        setStorageMessage("清除失败，请稍后重试");
-      } finally {
-        setCleaning(false);
-      }
-    }
   };
 
   return (
     <div className="settings-page">
-      <UpdateControl />
       <SettingsSection icon={<CalendarBlank />} title="常规">
+        <SettingRow title="Codex 路径" description="留空时自动查找 Volta 和常用安装位置">
+          <input
+            className="path-control"
+            type="text"
+            aria-label="Codex 可执行文件路径"
+            value={draft.codexPath}
+            placeholder="~/.volta/bin/codex"
+            spellCheck={false}
+            onChange={(event) => setDraft({ ...draft, codexPath: event.target.value })}
+            onBlur={() => {
+              if (draft.codexPath !== settings.codexPath)
+                update("codexPath", draft.codexPath.trim());
+            }}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") event.currentTarget.blur();
+            }}
+          />
+        </SettingRow>
         <SettingRow title="采集频率">
           <SelectControl
             aria-label="采集频率"
             value={draft.pollIntervalSeconds}
             onChange={(event) => update("pollIntervalSeconds", Number(event.target.value))}
           >
-            <option value="30">30 秒</option>
-            <option value="60">1 分钟</option>
-            <option value="120">2 分钟</option>
+            <option value="900">15 分钟</option>
+            <option value="1800">30 分钟</option>
+            <option value="3600">60 分钟</option>
+          </SelectControl>
+        </SettingRow>
+        <SettingRow title="浮窗趋势范围">
+          <SelectControl
+            aria-label="浮窗趋势范围"
+            value={draft.trayHistoryHours}
+            onChange={(event) => update("trayHistoryHours", Number(event.target.value))}
+          >
+            <option value="24">最近 24 小时</option>
+            <option value="168">最近 7 天</option>
           </SelectControl>
         </SettingRow>
         <SettingRow title="登录时启动">
@@ -153,74 +115,25 @@ export function SettingsRoute({
       </SettingsSection>
       <SettingsSection icon={<Database />} title="数据">
         <SettingRow title="保留时间">
-          <label className="retention-control">
-            <input
-              aria-label="数据保留天数"
-              type="number"
-              min="1"
-              max="365"
-              value={draft.retentionDays}
-              onChange={(event) =>
-                setDraft({ ...draft, retentionDays: Number(event.target.value) })
-              }
-              onBlur={commitRetention}
-              onKeyDown={(event) => {
-                if (event.key === "Enter") event.currentTarget.blur();
-              }}
-            />
-            <span>天</span>
-          </label>
+          <SelectControl
+            aria-label="数据保留时间"
+            value={draft.retentionDays}
+            onChange={(event) => update("retentionDays", Number(event.target.value))}
+          >
+            <option value="7">7 天</option>
+            <option value="14">14 天</option>
+            <option value="30">30 天</option>
+            <option value="90">90 天</option>
+            <option value="0">长期</option>
+          </SelectControl>
         </SettingRow>
         <SettingRow title="磁盘占用">
           <div className="storage-size" aria-live="polite">
             <strong>{storageStats ? formatBytes(storageStats.totalBytes) : "读取中…"}</strong>
-            {storageStats && (
-              <span>
-                数据库 {formatBytes(storageStats.databaseBytes)} · 日志{" "}
-                {formatBytes(storageStats.walBytes)} · 临时 {formatBytes(storageStats.shmBytes)}
-              </span>
-            )}
           </div>
         </SettingRow>
-        <div className="settings-actions">
-          <button type="button" onClick={() => void cleanDatabase()} disabled={cleaning}>
-            <Broom size={23} />
-            <span>
-              <strong>{cleaning ? "正在清理…" : "清理数据库"}</strong>
-              {storageStats && storageStats.reclaimableBytes > 0 && (
-                <small>可释放 {formatBytes(storageStats.reclaimableBytes)}</small>
-              )}
-            </span>
-            <CaretRight size={16} aria-hidden="true" />
-          </button>
-          <button type="button" onClick={() => void exportData()}>
-            <Export size={23} />
-            <span>
-              <strong>导出数据</strong>
-            </span>
-            <CaretRight size={16} aria-hidden="true" />
-          </button>
-          <button type="button" onClick={() => void openDataFolder()}>
-            <FolderOpen size={23} />
-            <span>
-              <strong>打开目录</strong>
-            </span>
-            <CaretRight size={16} aria-hidden="true" />
-          </button>
-        </div>
-        {storageMessage && <p className="storage-message">{storageMessage}</p>}
       </SettingsSection>
-      <Panel className="danger-zone">
-        <div>
-          <strong>
-            <Gear /> 清除本地数据
-          </strong>
-          <p>删除全部记录，无法撤销</p>
-        </div>
-        <button type="button" onClick={() => void confirmReset()} disabled={cleaning}>
-          清除数据
-        </button>
-      </Panel>
+      <UpdateControl />
       <div
         className={`save-indicator ${saved ? "save-indicator--visible" : ""}`}
         role="status"
@@ -242,13 +155,13 @@ function SettingsSection({
   children: React.ReactNode;
 }) {
   return (
-    <Panel className="settings-section">
+    <section className="settings-group">
       <h2>
         {icon}
         {title}
       </h2>
-      {children}
-    </Panel>
+      <Panel className="settings-section">{children}</Panel>
+    </section>
   );
 }
 

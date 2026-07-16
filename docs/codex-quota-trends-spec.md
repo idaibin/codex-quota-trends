@@ -1,4 +1,4 @@
-下面是可直接交给 Codex 执行的完整 Markdown 规格。已调整为参考 `rustzen-clear` 的工程思想：
+下面是可直接交给 Codex 执行的完整 Markdown 规格。已调整为参考 `rustzen-tools/products/clear` 的工程思想：
 
 * Local-first
 * Rust-first
@@ -58,7 +58,7 @@ Codex Quota Trends 是一个 macOS 本地优先（Local-first）的 Codex 使用
 
 # 2. 设计原则
 
-参考 rustzen-clear 的产品设计原则：
+参考 `rustzen-tools/products/clear` 的产品设计原则：
 
 ## 2.1 Local-first
 

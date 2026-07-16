@@ -19,6 +19,11 @@ export interface TrendPoint {
   usedPercent: number;
 }
 
+export interface UsageHeatmapDay {
+  dayStart: number;
+  consumedPercent: number;
+}
+
 export interface UsageSpeeds {
   fifteenMinutes: number;
   oneHour: number;
@@ -27,7 +32,10 @@ export interface UsageSpeeds {
 
 export interface DashboardData {
   snapshot: QuotaSnapshot;
+  resetCreditsAvailable: number | null;
   history: TrendPoint[];
+  weekHistory: TrendPoint[];
+  heatmap: UsageHeatmapDay[];
   consumedPercent: number;
   speeds: UsageSpeeds;
   pace: {
@@ -71,7 +79,9 @@ export interface AlertRecord {
 }
 
 export interface AppSettings {
+  codexPath: string;
   pollIntervalSeconds: number;
+  trayHistoryHours: number;
   rapidDrainPercent: number;
   rapidDrainMinutes: number;
   offlineThresholdMinutes: number;
