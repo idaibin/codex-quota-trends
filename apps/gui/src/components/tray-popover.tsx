@@ -1,19 +1,24 @@
-import { CalendarBlank, Clock, CreditCard } from "@phosphor-icons/react";
-import { useMemo } from "react";
+import { CalendarBlank, CreditCard } from "@phosphor-icons/react";
+import { useEffect, useMemo, useState } from "react";
 import type { AppSettings, DashboardData, TrendPoint } from "../types";
 import { TrayRemainingChart } from "./trend-chart";
 
-const formatResetDate = (resetAt: number | null) => {
-  if (!resetAt) return "时间未知";
-  const date = new Date(resetAt * 1_000);
-  const day = new Intl.DateTimeFormat("zh-CN", { weekday: "short" }).format(date);
-  const time = new Intl.DateTimeFormat("zh-CN", {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  }).format(date);
-  return `${date.getMonth() + 1}月${date.getDate()}日 ${day} ${time}`;
+export const formatResetCountdown = (resetAt: number | null, now: number) => {
+  if (!resetAt) return "--:--:--";
+  const totalMinutes = Math.max(0, Math.ceil((resetAt - now) / 60));
+  const days = Math.floor(totalMinutes / 1_440);
+  const hours = Math.floor((totalMinutes % 1_440) / 60);
+  const minutes = totalMinutes % 60;
+  return [days, hours, minutes].map((value) => String(value).padStart(2, "0")).join(":");
 };
+
+export const formatExpiryDate = (expiresAt: number) => {
+  const date = new Date(expiresAt * 1_000);
+  return `${date.getMonth() + 1}月${date.getDate()}日`;
+};
+
+export const isExpiryUrgent = (expiresAt: number | null, now: number) =>
+  expiresAt != null && expiresAt > now && expiresAt - now <= 86_400;
 
 export function selectTrayHistory(
   data: Pick<DashboardData, "history" | "weekHistory">,
@@ -28,13 +33,17 @@ export function selectTrayHistory(
 
 export function TrayPopover({ data, settings }: { data: DashboardData; settings: AppSettings }) {
   const quotaWindow = data.snapshot.windows[0];
+  const [now, setNow] = useState(() => Math.floor(Date.now() / 1_000));
 
-  const { history, rangeHours } = useMemo(
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(Math.floor(Date.now() / 1_000)), 60_000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  const { history } = useMemo(
     () => selectTrayHistory(data, settings.trayHistoryHours),
     [data, settings.trayHistoryHours],
   );
-  const rangeLabel = rangeHours === 168 ? "过去 7 天" : "过去 24 小时";
-
   if (!quotaWindow)
     return <div className="tray-popover tray-popover--empty">正在等待额度数据…</div>;
 
@@ -47,22 +56,40 @@ export function TrayPopover({ data, settings }: { data: DashboardData; settings:
               <CalendarBlank size={13} weight="regular" />
             </span>
             <div className="tray-reset-date">
-              <span>下次重置</span>
-              <strong>{formatResetDate(quotaWindow.resetAt)}</strong>
+              <span>重置</span>
+              <strong>{formatResetCountdown(quotaWindow.resetAt, now)}</strong>
             </div>
           </div>
           <div className="tray-reset-group tray-reset-group--credits">
             <span className="tray-summary-icon tray-summary-icon--small">
               <CreditCard size={12} weight="fill" />
             </span>
-            <div className="tray-reset-credits">
+            <div
+              className="tray-reset-credits"
+              aria-label={
+                data.resetCreditExpiresAt
+                  ? `${data.resetCreditsAvailable ?? 0} 次重置卡，最早于 ${formatExpiryDate(data.resetCreditExpiresAt)} 到期`
+                  : undefined
+              }
+            >
               <span>重置卡</span>
               <strong>
                 {data.resetCreditsAvailable == null ? (
                   "暂无数据"
                 ) : (
                   <>
-                    可用 <b>{data.resetCreditsAvailable}</b> 次
+                    <b>{data.resetCreditsAvailable}次</b>
+                    {data.resetCreditExpiresAt && (
+                      <span
+                        className={`tray-reset-credit-expiry ${
+                          isExpiryUrgent(data.resetCreditExpiresAt, now)
+                            ? "tray-reset-credit-expiry--urgent"
+                            : ""
+                        }`}
+                      >
+                        {` · ${formatExpiryDate(data.resetCreditExpiresAt)} 到期`}
+                      </span>
+                    )}
                   </>
                 )}
               </strong>
@@ -71,13 +98,7 @@ export function TrayPopover({ data, settings }: { data: DashboardData; settings:
         </section>
 
         <section className="tray-card tray-chart-card">
-          <header className="tray-chart-heading">
-            <div className="tray-range-badge" aria-label={`趋势时间范围：${rangeLabel}`}>
-              <Clock size={9} weight="regular" />
-              <span>{rangeLabel}</span>
-            </div>
-          </header>
-          <TrayRemainingChart history={history} rangeSeconds={rangeHours * 3_600} compact />
+          <TrayRemainingChart history={history} compact />
         </section>
       </main>
     </div>

@@ -17,13 +17,20 @@ and used only for Settings. The generated transparent PNG app mark under
   translucent panels provide real desktop-backed glass without a decorative pointer.
 - The popover includes a reset summary and the remaining-quota trend, without
   decorative traffic-light controls. The
-  summary shows the real reset time and available reset-credit count from the latest
-  app-server response.
-- The trend header shows a quiet `过去 24 小时` or `过去 7 天` status badge matching
-  the persisted General setting.
-- Trend: a fixed 0–100% stepped line chart with 100%, 50%, and 0% guides, continuous
-  timestamps, start/midpoint/now labels, the latest pre-reset value, and the reset
-  time. The current point keeps an accent halo. Reset
+  summary shows a `DD:HH:MM` minute-precision reset countdown plus the available reset-credit
+  count and earliest available-card expiry date from the latest app-server response.
+  The expiry date uses warning emphasis during its final 24 hours.
+- Trend: a stepped line chart with an adaptive percentage range and guides derived
+  from available persisted values. Change points are spaced evenly by occurrence
+  rather than by elapsed time, so long unchanged periods do not dominate the plot.
+  The real timestamp remains available for hover lookup, with no persistent time ticks
+  or baseline. Hovering shows a small active-point marker plus the selected change
+  point's date and time, without a full-height vertical guide. The
+  chart skips consecutive unchanged values and retains at most the latest
+  100 change points. The current remaining label is anchored
+  immediately left of the latest point, while reset timing remains available.
+  Missing time and percentage extremes outside the available samples are not
+  rendered. The current point keeps an accent halo. Reset
   boundaries remain vertical by
   inserting the previous value at the reset timestamp before the reset value.
 - The heatmap is a 24-week UTC-day aggregation of positive consumption deltas from
@@ -61,8 +68,9 @@ content insets, 6px dense text spacing, and 16px between Settings groups.
 - `TrayPopover`: the primary product surface and owner of reset timing, reset-credit
   availability, and the remaining-quota trend. It has no branded toolbar, decorative
   traffic-light strip, or popover pointer.
-- `TrayRemainingChart`: a library-rendered stepped line chart with a continuous
-  persisted 24-hour or seven-day domain, visible percentage scale, reset markers,
+- `TrayRemainingChart`: a library-rendered stepped line chart with change points
+  spaced evenly within the persisted 24-hour or seven-day selection, a visible
+  percentage scale, reset markers,
   and tooltip.
 - `SettingsRoute`: the only on-demand main-window route.
   It uses a 520×580 single-column preferences window with no branded top bar.
@@ -89,7 +97,7 @@ content insets, 6px dense text spacing, and 16px between Settings groups.
 
 - The tray surface uses the fixed Medium 338×158 preset and is not treated as a
   mobile page. Its reset summary owns the top row; the lower card is reserved for
-  the compressed trend and its persisted-range status badge.
+  the compressed trend.
 - Chart labels and plot margins are sized to remain fully visible at that width.
 - The Settings surface is fixed to a compact 520px width. Its native titlebar
   area is left clear for macOS traffic lights, and all controls flow in one column.

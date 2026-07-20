@@ -33,6 +33,7 @@ export interface UsageSpeeds {
 export interface DashboardData {
   snapshot: QuotaSnapshot;
   resetCreditsAvailable: number | null;
+  resetCreditExpiresAt: number | null;
   history: TrendPoint[];
   weekHistory: TrendPoint[];
   heatmap: UsageHeatmapDay[];

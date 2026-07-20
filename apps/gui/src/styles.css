@@ -1338,40 +1338,21 @@ select {
 .tray-reset-credits b {
   font-weight: 650;
 }
-.tray-chart-heading {
-  position: absolute;
-  top: 7px;
-  right: 10px;
-  left: 10px;
-  display: flex;
-  height: 18px;
-  align-items: center;
-  justify-content: flex-end;
-  padding: 0;
+.tray-reset-credit-expiry {
+  color: var(--tray-text);
+  font-weight: 450;
+}
+.tray-reset-credit-expiry--urgent {
+  color: var(--warning);
+  font-weight: 650;
 }
 .tray-chart-card {
   position: relative;
   min-height: 0;
 }
-.tray-range-badge {
-  display: flex;
-  height: 18px;
-  align-items: center;
-  gap: 4px;
-  padding: 0 6px;
-  border: 1px solid var(--tray-border);
-  border-radius: 6px;
-  color: var(--tray-muted);
-  background: rgba(255, 255, 255, 0.07);
-  font-size: 8px;
-  font-weight: 450;
-}
-.tray-range-badge svg {
-  color: #9dbcea;
-}
 .tray-trend-chart {
   position: absolute;
-  inset: 26px 8px 4px;
+  inset: 8px 8px 4px;
   min-width: 0;
   min-height: 0;
 }

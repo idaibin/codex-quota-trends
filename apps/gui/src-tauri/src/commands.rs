@@ -17,6 +17,7 @@ use crate::state::AppState;
 pub struct DashboardData {
     snapshot: QuotaSnapshot,
     reset_credits_available: Option<i64>,
+    reset_credit_expires_at: Option<i64>,
     history: Vec<TrendPoint>,
     week_history: Vec<TrendPoint>,
     heatmap: Vec<UsageHeatmapDay>,
@@ -71,6 +72,8 @@ fn dashboard(state: &AppState) -> Result<DashboardData, String> {
         });
     let reset_credits_available =
         database.latest_reset_credits_available().map_err(|error| error.to_string())?;
+    let reset_credit_expires_at =
+        database.latest_reset_credit_expires_at().map_err(|error| error.to_string())?;
     let mut history = snapshot
         .windows
         .first()
@@ -117,6 +120,7 @@ fn dashboard(state: &AppState) -> Result<DashboardData, String> {
     Ok(DashboardData {
         snapshot,
         reset_credits_available,
+        reset_credit_expires_at,
         history,
         week_history,
         heatmap,

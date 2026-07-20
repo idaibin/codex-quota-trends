@@ -133,14 +133,7 @@ impl Database {
     }
 
     pub fn latest_reset_credits_available(&self) -> Result<Option<i64>> {
-        let raw_json = self
-            .connection
-            .query_row(
-                "SELECT raw_json FROM quota_snapshots ORDER BY created_at DESC, id DESC LIMIT 1",
-                [],
-                |row| row.get::<_, String>(0),
-            )
-            .optional()?;
+        let raw_json = self.latest_raw_json()?;
         raw_json
             .map(|raw_json| {
                 let value: serde_json::Value = serde_json::from_str(&raw_json)?;
@@ -151,6 +144,41 @@ impl Database {
             })
             .transpose()
             .map(Option::flatten)
+    }
+
+    pub fn latest_reset_credit_expires_at(&self) -> Result<Option<i64>> {
+        let raw_json = self.latest_raw_json()?;
+        raw_json
+            .map(|raw_json| {
+                let value: serde_json::Value = serde_json::from_str(&raw_json)?;
+                Ok(value
+                    .get("rateLimitResetCredits")
+                    .and_then(|summary| summary.get("credits"))
+                    .and_then(serde_json::Value::as_array)
+                    .into_iter()
+                    .flatten()
+                    .filter(|credit| {
+                        credit.get("status").and_then(serde_json::Value::as_str)
+                            == Some("available")
+                    })
+                    .filter_map(|credit| {
+                        credit.get("expiresAt").and_then(serde_json::Value::as_i64)
+                    })
+                    .min())
+            })
+            .transpose()
+            .map(Option::flatten)
+    }
+
+    fn latest_raw_json(&self) -> Result<Option<String>> {
+        self.connection
+            .query_row(
+                "SELECT raw_json FROM quota_snapshots ORDER BY created_at DESC, id DESC LIMIT 1",
+                [],
+                |row| row.get(0),
+            )
+            .optional()
+            .map_err(Into::into)
     }
 
     pub fn latest_snapshot(&self, limit_id: &str) -> Result<Option<QuotaSnapshot>> {
@@ -517,11 +545,12 @@ mod tests {
         database
             .save_snapshot_if_changed(
                 &snapshot(200, 10.2),
-                r#"{"rateLimitResetCredits":{"availableCount":3}}"#,
+                r#"{"rateLimitResetCredits":{"availableCount":3,"credits":[{"status":"used","expiresAt":9000},{"status":"available","expiresAt":8000},{"status":"available","expiresAt":7000}]}}"#,
             )
             .unwrap();
 
         assert_eq!(database.latest_reset_credits_available().unwrap(), Some(3));
+        assert_eq!(database.latest_reset_credit_expires_at().unwrap(), Some(7000));
         assert_eq!(database.history("codex", Some(300), 0).unwrap().len(), 1);
     }
 

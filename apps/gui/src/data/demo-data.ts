@@ -58,6 +58,7 @@ export const demoDashboard: DashboardData = {
     ],
   },
   resetCreditsAvailable: 4,
+  resetCreditExpiresAt: now + 7 * 86_400,
   history: demoHistory,
   weekHistory: demoWeekHistory,
   heatmap: Array.from({ length: 24 }, (_, index) => ({

@@ -11,25 +11,15 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import type { XAxisTickContentProps } from "recharts";
 import type { TrendPoint } from "../types";
 import { formatChartTime, formatPercent } from "../utils/format";
 
 const normalize = (history: TrendPoint[]) =>
   history.map((point) => ({ ...point, label: formatChartTime(point.timestamp) }));
 
-const formatTrayTime = (timestamp: number, showTime: boolean) =>
-  new Intl.DateTimeFormat(
-    "zh-CN",
-    showTime
-      ? { hour: "2-digit", minute: "2-digit", hour12: false }
-      : { month: "numeric", day: "numeric" },
-  ).format(new Date(timestamp * 1_000));
-
 const RESET_JUMP_THRESHOLD = 20;
 const TRAY_WINDOW_SECONDS = 24 * 60 * 60;
-const TRAY_POINT_LIMIT = 300;
-const TRAY_BUCKET_SECONDS = 5 * 60;
+const TRAY_POINT_LIMIT = 100;
 
 interface TrayTrendDatum extends TrendPoint {
   remainingPercent: number;
@@ -69,42 +59,44 @@ export function buildResetAwareTrayHistory(history: TrendPoint[]): {
   return { data, hasReset };
 }
 
-export function buildContinuousTimeTicks(firstTimestamp: number, lastTimestamp: number): number[] {
-  return Array.from(
-    new Set([firstTimestamp, firstTimestamp + (lastTimestamp - firstTimestamp) / 2, lastTimestamp]),
+export function buildAvailablePercentScale(history: Array<{ remainingPercent: number }>): {
+  domain: [number, number];
+  ticks: number[];
+} {
+  const values = history.map((point) => point.remainingPercent);
+  const minimum = Math.min(...values);
+  const maximum = Math.max(...values);
+  const padding = Math.max(1, (maximum - minimum) * 0.2);
+  const domain: [number, number] = [
+    Math.max(0, Math.floor(minimum - padding)),
+    Math.min(100, Math.ceil(maximum + padding)),
+  ];
+  const availableTicks = Array.from(new Set(values.map(Math.round))).sort(
+    (left, right) => left - right,
   );
+  const ticks =
+    availableTicks.length <= 3
+      ? availableTicks
+      : [
+          availableTicks[0],
+          availableTicks[Math.floor(availableTicks.length / 2)],
+          availableTicks.at(-1)!,
+        ];
+
+  return { domain, ticks };
 }
 
-export function downsampleTrayHistory(history: TrendPoint[]): TrendPoint[] {
+export function selectTrayChangeHistory(history: TrendPoint[]): TrendPoint[] {
   const source = [...history].sort((left, right) => left.timestamp - right.timestamp);
-  if (source.length <= TRAY_POINT_LIMIT) return source;
+  const changed = source.filter(
+    (point, index) => index === 0 || point.usedPercent !== source[index - 1]?.usedPercent,
+  );
+  return changed.slice(-TRAY_POINT_LIMIT);
+}
 
-  const importantIndexes = new Set([0, source.length - 1]);
-  let minimumRemainingIndex = 0;
-  source.forEach((point, index) => {
-    if (point.usedPercent > source[minimumRemainingIndex].usedPercent) {
-      minimumRemainingIndex = index;
-    }
-    const previous = source[index - 1];
-    if (previous && previous.usedPercent - point.usedPercent >= RESET_JUMP_THRESHOLD) {
-      importantIndexes.add(index - 1);
-      importantIndexes.add(index);
-    }
-  });
-  importantIndexes.add(minimumRemainingIndex);
-
-  const buckets = new Map<number, TrendPoint>();
-  source.forEach((point) => {
-    buckets.set(Math.floor(point.timestamp / TRAY_BUCKET_SECONDS), point);
-  });
-
-  return Array.from(
-    new Map(
-      [...buckets.values(), ...Array.from(importantIndexes, (index) => source[index])].map(
-        (point) => [point.timestamp, point],
-      ),
-    ).values(),
-  ).sort((left, right) => left.timestamp - right.timestamp);
+export function buildTrayChartData(history: TrendPoint[]): TrayTrendDatum[] {
+  const source = selectTrayChangeHistory(history);
+  return buildResetAwareTrayHistory(source).data.slice(-TRAY_POINT_LIMIT);
 }
 
 export function countQuotaResets(history: TrendPoint[]): number {
@@ -120,37 +112,6 @@ export function countQuotaResets(history: TrendPoint[]): number {
       ? count + 1
       : count;
   }, 0);
-}
-
-function TrayTimeTick({
-  x,
-  y,
-  payload,
-  index,
-  visibleTicksCount,
-  showTime,
-  showNow = false,
-  compact = false,
-}: XAxisTickContentProps & { showTime: boolean; showNow?: boolean; compact?: boolean }) {
-  const textAnchor = index === 0 ? "start" : index === visibleTicksCount - 1 ? "end" : "middle";
-  const label =
-    showNow && index === visibleTicksCount - 1
-      ? "现在"
-      : formatTrayTime(Number(payload.value), showTime);
-
-  return (
-    <text
-      x={x}
-      y={y}
-      dy="0.71em"
-      textAnchor={textAnchor}
-      fill="var(--tray-muted)"
-      fontSize={compact ? 8 : 11}
-      fontWeight={450}
-    >
-      {label}
-    </text>
-  );
 }
 
 export function UsageAreaChart({
@@ -222,20 +183,17 @@ export function UsageAreaChart({
 
 export function TrayRemainingChart({
   history,
-  rangeSeconds = TRAY_WINDOW_SECONDS,
   compact = false,
 }: {
   history: TrendPoint[];
-  rangeSeconds?: number;
   compact?: boolean;
 }) {
-  const source = downsampleTrayHistory(history);
-  const lastTimestamp = source.at(-1)?.timestamp ?? 0;
-  const firstTimestamp = lastTimestamp - rangeSeconds;
-  const { data: resetAwareData } = buildResetAwareTrayHistory(source);
-  const data = resetAwareData;
+  const data = buildTrayChartData(history);
   if (data.length === 0)
     return <div className="tray-trend-chart tray-trend-chart--empty">暂无趋势数据</div>;
+  const firstChangeIndex = data[0].sourceIndex;
+  const lastChangeIndex = data.at(-1)?.sourceIndex ?? firstChangeIndex;
+  const percentScale = buildAvailablePercentScale(data);
   const last = data.at(-1);
   const resetPoints = data.filter(
     (point, index) =>
@@ -244,12 +202,6 @@ export function TrayRemainingChart({
       data[index - 1]?.timestamp === point.timestamp,
   );
   const latestReset = resetPoints.at(-1);
-  const preResetPoint = latestReset
-    ? data.find((point) => point.resetBoundary && point.timestamp === latestReset.timestamp)
-    : data.reduce((lowest, point) =>
-        point.remainingPercent < lowest.remainingPercent ? point : lowest,
-      );
-  const timeTicks = buildContinuousTimeTicks(firstTimestamp, lastTimestamp);
   const resetLabel = latestReset
     ? `重置 ${new Intl.DateTimeFormat("zh-CN", {
         hour: "2-digit",
@@ -265,7 +217,7 @@ export function TrayRemainingChart({
           data={data}
           margin={
             compact
-              ? { top: 12, right: 1, bottom: 0, left: 0 }
+              ? { top: 4, right: 8, bottom: 0, left: 0 }
               : { top: 26, right: 2, bottom: 2, left: 0 }
           }
         >
@@ -276,8 +228,8 @@ export function TrayRemainingChart({
             vertical={false}
           />
           <YAxis
-            domain={[0, 100]}
-            ticks={[0, 50, 100]}
+            domain={percentScale.domain}
+            ticks={percentScale.ticks}
             tickFormatter={formatPercent}
             tickLine={false}
             axisLine={false}
@@ -285,36 +237,25 @@ export function TrayRemainingChart({
             tick={{ fill: "var(--tray-text)", fontSize: compact ? 8 : 11, fontWeight: 450 }}
           />
           <XAxis
-            dataKey="timestamp"
+            hide
+            dataKey="sourceIndex"
             type="number"
             scale="linear"
-            domain={[firstTimestamp, lastTimestamp]}
-            ticks={timeTicks}
-            tick={(props) => (
-              <TrayTimeTick
-                {...props}
-                showTime={rangeSeconds <= TRAY_WINDOW_SECONDS}
-                showNow
-                compact={compact}
-              />
-            )}
-            tickLine={false}
-            axisLine={{ stroke: "var(--tray-axis)", strokeWidth: 1 }}
-            interval={0}
-            height={compact ? 18 : 27}
-            tickMargin={compact ? 4 : 10}
+            domain={[firstChangeIndex, lastChangeIndex]}
+            height={0}
           />
           <Tooltip
             formatter={(value) => [formatPercent(Number(value)), "剩余额度"]}
-            labelFormatter={(value) =>
-              new Intl.DateTimeFormat("zh-CN", {
+            labelFormatter={(_, payload) => {
+              const timestamp = Number(payload?.[0]?.payload?.timestamp);
+              return new Intl.DateTimeFormat("zh-CN", {
                 month: "short",
                 day: "numeric",
                 hour: "2-digit",
                 minute: "2-digit",
-              }).format(new Date(Number(value) * 1_000))
-            }
-            cursor={{ stroke: "var(--accent-mid)", strokeDasharray: "3 3" }}
+              }).format(new Date(timestamp * 1_000));
+            }}
+            cursor={false}
             contentStyle={{
               background: "var(--tray-tooltip)",
               border: "1px solid var(--tray-border)",
@@ -327,7 +268,7 @@ export function TrayRemainingChart({
             type="stepAfter"
             dataKey="remainingPercent"
             stroke="var(--tray-chart-line)"
-            strokeWidth={compact ? 1.4 : 2}
+            strokeWidth={compact ? 1 : 2}
             strokeLinecap="round"
             strokeLinejoin="round"
             dot={false}
@@ -335,13 +276,13 @@ export function TrayRemainingChart({
               r: compact ? 3 : 4,
               fill: "var(--tray-chart-line)",
               stroke: "var(--tray-tooltip)",
-              strokeWidth: compact ? 1.2 : 2,
+              strokeWidth: compact ? 1 : 1.5,
             }}
             isAnimationActive={false}
           />
           {latestReset && resetLabel && (
             <ReferenceLine
-              x={latestReset.timestamp}
+              x={latestReset.sourceIndex}
               stroke="var(--tray-reset-line)"
               strokeDasharray="3 4"
               label={{
@@ -354,40 +295,30 @@ export function TrayRemainingChart({
               }}
             />
           )}
-          {preResetPoint && preResetPoint !== last && (
-            <ReferenceDot
-              x={preResetPoint.timestamp}
-              y={preResetPoint.remainingPercent}
-              r={0}
-              fill="none"
-              stroke="none"
-              label={{
-                value: formatPercent(preResetPoint.remainingPercent),
-                position: "bottom",
-                offset: compact ? 4 : 8,
-                dx: compact ? -6 : -10,
-                fill: "var(--tray-text)",
-                fontSize: compact ? 8 : 11,
-                fontWeight: 550,
-              }}
-            />
-          )}
           {last && (
             <>
               <ReferenceDot
-                x={last.timestamp}
+                x={last.sourceIndex}
                 y={last.remainingPercent}
                 r={compact ? 5 : 8}
                 fill="var(--tray-current-halo)"
                 stroke="none"
               />
               <ReferenceDot
-                x={last.timestamp}
+                x={last.sourceIndex}
                 y={last.remainingPercent}
                 r={compact ? 3 : 4.5}
                 fill="var(--tray-chart-line)"
                 stroke="var(--tray-tooltip)"
                 strokeWidth={compact ? 1 : 1.5}
+                label={{
+                  value: formatPercent(last.remainingPercent),
+                  position: "left",
+                  offset: compact ? 6 : 8,
+                  fill: "var(--tray-text)",
+                  fontSize: compact ? 10 : 12,
+                  fontWeight: 650,
+                }}
               />
             </>
           )}
