@@ -20,20 +20,22 @@ and used only for Settings. The generated transparent PNG app mark under
   summary shows a reset icon followed by a minute-precision countdown using total hours and minutes
   plus an icon-only reset-credit summary with the available count and earliest
   available-card expiry date from the latest app-server response.
+  If a later response keeps the same positive available count but omits the credit
+  details, the most recent known expiry remains visible. A count change, zero count,
+  or explicit empty credit list clears that fallback instead of showing stale data.
   The expiry date uses warning emphasis during its final 24 hours.
-- Trend: a stepped line chart with an adaptive percentage range and guides derived
-  from available persisted values. Change points are spaced evenly by occurrence
-  rather than by elapsed time, so long unchanged periods do not dominate the plot.
-  The real timestamp remains available for hover lookup, with no persistent time ticks
-  or baseline. Hovering shows a small active-point marker plus the selected change
-  point's date and time, without a full-height vertical guide. The
-  chart skips consecutive unchanged values and retains at most the latest
-  100 change points. The current remaining label is anchored
-  immediately left of the latest point, while reset timing remains available.
-  Missing time and percentage extremes outside the available samples are not
-  rendered. The current point keeps an accent halo. Reset
-  boundaries remain vertical by
-  inserting the previous value at the reset timestamp before the reset value.
+- Trend: a stepped line chart on a continuous elapsed-time axis, with no persistent
+  time ticks or baseline. The 24-hour range summarizes 30-minute intervals and the
+  seven-day range summarizes two-hour intervals while retaining the latest real
+  timestamp and value as the endpoint. The adaptive percentage scale uses three
+  evenly spaced rounded guides around the observed values; missing percentage
+  extremes are not rendered. Hovering shows the interval, interval consumption,
+  corrections when present, and actual remaining quota without a full-height guide.
+  The chart retains at most the latest 100 rendered points. The current remaining
+  label is anchored immediately left of the latest point and keeps an accent halo.
+  Reset boundaries remain vertical by preserving the observed pre-reset value and
+  inserting the observed post-reset value at the same timestamp; the chart never
+  invents a 100% post-reset record.
 - The heatmap is a 24-week UTC-day aggregation of positive consumption deltas from
   persisted snapshots; reset jumps are ignored and missing days stay empty. Recent
   events come directly from persisted collector events, with reset, increase, and

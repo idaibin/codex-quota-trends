@@ -147,27 +147,45 @@ impl Database {
     }
 
     pub fn latest_reset_credit_expires_at(&self) -> Result<Option<i64>> {
-        let raw_json = self.latest_raw_json()?;
-        raw_json
-            .map(|raw_json| {
-                let value: serde_json::Value = serde_json::from_str(&raw_json)?;
-                Ok(value
-                    .get("rateLimitResetCredits")
-                    .and_then(|summary| summary.get("credits"))
-                    .and_then(serde_json::Value::as_array)
-                    .into_iter()
-                    .flatten()
-                    .filter(|credit| {
-                        credit.get("status").and_then(serde_json::Value::as_str)
-                            == Some("available")
-                    })
-                    .filter_map(|credit| {
-                        credit.get("expiresAt").and_then(serde_json::Value::as_i64)
-                    })
-                    .min())
-            })
-            .transpose()
-            .map(Option::flatten)
+        let latest_available = self.latest_reset_credits_available()?;
+        let Some(latest_available) = latest_available else {
+            return Ok(None);
+        };
+        if latest_available <= 0 {
+            return Ok(None);
+        }
+
+        let mut statement = self
+            .connection
+            .prepare("SELECT raw_json FROM quota_snapshots ORDER BY created_at DESC, id DESC")?;
+        let mut rows = statement.query([])?;
+        while let Some(row) = rows.next()? {
+            let raw_json: String = row.get(0)?;
+            let value: serde_json::Value = serde_json::from_str(&raw_json)?;
+            let summary = value.get("rateLimitResetCredits");
+            if summary
+                .and_then(|summary| summary.get("availableCount"))
+                .and_then(serde_json::Value::as_i64)
+                != Some(latest_available)
+            {
+                return Ok(None);
+            }
+
+            let Some(credits) = summary
+                .and_then(|summary| summary.get("credits"))
+                .and_then(serde_json::Value::as_array)
+            else {
+                continue;
+            };
+            return Ok(credits
+                .iter()
+                .filter(|credit| {
+                    credit.get("status").and_then(serde_json::Value::as_str) == Some("available")
+                })
+                .filter_map(|credit| credit.get("expiresAt").and_then(serde_json::Value::as_i64))
+                .min());
+        }
+        Ok(None)
     }
 
     fn latest_raw_json(&self) -> Result<Option<String>> {
@@ -552,6 +570,96 @@ mod tests {
         assert_eq!(database.latest_reset_credits_available().unwrap(), Some(3));
         assert_eq!(database.latest_reset_credit_expires_at().unwrap(), Some(7000));
         assert_eq!(database.history("codex", Some(300), 0).unwrap().len(), 1);
+    }
+
+    #[test]
+    fn keeps_last_known_expiry_for_same_summary_count() {
+        let mut database = Database::open_in_memory().unwrap();
+        database
+            .save_snapshot_if_changed(
+                &snapshot(100, 10.0),
+                r#"{"rateLimitResetCredits":{"availableCount":4}}"#,
+            )
+            .unwrap();
+        database
+            .save_snapshot_if_changed(
+                &snapshot(200, 20.0),
+                r#"{"rateLimitResetCredits":{"availableCount":3,"credits":[{"status":"used","expiresAt":9000},{"status":"available","expiresAt":8000},{"status":"available","expiresAt":7000}]}}"#,
+            )
+            .unwrap();
+        database
+            .save_snapshot_if_changed(
+                &snapshot(300, 30.0),
+                r#"{"rateLimitResetCredits":{"availableCount":3}}"#,
+            )
+            .unwrap();
+
+        assert_eq!(database.latest_reset_credits_available().unwrap(), Some(3));
+        assert_eq!(database.latest_reset_credit_expires_at().unwrap(), Some(7000));
+    }
+
+    #[test]
+    fn returns_no_expiry_for_zero_available_count() {
+        let mut database = Database::open_in_memory().unwrap();
+        database
+            .save_snapshot_if_changed(
+                &snapshot(100, 10.0),
+                r#"{"rateLimitResetCredits":{"availableCount":4,"credits":[{"status":"available","expiresAt":7000}]}}"#,
+            )
+            .unwrap();
+        database
+            .save_snapshot_if_changed(
+                &snapshot(200, 20.0),
+                r#"{"rateLimitResetCredits":{"availableCount":0}}"#,
+            )
+            .unwrap();
+
+        assert_eq!(database.latest_reset_credits_available().unwrap(), Some(0));
+        assert_eq!(database.latest_reset_credit_expires_at().unwrap(), None);
+    }
+
+    #[test]
+    fn does_not_reuse_expiry_across_available_count_changes() {
+        let mut database = Database::open_in_memory().unwrap();
+        database
+            .save_snapshot_if_changed(
+                &snapshot(100, 10.0),
+                r#"{"rateLimitResetCredits":{"availableCount":3,"credits":[{"status":"available","expiresAt":7000}]}}"#,
+            )
+            .unwrap();
+        database
+            .save_snapshot_if_changed(
+                &snapshot(200, 20.0),
+                r#"{"rateLimitResetCredits":{"availableCount":2}}"#,
+            )
+            .unwrap();
+        database
+            .save_snapshot_if_changed(
+                &snapshot(300, 30.0),
+                r#"{"rateLimitResetCredits":{"availableCount":3}}"#,
+            )
+            .unwrap();
+
+        assert_eq!(database.latest_reset_credit_expires_at().unwrap(), None);
+    }
+
+    #[test]
+    fn treats_an_explicit_empty_credit_list_as_authoritative() {
+        let mut database = Database::open_in_memory().unwrap();
+        database
+            .save_snapshot_if_changed(
+                &snapshot(100, 10.0),
+                r#"{"rateLimitResetCredits":{"availableCount":3,"credits":[{"status":"available","expiresAt":7000}]}}"#,
+            )
+            .unwrap();
+        database
+            .save_snapshot_if_changed(
+                &snapshot(200, 20.0),
+                r#"{"rateLimitResetCredits":{"availableCount":3,"credits":[]}}"#,
+            )
+            .unwrap();
+
+        assert_eq!(database.latest_reset_credit_expires_at().unwrap(), None);
     }
 
     #[test]

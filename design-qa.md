@@ -882,3 +882,26 @@ final result: passed
   available count, expiry date, and full accessible reset-card description.
 - The left and right groups retain a 115.99px gap in the deterministic demo, with no clipping,
   overlap, console warnings, or console errors.
+
+## Time-aggregated tray trend — 2026-07-21
+
+- Rest-state capture: `/private/tmp/codex-quota-trends-time-aggregation-rest.png`.
+- Interval-hover capture: `/private/tmp/codex-quota-trends-time-aggregation-interval-hover.png`.
+- Reset-hover capture: `/private/tmp/codex-quota-trends-time-aggregation-reset-hover.png`.
+- Viewport and state: 338×158 browser surface with deterministic 24-hour history, one complete
+  reset, and 30-minute display intervals.
+- The X axis now uses snapshot timestamps over the selected real-time range instead of assigning
+  equal width to each change record. The 24-hour view summarizes 30-minute intervals; the seven-day
+  view uses two-hour intervals and is covered by focused unit tests rather than this capture.
+- The percentage guides are evenly spaced rounded values. The reset demo renders 40%, 70%, and
+  100%; the supplied 54%–89% case is covered as 50%, 70%, and 90%.
+- Ordinary hover reports the interval, interval consumption, and actual remaining quota. The
+  captured changing interval reports `本段消耗：2%` and `剩余额度：92%` without clipping.
+- Reset hover preserves both observed values at one timestamp and reports `重置：45% → 100%`.
+  A non-100% post-reset observation remains its actual value; no synthetic 100% snapshot is added.
+- History remains off-white and the latest segment/current point retain the existing blue accent.
+  No delta-based color scale or new visual token was introduced.
+- Browser DOM inspection confirms the rounded guides and reset/interval copy. The console contains
+  no warnings or errors. Real Tauri and seven-day visual captures were not performed.
+
+final result: passed

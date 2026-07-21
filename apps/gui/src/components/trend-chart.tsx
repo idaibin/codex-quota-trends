@@ -22,11 +22,31 @@ const normalize = (history: TrendPoint[]) =>
 const RESET_JUMP_THRESHOLD = 20;
 const TRAY_WINDOW_SECONDS = 24 * 60 * 60;
 const TRAY_POINT_LIMIT = 100;
+const TRAY_INTERVAL_SECONDS = {
+  24: 30 * 60,
+  168: 2 * 60 * 60,
+} as const;
+
+type TrayRangeHours = keyof typeof TRAY_INTERVAL_SECONDS;
+
+interface TrayIntervalPoint extends TrendPoint {
+  intervalStart: number;
+  intervalEnd: number;
+  consumedPercent: number;
+  correctedPercent: number;
+  resetStart: boolean;
+}
 
 interface TrayTrendDatum extends TrendPoint {
   remainingPercent: number;
-  sourceIndex: number;
+  intervalStart: number;
+  intervalEnd: number;
+  consumedPercent: number;
+  correctedPercent: number;
   resetBoundary: boolean;
+  resetStart: boolean;
+  resetClassified: boolean;
+  resetToPercent: number | null;
 }
 
 interface TrayRenderableDatum extends TrayTrendDatum {
@@ -41,6 +61,18 @@ const formatTrayTooltipTime = (timestamp: number) =>
     minute: "2-digit",
     hour12: false,
   }).format(new Date(timestamp * 1_000));
+
+const formatTrayTooltipEndTime = (timestamp: number) =>
+  new Intl.DateTimeFormat("zh-CN", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(new Date(timestamp * 1_000));
+
+const formatTrayTooltipInterval = (start: number, end: number) =>
+  `${formatTrayTooltipTime(start)}–${formatTrayTooltipEndTime(end)}`;
+
+const roundOne = (value: number) => Math.round(value * 10) / 10;
 
 function TrayChartTooltip({
   active,
@@ -66,10 +98,35 @@ function TrayChartTooltip({
     <div
       className={`tray-chart-tooltip tray-chart-tooltip--${alignment} tray-chart-tooltip--${verticalPlacement}`}
     >
-      <strong>{formatTrayTooltipTime(point.timestamp)}</strong>
-      <span>
-        剩余额度：<b>{formatPercent(point.remainingPercent)}</b>
-      </span>
+      <strong>
+        {point.resetBoundary || point.resetStart
+          ? formatTrayTooltipTime(point.timestamp)
+          : formatTrayTooltipInterval(point.intervalStart, point.intervalEnd)}
+      </strong>
+      {point.resetBoundary ? (
+        <span>
+          重置：<b>{formatPercent(point.remainingPercent)}</b>
+          {point.resetToPercent != null && <> → {formatPercent(point.resetToPercent)}</>}
+        </span>
+      ) : point.resetStart ? (
+        <span>
+          重置后剩余：<b>{formatPercent(point.remainingPercent)}</b>
+        </span>
+      ) : (
+        <span>
+          本段消耗：<b>{formatPercent(point.consumedPercent)}</b>
+        </span>
+      )}
+      {!point.resetBoundary && !point.resetStart && point.correctedPercent > 0 && (
+        <span>
+          额度调整：<b>+{formatPercent(point.correctedPercent)}</b>
+        </span>
+      )}
+      {!point.resetBoundary && !point.resetStart && (
+        <span>
+          剩余额度：<b>{formatPercent(point.remainingPercent)}</b>
+        </span>
+      )}
     </div>
   );
 }
@@ -101,24 +158,39 @@ export function buildResetAwareTrayHistory(history: TrendPoint[]): {
 } {
   const source = [...history]
     .sort((left, right) => left.timestamp - right.timestamp)
-    .map((point, sourceIndex) => ({
+    .map((point) => ({
       ...point,
       remainingPercent: 100 - point.usedPercent,
-      sourceIndex,
+      intervalStart: "intervalStart" in point ? Number(point.intervalStart) : point.timestamp,
+      intervalEnd: "intervalEnd" in point ? Number(point.intervalEnd) : point.timestamp,
+      consumedPercent: "consumedPercent" in point ? Number(point.consumedPercent) : 0,
+      correctedPercent: "correctedPercent" in point ? Number(point.correctedPercent) : 0,
       resetBoundary: false,
+      resetStart: "resetStart" in point && Boolean(point.resetStart),
+      resetClassified: "resetStart" in point,
+      resetToPercent: null,
     }));
   const data: TrayTrendDatum[] = [];
   let hasReset = false;
 
   source.forEach((point, index) => {
     const previous = source[index - 1];
-    if (previous && point.remainingPercent - previous.remainingPercent >= RESET_JUMP_THRESHOLD) {
+    const isReset = point.resetClassified
+      ? point.resetStart
+      : previous != null &&
+        point.remainingPercent - previous.remainingPercent >= RESET_JUMP_THRESHOLD;
+    if (previous && isReset) {
       hasReset = true;
       data.push({
         ...point,
         usedPercent: previous.usedPercent,
         remainingPercent: previous.remainingPercent,
+        consumedPercent: 0,
+        correctedPercent: 0,
         resetBoundary: true,
+        resetStart: false,
+        resetClassified: true,
+        resetToPercent: point.remainingPercent,
       });
     }
     data.push(point);
@@ -134,41 +206,147 @@ export function buildAvailablePercentScale(history: Array<{ remainingPercent: nu
   const values = history.map((point) => point.remainingPercent);
   const minimum = Math.min(...values);
   const maximum = Math.max(...values);
-  const padding = Math.max(1, (maximum - minimum) * 0.2);
+  if (maximum - minimum < 0.001) {
+    const center = Math.round(minimum);
+    const lower = Math.min(98, Math.max(0, center - 1));
+    const ticks = [lower, lower + 1, lower + 2];
+    return {
+      domain: [Math.max(0, lower - 1), Math.min(105, lower + 3)],
+      ticks,
+    };
+  }
+
+  const rawStep = (maximum - minimum) / 2;
+  const magnitude = 10 ** Math.floor(Math.log10(rawStep));
+  const fraction = rawStep / magnitude;
+  const niceFraction =
+    fraction <= 1
+      ? 1
+      : fraction <= 2
+        ? 2
+        : fraction <= 2.5
+          ? 2.5
+          : fraction <= 3
+            ? 3
+            : fraction <= 5
+              ? 5
+              : 10;
+  const step = niceFraction * magnitude;
+  const anchor = Math.max(1, step / 2);
+  let lower = Math.floor(minimum / anchor) * anchor;
+  let upper = lower + step * 2;
+  if (upper < maximum) {
+    upper = Math.ceil(maximum / anchor) * anchor;
+    lower = upper - step * 2;
+  }
+  if (lower < 0) {
+    lower = 0;
+    upper = step * 2;
+  }
+  if (upper > 100) {
+    upper = 100;
+    lower = Math.max(0, upper - step * 2);
+  }
+  const ticks = [lower, lower + step, upper].map(roundOne);
+  const padding = Math.max(1, step * 0.08);
   const domain: [number, number] = [
-    Math.max(0, Math.floor(minimum - padding)),
-    Math.min(100, Math.ceil(maximum + padding)),
+    roundOne(Math.max(0, lower - padding)),
+    roundOne(Math.min(105, upper + padding)),
   ];
-  const availableTicks = Array.from(new Set(values.map(Math.round))).sort(
-    (left, right) => left - right,
-  );
-  const ticks =
-    availableTicks.length <= 3
-      ? availableTicks
-      : [
-          availableTicks[0],
-          availableTicks[Math.floor(availableTicks.length / 2)],
-          availableTicks.at(-1)!,
-        ];
 
   return { domain, ticks };
 }
 
-export function selectTrayChangeHistory(history: TrendPoint[]): TrendPoint[] {
-  const source = [...history].sort((left, right) => left.timestamp - right.timestamp);
-  const changed = source.filter(
-    (point, index) => index === 0 || point.usedPercent !== source[index - 1]?.usedPercent,
-  );
-  return changed.slice(-TRAY_POINT_LIMIT);
+export function trayIntervalSeconds(rangeHours: TrayRangeHours): number {
+  return TRAY_INTERVAL_SECONDS[rangeHours];
 }
 
-export function buildTrayChartData(history: TrendPoint[]): TrayTrendDatum[] {
-  const source = selectTrayChangeHistory(history);
+const intervalBounds = (timestamp: number, intervalSeconds: number) => {
+  const intervalStart = Math.floor(timestamp / intervalSeconds) * intervalSeconds;
+  return { intervalStart, intervalEnd: intervalStart + intervalSeconds };
+};
+
+export function aggregateTrayHistory(
+  history: TrendPoint[],
+  rangeHours: TrayRangeHours,
+): TrayIntervalPoint[] {
+  const source = [...history]
+    .filter((point) => Number.isFinite(point.timestamp) && Number.isFinite(point.usedPercent))
+    .sort((left, right) => left.timestamp - right.timestamp);
+  const first = source[0];
+  if (!first) return [];
+
+  const intervalSeconds = trayIntervalSeconds(rangeHours);
+  const latestTimestamp = source.at(-1)?.timestamp ?? first.timestamp;
+  const createPoint = (
+    point: TrendPoint,
+    consumedPercent: number,
+    correctedPercent: number,
+    resetStart: boolean,
+  ): TrayIntervalPoint => {
+    const bounds = intervalBounds(point.timestamp, intervalSeconds);
+    return {
+      ...point,
+      ...bounds,
+      intervalEnd: Math.min(bounds.intervalEnd, latestTimestamp),
+      consumedPercent: roundOne(consumedPercent),
+      correctedPercent: roundOne(correctedPercent),
+      resetStart,
+    };
+  };
+  const output = [createPoint(first, 0, 0, false)];
+  let pending: TrayIntervalPoint | null = null;
+
+  const flushPending = () => {
+    if (pending) output.push(pending);
+    pending = null;
+  };
+
+  source.slice(1).forEach((point, index) => {
+    const previous = source[index];
+    const delta = point.usedPercent - previous.usedPercent;
+    const resetStart = delta <= -RESET_JUMP_THRESHOLD;
+    if (resetStart) {
+      flushPending();
+      output.push(createPoint(point, 0, 0, true));
+      return;
+    }
+
+    const bounds = intervalBounds(point.timestamp, intervalSeconds);
+    const consumedPercent = delta > 0 ? delta : 0;
+    const correctedPercent = delta < 0 ? -delta : 0;
+    if (pending?.intervalStart === bounds.intervalStart) {
+      pending = {
+        ...pending,
+        ...point,
+        ...bounds,
+        intervalEnd: Math.min(bounds.intervalEnd, latestTimestamp),
+        consumedPercent: roundOne(pending.consumedPercent + consumedPercent),
+        correctedPercent: roundOne(pending.correctedPercent + correctedPercent),
+      };
+    } else {
+      flushPending();
+      pending = createPoint(point, consumedPercent, correctedPercent, false);
+    }
+  });
+  flushPending();
+
+  return output;
+}
+
+export function buildTrayChartData(
+  history: TrendPoint[],
+  rangeHours: TrayRangeHours = 24,
+): TrayTrendDatum[] {
+  const source = aggregateTrayHistory(history, rangeHours);
   return buildResetAwareTrayHistory(source).data.slice(-TRAY_POINT_LIMIT);
 }
 
-export function buildTrayRenderableData(history: TrendPoint[]): TrayRenderableDatum[] {
-  const data = buildTrayChartData(history);
+export function buildTrayRenderableData(
+  history: TrendPoint[],
+  rangeHours: TrayRangeHours = 24,
+): TrayRenderableDatum[] {
+  const data = buildTrayChartData(history, rangeHours);
   return data.map((point, index) => ({
     ...point,
     historyRemainingPercent: index === data.length - 1 ? null : point.remainingPercent,
@@ -260,22 +438,24 @@ export function UsageAreaChart({
 export function TrayRemainingChart({
   history,
   compact = false,
+  rangeHours = 24,
 }: {
   history: TrendPoint[];
   compact?: boolean;
+  rangeHours?: TrayRangeHours;
 }) {
-  const data = buildTrayRenderableData(history);
+  const data = buildTrayRenderableData(history, rangeHours);
   if (data.length === 0)
     return <div className="tray-trend-chart tray-trend-chart--empty">暂无趋势数据</div>;
-  const firstChangeIndex = data[0].sourceIndex;
-  const lastChangeIndex = data.at(-1)?.sourceIndex ?? firstChangeIndex;
+  const lastTimestamp = data.at(-1)?.timestamp ?? data[0].timestamp;
+  const firstTimestamp = lastTimestamp - rangeHours * 60 * 60;
   const percentScale = buildAvailablePercentScale(data);
   const last = data.at(-1);
   const previous = last
     ? data
         .slice(0, -1)
         .reverse()
-        .find((point) => point.sourceIndex < last.sourceIndex)
+        .find((point) => point.timestamp < last.timestamp)
     : undefined;
   const resetPoints = data.filter(
     (point, index) =>
@@ -320,10 +500,10 @@ export function TrayRemainingChart({
           />
           <XAxis
             hide
-            dataKey="sourceIndex"
+            dataKey="timestamp"
             type="number"
             scale="linear"
-            domain={[firstChangeIndex, lastChangeIndex]}
+            domain={[firstTimestamp, lastTimestamp]}
             height={0}
           />
           <Tooltip
@@ -369,16 +549,16 @@ export function TrayRemainingChart({
             <>
               <ReferenceLine
                 segment={[
-                  { x: previous.sourceIndex, y: previous.remainingPercent },
-                  { x: previous.sourceIndex, y: last.remainingPercent },
+                  { x: previous.timestamp, y: previous.remainingPercent },
+                  { x: previous.timestamp, y: last.remainingPercent },
                 ]}
                 stroke="var(--tray-chart-line)"
                 strokeWidth={compact ? 1 : 2}
               />
               <ReferenceLine
                 segment={[
-                  { x: previous.sourceIndex, y: last.remainingPercent },
-                  { x: last.sourceIndex, y: last.remainingPercent },
+                  { x: previous.timestamp, y: last.remainingPercent },
+                  { x: last.timestamp, y: last.remainingPercent },
                 ]}
                 stroke="var(--tray-accent)"
                 strokeWidth={compact ? 1.4 : 2.4}
@@ -388,7 +568,7 @@ export function TrayRemainingChart({
           )}
           {latestReset && resetLabel && (
             <ReferenceLine
-              x={latestReset.sourceIndex}
+              x={latestReset.timestamp}
               stroke="var(--tray-reset-line)"
               strokeDasharray="3 4"
               label={{
@@ -404,14 +584,14 @@ export function TrayRemainingChart({
           {last && (
             <>
               <ReferenceDot
-                x={last.sourceIndex}
+                x={last.timestamp}
                 y={last.remainingPercent}
                 r={compact ? 5 : 8}
                 fill="var(--tray-current-halo)"
                 stroke="none"
               />
               <ReferenceDot
-                x={last.sourceIndex}
+                x={last.timestamp}
                 y={last.remainingPercent}
                 r={compact ? 3 : 4.5}
                 fill="var(--tray-accent)"

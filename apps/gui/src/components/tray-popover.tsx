@@ -42,7 +42,7 @@ export function TrayPopover({ data, settings }: { data: DashboardData; settings:
     return () => window.clearInterval(timer);
   }, []);
 
-  const { history } = useMemo(
+  const { history, rangeHours } = useMemo(
     () => selectTrayHistory(data, settings.trayHistoryHours),
     [data, settings.trayHistoryHours],
   );
@@ -96,7 +96,7 @@ export function TrayPopover({ data, settings }: { data: DashboardData; settings:
         </section>
 
         <section className="tray-card tray-chart-card">
-          <TrayRemainingChart history={history} compact />
+          <TrayRemainingChart history={history} rangeHours={rangeHours} compact />
         </section>
       </main>
     </div>
