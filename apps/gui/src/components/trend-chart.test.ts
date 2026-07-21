@@ -3,6 +3,7 @@ import {
   buildAvailablePercentScale,
   buildResetAwareTrayHistory,
   buildTrayChartData,
+  buildTrayRenderableData,
   countQuotaResets,
   selectTrayChangeHistory,
 } from "./trend-chart";
@@ -89,6 +90,17 @@ describe("tray trend reset rendering", () => {
     }));
 
     expect(buildTrayChartData(history)).toHaveLength(100);
+  });
+
+  it("keeps the latest point in tooltip data while ending the history line before it", () => {
+    const data = buildTrayRenderableData([
+      { timestamp: 100, usedPercent: 9 },
+      { timestamp: 200, usedPercent: 17 },
+      { timestamp: 300, usedPercent: 35 },
+    ]);
+
+    expect(data.map((point) => point.remainingPercent)).toEqual([91, 83, 65]);
+    expect(data.map((point) => point.historyRemainingPercent)).toEqual([91, 83, null]);
   });
 
   it("counts resets in the latest 24-hour window", () => {

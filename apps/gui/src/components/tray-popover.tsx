@@ -1,15 +1,17 @@
-import { CalendarBlank, CreditCard } from "@phosphor-icons/react";
+import { ArrowCounterClockwise, CreditCard } from "@phosphor-icons/react";
 import { useEffect, useMemo, useState } from "react";
 import type { AppSettings, DashboardData, TrendPoint } from "../types";
 import { TrayRemainingChart } from "./trend-chart";
 
 export const formatResetCountdown = (resetAt: number | null, now: number) => {
-  if (!resetAt) return "--:--:--";
+  if (!resetAt) return "待更新";
   const totalMinutes = Math.max(0, Math.ceil((resetAt - now) / 60));
-  const days = Math.floor(totalMinutes / 1_440);
-  const hours = Math.floor((totalMinutes % 1_440) / 60);
+  const hours = Math.floor(totalMinutes / 60);
   const minutes = totalMinutes % 60;
-  return [days, hours, minutes].map((value) => String(value).padStart(2, "0")).join(":");
+  const parts = [];
+  if (hours > 0) parts.push(`${hours}小时`);
+  parts.push(`${minutes}分钟`);
+  return parts.join(" ");
 };
 
 export const formatExpiryDate = (expiresAt: number) => {
@@ -52,13 +54,10 @@ export function TrayPopover({ data, settings }: { data: DashboardData; settings:
       <main className="tray-content">
         <section className="tray-card tray-reset-card" aria-label="额度重置摘要">
           <div className="tray-reset-group">
-            <span className="tray-summary-icon">
-              <CalendarBlank size={13} weight="regular" />
+            <span className="tray-summary-icon" aria-hidden="true">
+              <ArrowCounterClockwise size={13} weight="regular" />
             </span>
-            <div className="tray-reset-date">
-              <span>重置</span>
-              <strong>{formatResetCountdown(quotaWindow.resetAt, now)}</strong>
-            </div>
+            <strong>{formatResetCountdown(quotaWindow.resetAt, now)}</strong>
           </div>
           <div className="tray-reset-group tray-reset-group--credits">
             <span className="tray-summary-icon tray-summary-icon--small">
@@ -72,7 +71,6 @@ export function TrayPopover({ data, settings }: { data: DashboardData; settings:
                   : undefined
               }
             >
-              <span>重置卡</span>
               <strong>
                 {data.resetCreditsAvailable == null ? (
                   "暂无数据"

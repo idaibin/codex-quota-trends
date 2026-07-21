@@ -31,10 +31,10 @@ describe("tray history selection", () => {
   });
 
   it("formats reset countdowns to the minute", () => {
-    expect(formatResetCountdown(90_060, 0)).toBe("01:01:01");
-    expect(formatResetCountdown(3_660, 0)).toBe("00:01:01");
-    expect(formatResetCountdown(60, 0)).toBe("00:00:01");
-    expect(formatResetCountdown(0, 0)).toBe("--:--:--");
+    expect(formatResetCountdown(362_580, 0)).toBe("100小时 43分钟");
+    expect(formatResetCountdown(3_660, 0)).toBe("1小时 1分钟");
+    expect(formatResetCountdown(60, 0)).toBe("1分钟");
+    expect(formatResetCountdown(0, 0)).toBe("待更新");
   });
 
   it("formats only the expiry date", () => {

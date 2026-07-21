@@ -2,12 +2,14 @@ import {
   Area,
   AreaChart,
   CartesianGrid,
+  type LabelProps,
   Line,
   LineChart,
   ReferenceDot,
   ReferenceLine,
   ResponsiveContainer,
   Tooltip,
+  type TooltipContentProps,
   XAxis,
   YAxis,
 } from "recharts";
@@ -25,6 +27,72 @@ interface TrayTrendDatum extends TrendPoint {
   remainingPercent: number;
   sourceIndex: number;
   resetBoundary: boolean;
+}
+
+interface TrayRenderableDatum extends TrayTrendDatum {
+  historyRemainingPercent: number | null;
+}
+
+const formatTrayTooltipTime = (timestamp: number) =>
+  new Intl.DateTimeFormat("zh-CN", {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(new Date(timestamp * 1_000));
+
+function TrayChartTooltip({
+  active,
+  coordinate,
+  payload,
+  compact,
+}: TooltipContentProps<number, string> & { compact: boolean }) {
+  if (!active || !coordinate || !payload.length) return null;
+
+  const point = payload[0]?.payload as TrayTrendDatum | undefined;
+  if (!point) return null;
+
+  const alignment = compact
+    ? coordinate.x < 72
+      ? "start"
+      : coordinate.x > 250
+        ? "end"
+        : "center"
+    : "center";
+  const verticalPlacement = coordinate.y < (compact ? 52 : 70) ? "below" : "above";
+
+  return (
+    <div
+      className={`tray-chart-tooltip tray-chart-tooltip--${alignment} tray-chart-tooltip--${verticalPlacement}`}
+    >
+      <strong>{formatTrayTooltipTime(point.timestamp)}</strong>
+      <span>
+        剩余额度：<b>{formatPercent(point.remainingPercent)}</b>
+      </span>
+    </div>
+  );
+}
+
+function CurrentPercentLabel({ viewBox, value, compact }: LabelProps & { compact: boolean }) {
+  if (!viewBox || !("x" in viewBox)) return null;
+
+  const centerX = viewBox.x + viewBox.width / 2;
+  const centerY = viewBox.y + viewBox.height / 2;
+
+  return (
+    <text
+      x={centerX + (compact ? 3 : 4.5)}
+      y={centerY - (compact ? 8 : 10)}
+      fill="var(--tray-accent)"
+      fontSize={compact ? 10 : 12}
+      fontWeight={600}
+      textAnchor="end"
+      aria-hidden="true"
+    >
+      {value}
+    </text>
+  );
 }
 
 export function buildResetAwareTrayHistory(history: TrendPoint[]): {
@@ -97,6 +165,14 @@ export function selectTrayChangeHistory(history: TrendPoint[]): TrendPoint[] {
 export function buildTrayChartData(history: TrendPoint[]): TrayTrendDatum[] {
   const source = selectTrayChangeHistory(history);
   return buildResetAwareTrayHistory(source).data.slice(-TRAY_POINT_LIMIT);
+}
+
+export function buildTrayRenderableData(history: TrendPoint[]): TrayRenderableDatum[] {
+  const data = buildTrayChartData(history);
+  return data.map((point, index) => ({
+    ...point,
+    historyRemainingPercent: index === data.length - 1 ? null : point.remainingPercent,
+  }));
 }
 
 export function countQuotaResets(history: TrendPoint[]): number {
@@ -188,13 +264,19 @@ export function TrayRemainingChart({
   history: TrendPoint[];
   compact?: boolean;
 }) {
-  const data = buildTrayChartData(history);
+  const data = buildTrayRenderableData(history);
   if (data.length === 0)
     return <div className="tray-trend-chart tray-trend-chart--empty">暂无趋势数据</div>;
   const firstChangeIndex = data[0].sourceIndex;
   const lastChangeIndex = data.at(-1)?.sourceIndex ?? firstChangeIndex;
   const percentScale = buildAvailablePercentScale(data);
   const last = data.at(-1);
+  const previous = last
+    ? data
+        .slice(0, -1)
+        .reverse()
+        .find((point) => point.sourceIndex < last.sourceIndex)
+    : undefined;
   const resetPoints = data.filter(
     (point, index) =>
       !point.resetBoundary &&
@@ -217,7 +299,7 @@ export function TrayRemainingChart({
           data={data}
           margin={
             compact
-              ? { top: 4, right: 8, bottom: 0, left: 0 }
+              ? { top: 0, right: 12, bottom: 8, left: 0 }
               : { top: 26, right: 2, bottom: 2, left: 0 }
           }
         >
@@ -245,32 +327,35 @@ export function TrayRemainingChart({
             height={0}
           />
           <Tooltip
-            formatter={(value) => [formatPercent(Number(value)), "剩余额度"]}
-            labelFormatter={(_, payload) => {
-              const timestamp = Number(payload?.[0]?.payload?.timestamp);
-              return new Intl.DateTimeFormat("zh-CN", {
-                month: "short",
-                day: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-              }).format(new Date(timestamp * 1_000));
-            }}
+            content={(tooltipProps) => (
+              <TrayChartTooltip
+                {...(tooltipProps as TooltipContentProps<number, string>)}
+                compact={compact}
+              />
+            )}
             cursor={false}
-            contentStyle={{
-              background: "var(--tray-tooltip)",
-              border: "1px solid var(--tray-border)",
-              borderRadius: compact ? 6 : 9,
-              boxShadow: "0 10px 28px rgba(0, 0, 0, 0.22)",
-              fontSize: compact ? 9 : 12,
-            }}
+            offset={{ x: 0, y: compact ? 4 : 8 }}
+            reverseDirection={{ y: true }}
+            isAnimationActive={false}
+            wrapperStyle={{ outline: "none", zIndex: 10 }}
           />
           <Line
             type="stepAfter"
-            dataKey="remainingPercent"
+            dataKey="historyRemainingPercent"
             stroke="var(--tray-chart-line)"
             strokeWidth={compact ? 1 : 2}
             strokeLinecap="round"
             strokeLinejoin="round"
+            dot={false}
+            activeDot={false}
+            tooltipType="none"
+            isAnimationActive={false}
+          />
+          <Line
+            type="stepAfter"
+            dataKey="remainingPercent"
+            stroke="transparent"
+            strokeWidth={compact ? 6 : 8}
             dot={false}
             activeDot={{
               r: compact ? 3 : 4,
@@ -280,6 +365,27 @@ export function TrayRemainingChart({
             }}
             isAnimationActive={false}
           />
+          {last && previous && (
+            <>
+              <ReferenceLine
+                segment={[
+                  { x: previous.sourceIndex, y: previous.remainingPercent },
+                  { x: previous.sourceIndex, y: last.remainingPercent },
+                ]}
+                stroke="var(--tray-chart-line)"
+                strokeWidth={compact ? 1 : 2}
+              />
+              <ReferenceLine
+                segment={[
+                  { x: previous.sourceIndex, y: last.remainingPercent },
+                  { x: last.sourceIndex, y: last.remainingPercent },
+                ]}
+                stroke="var(--tray-accent)"
+                strokeWidth={compact ? 1.4 : 2.4}
+                strokeLinecap="round"
+              />
+            </>
+          )}
           {latestReset && resetLabel && (
             <ReferenceLine
               x={latestReset.sourceIndex}
@@ -308,16 +414,14 @@ export function TrayRemainingChart({
                 x={last.sourceIndex}
                 y={last.remainingPercent}
                 r={compact ? 3 : 4.5}
-                fill="var(--tray-chart-line)"
-                stroke="var(--tray-tooltip)"
+                fill="var(--tray-accent)"
+                stroke="var(--tray-accent)"
                 strokeWidth={compact ? 1 : 1.5}
                 label={{
                   value: formatPercent(last.remainingPercent),
-                  position: "left",
-                  offset: compact ? 6 : 8,
-                  fill: "var(--tray-text)",
-                  fontSize: compact ? 10 : 12,
-                  fontWeight: 650,
+                  content: (labelProps) => (
+                    <CurrentPercentLabel {...labelProps} compact={compact} />
+                  ),
                 }}
               />
             </>

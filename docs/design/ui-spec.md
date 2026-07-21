@@ -17,8 +17,9 @@ and used only for Settings. The generated transparent PNG app mark under
   translucent panels provide real desktop-backed glass without a decorative pointer.
 - The popover includes a reset summary and the remaining-quota trend, without
   decorative traffic-light controls. The
-  summary shows a `DD:HH:MM` minute-precision reset countdown plus the available reset-credit
-  count and earliest available-card expiry date from the latest app-server response.
+  summary shows a reset icon followed by a minute-precision countdown using total hours and minutes
+  plus an icon-only reset-credit summary with the available count and earliest
+  available-card expiry date from the latest app-server response.
   The expiry date uses warning emphasis during its final 24 hours.
 - Trend: a stepped line chart with an adaptive percentage range and guides derived
   from available persisted values. Change points are spaced evenly by occurrence

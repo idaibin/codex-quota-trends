@@ -778,3 +778,107 @@ final result: passed
 - No actionable P0/P1/P2 findings remain.
 
 final result: passed
+
+---
+
+## Tray chart redesign — 2026-07-20
+
+- Source visual truth: `/var/folders/33/1n65110j6_15vm1fd1fydb440000gn/T/codex-clipboard-d09c347e-f3fe-46a1-a75f-11929d952b7d.png`
+- Implementation rest state: `/private/tmp/codex-quota-trends-chart-final-rest.png`
+- Implementation hover state: `/private/tmp/codex-quota-trends-chart-hover-pass4.png`
+- Endpoint-label alignment: `/private/tmp/codex-quota-trends-end-label-aligned.png`
+- Tooltip below a top-edge point: `/private/tmp/codex-quota-trends-tooltip-below.png`
+- Tooltip above a lower point: `/private/tmp/codex-quota-trends-tooltip-above.png`
+- Full-view comparison: `/private/tmp/codex-quota-trends-design-comparison.png`
+- Focused hover comparison: `/private/tmp/codex-quota-trends-design-hover-comparison.png`
+- Viewport: 338 × 158 CSS pixels, dark tray surface
+- State: deterministic browser demo data; middle and right-edge change points hovered
+
+## Findings
+
+No actionable P0, P1, or P2 differences remain.
+
+- Typography: macOS system typography, compact weights, tabular percentage figures, and the
+  two-line Chinese tooltip hierarchy match the reference. The implementation is rasterized at
+  the product's actual compact viewport, so the normalized comparison is softer than the
+  high-resolution generated reference.
+- Spacing and layout: three adaptive percentage guides, the stepped line, current label, endpoint,
+  and right-side safety gutter preserve the reference hierarchy without clipping. The current
+  percentage uses the endpoint's outer edge as its right-alignment anchor, keeping the text and
+  final dot on one right-side guide.
+- Colors and tokens: history remains off-white; only the latest segment, current value, and current
+  point use the existing tray accent token. The visible history path ends before the latest change;
+  a separate white vertical connector and blue horizontal segment avoid overlapping strokes. The
+  tooltip continues to use the established glass, border, and text tokens.
+- Image quality and assets: the chart contains no raster imagery or custom image assets. Existing
+  Phosphor summary icons are outside the changed chart surface and remain unchanged.
+- Copy and content: hover copy uses the real point timestamp and `剩余额度：N%`. The demo values and
+  reset boundary intentionally differ from the reference because the chart continues to render
+  actual supplied history rather than mock the selected image's data.
+- Interaction: middle-point and right-edge hover states were exercised. The tooltip stays inside
+  the plot, points to the active dot, and no full-height hover cursor is introduced.
+- Console: no errors or warnings were observed during the checked states.
+
+## Comparison history
+
+1. Pass 1 found a P2 tooltip-position mismatch: the custom tooltip overlapped the stepped line.
+2. The tooltip was moved above the active point while retaining its pointer and horizontal
+   alignment.
+3. Pass 2 found a P2 right-edge alignment mismatch: both Recharts and the custom content reversed
+   the tooltip, moving it too far left.
+4. The end alignment now relies on Recharts for horizontal reversal while the custom style only
+   controls horizontal anchoring. Middle and right-edge hover captures confirm the fix.
+5. A real-data review exposed that the first implementation painted the blue endpoint segment over
+   the complete white line. The history and endpoint are now independent paths, verified from the
+   rendered SVG coordinates and `/private/tmp/codex-quota-trends-segment-fix.png`.
+6. A native-data review exposed a second vertical offset on the tooltip: Recharts had already
+   placed it above the active point while CSS moved it another 28px upward. Removing the duplicate
+   offset reconnects the pointer to the point and keeps the bubble clear of the card's top edge.
+7. Top-edge points make Recharts place the tooltip below the active point. The custom pointer now
+   flips to the bubble's top edge for that state while lower points retain the downward pointer.
+
+## Follow-up polish
+
+- P3: a Retina-native capture would provide a sharper comparison than the 1× browser viewport,
+  but it does not change the verified layout or interaction result.
+
+final result: passed
+
+## Reset countdown in total hours — 2026-07-21
+
+- Browser capture: `/private/tmp/codex-quota-trends-total-hours.png` at the native 338×158 viewport.
+- The compact tray reset countdown now uses total hours and minutes, so multi-day values remain a
+  two-unit scan such as `100小时 43分钟` instead of `4天 4小时 43分钟`.
+- Durations below one hour continue to display only minutes; missing reset timing remains `待更新`.
+- The rendered `51小时 42分钟` text occupies 62.26px and remains inside its 86.26px summary group;
+  browser console inspection reports no warnings or errors.
+
+## Latest chart point tooltip — 2026-07-21
+
+- Browser capture: `/private/tmp/codex-quota-trends-latest-tooltip-fixed.png` at the native
+  338×158 viewport.
+- The chart-level data now retains the latest point for tooltip indexing. The off-white history
+  line uses a separate nullable field to end before the accent-colored final segment without
+  truncating Recharts' shared data source.
+- Hovering the final point selects the rightmost active dot and reports its current value
+  (`剩余额度：80%` in the deterministic demo) instead of the preceding value.
+- Browser console inspection reports no warnings or errors.
+
+## Reset summary icon-only label — 2026-07-21
+
+- Browser capture: `/private/tmp/codex-quota-trends-reset-icon-only.png` at the native 338×158
+  viewport.
+- The left summary replaces the calendar with a counter-clockwise reset icon, removes the
+  redundant visible `重置` copy, and keeps the icon beside the total-hours-and-minutes countdown.
+- The summary card retains its `额度重置摘要` accessible name. The left and right groups keep an
+  82.99px gap in the deterministic demo state, with no clipping or overlap.
+- Browser console inspection reports no warnings or errors.
+
+## Reset-credit icon-only label — 2026-07-21
+
+- Browser capture: `/private/tmp/codex-quota-trends-card-icon-only.png` at the native 338×158
+  viewport.
+- The right summary removes the redundant visible `重置卡` copy while retaining the card icon,
+  available count, expiry date, and full accessible reset-card description.
+- The left and right groups retain a 115.99px gap in the deterministic demo, with no clipping,
+  overlap, console warnings, or console errors.
