@@ -7,10 +7,41 @@ import {
   buildTrayChartData,
   buildTrayRenderableData,
   countQuotaResets,
+  formatTrayPercentTick,
+  getCurrentMarkerLayout,
+  getTrayHorizontalGuideTicks,
   trayIntervalSeconds,
 } from "./trend-chart";
 
 describe("tray trend reset rendering", () => {
+  it("uses a small compact marker and a narrow numeric-label rail", () => {
+    expect(getCurrentMarkerLayout(true, 82)).toEqual({
+      dotRadius: 1,
+      haloRadius: 2,
+      labelFontSize: 9,
+      labelOffset: 5,
+      rightMargin: 17,
+      strokeWidth: 0,
+    });
+    expect(getCurrentMarkerLayout(true, 100).rightMargin).toBe(22);
+    expect(getCurrentMarkerLayout(false, 82)).toEqual({
+      dotRadius: 4,
+      haloRadius: 8,
+      labelFontSize: 12,
+      labelOffset: 8,
+      rightMargin: 40,
+      strokeWidth: 1,
+    });
+  });
+
+  it("renders tray Y-axis ticks without percent signs", () => {
+    expect(formatTrayPercentTick(82.4)).toBe("82");
+  });
+
+  it("omits the top horizontal guide to keep it clear of near-maximum trend lines", () => {
+    expect(getTrayHorizontalGuideTicks([0, 50, 100])).toEqual([0, 50]);
+  });
+
   it("inserts a vertical boundary when remaining quota resets", () => {
     const { data, hasReset } = buildResetAwareTrayHistory([
       { timestamp: 100, usedPercent: 32 },

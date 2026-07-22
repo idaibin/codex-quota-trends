@@ -28,11 +28,14 @@ and used only for Settings. The generated transparent PNG app mark under
   time ticks or baseline. The 24-hour range summarizes 30-minute intervals and the
   seven-day range summarizes two-hour intervals while retaining the latest real
   timestamp and value as the endpoint. The adaptive percentage scale uses three
-  evenly spaced rounded guides around the observed values; missing percentage
-  extremes are not rendered. Hovering shows the interval, interval consumption,
+  evenly spaced rounded tick labels around the observed values, with horizontal
+  guides only at the lower and middle ticks so a near-maximum trend does not overlap
+  a top guide; missing percentage extremes are not rendered. Hovering shows the interval, interval consumption,
   corrections when present, and actual remaining quota without a full-height guide.
   The chart retains at most the latest 100 rendered points. The current remaining
-  label is anchored immediately left of the latest point and keeps an accent halo.
+  value is shown without a percent sign in a digit-width-aware narrow rail immediately
+  right of the latest point. The Y-axis tick labels also omit percent signs. Its compact
+  marker uses a 2px accent halo.
   Reset boundaries remain vertical by preserving the observed pre-reset value and
   inserting the observed post-reset value at the same timestamp; the chart never
   invents a 100% post-reset record.

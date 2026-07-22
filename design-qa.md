@@ -1,5 +1,32 @@
 # Design QA
 
+## Right-side current value and top-guide clearance
+
+- Selected design: `screenshots/actual/tray-right-value-design.png`.
+- Browser-rendered implementation: `screenshots/actual/tray-right-value-implementation.png`.
+- Full comparison: `screenshots/actual/tray-right-value-comparison.png`.
+- Focused endpoint comparison: `screenshots/actual/tray-right-value-endpoint-comparison.png`.
+- Viewport and state: 338×158 tray surface. The selected design uses `88` while the
+  deterministic implementation uses `80`; comparison is limited to placement,
+  spacing, marker scale, guide treatment, and typography.
+- The current value remains visible as a blue number immediately right of the latest
+  point, without a percent sign. The rail now adapts to the rounded value width
+  (12px, 17px, or 22px for one, two, or three digits) so the label remains visible
+  without always reserving the three-digit maximum.
+- The compact marker now uses a 1px dot, no separate compact dot stroke, and a 2px halo.
+- The upper horizontal guide is omitted while the upper Y-axis tick label remains.
+  This keeps near-maximum trend segments clear of repeated dashes; the lower and
+  middle guides preserve scale readability.
+- The stored comparison predates the adaptive rail adjustment and is retained only
+  as the earlier design baseline; it is not current runtime acceptance evidence.
+- Native deployment is verified by matching SHA-256 hashes and a valid signed
+  universal application bundle. Native visual capture remains blocked: the real
+  338×158 `CGWindowID` capture returns only the macOS HUD material backing layer, and
+  Accessibility activation exposes the tray menu instead of the custom popover.
+  Therefore the installed client surface is not claimed as visually verified.
+
+final result: blocked
+
 ## Unified tray and Settings refinement
 
 - Current-run audit evidence: `screenshots/actual/unified-tray-before.png` and

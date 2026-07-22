@@ -29,6 +29,30 @@ const TRAY_INTERVAL_SECONDS = {
 
 type TrayRangeHours = keyof typeof TRAY_INTERVAL_SECONDS;
 
+export const getCurrentMarkerLayout = (compact: boolean, currentValue: number) =>
+  compact
+    ? {
+        dotRadius: 1,
+        haloRadius: 2,
+        labelFontSize: 9,
+        labelOffset: 5,
+        rightMargin:
+          7 + Math.min(3, Math.max(1, String(Math.abs(Math.round(currentValue))).length)) * 5,
+        strokeWidth: 0,
+      }
+    : {
+        dotRadius: 4,
+        haloRadius: 8,
+        labelFontSize: 12,
+        labelOffset: 8,
+        rightMargin: 40,
+        strokeWidth: 1,
+      };
+
+export const formatTrayPercentTick = (value: number) => String(Math.round(value));
+
+export const getTrayHorizontalGuideTicks = (ticks: number[]) => ticks.slice(0, -1);
+
 interface TrayIntervalPoint extends TrendPoint {
   intervalStart: number;
   intervalEnd: number;
@@ -131,20 +155,23 @@ function TrayChartTooltip({
   );
 }
 
-function CurrentPercentLabel({ viewBox, value, compact }: LabelProps & { compact: boolean }) {
+function CurrentValueLabel({ viewBox, value, compact }: LabelProps & { compact: boolean }) {
   if (!viewBox || !("x" in viewBox)) return null;
 
   const centerX = viewBox.x + viewBox.width / 2;
   const centerY = viewBox.y + viewBox.height / 2;
+  const layout = getCurrentMarkerLayout(compact, Number(value ?? 0));
 
   return (
     <text
-      x={centerX + (compact ? 3 : 4.5)}
-      y={centerY - (compact ? 8 : 10)}
+      x={centerX + layout.labelOffset}
+      y={centerY}
       fill="var(--tray-accent)"
-      fontSize={compact ? 10 : 12}
+      fontSize={layout.labelFontSize}
       fontWeight={600}
-      textAnchor="end"
+      style={{ fontVariantNumeric: "tabular-nums" }}
+      dominantBaseline="middle"
+      textAnchor="start"
       aria-hidden="true"
     >
       {value}
@@ -451,6 +478,7 @@ export function TrayRemainingChart({
   const firstTimestamp = lastTimestamp - rangeHours * 60 * 60;
   const percentScale = buildAvailablePercentScale(data);
   const last = data.at(-1);
+  const currentMarkerLayout = getCurrentMarkerLayout(compact, last?.remainingPercent ?? 0);
   const previous = last
     ? data
         .slice(0, -1)
@@ -479,20 +507,21 @@ export function TrayRemainingChart({
           data={data}
           margin={
             compact
-              ? { top: 0, right: 12, bottom: 8, left: 0 }
-              : { top: 26, right: 2, bottom: 2, left: 0 }
+              ? { top: 0, right: currentMarkerLayout.rightMargin, bottom: 8, left: 0 }
+              : { top: 26, right: currentMarkerLayout.rightMargin, bottom: 2, left: 0 }
           }
         >
           <CartesianGrid
             stroke="var(--tray-chart-grid)"
             strokeDasharray="2 5"
             strokeOpacity={0.68}
+            horizontalValues={getTrayHorizontalGuideTicks(percentScale.ticks)}
             vertical={false}
           />
           <YAxis
             domain={percentScale.domain}
             ticks={percentScale.ticks}
-            tickFormatter={formatPercent}
+            tickFormatter={formatTrayPercentTick}
             tickLine={false}
             axisLine={false}
             width={compact ? 28 : 40}
@@ -586,22 +615,20 @@ export function TrayRemainingChart({
               <ReferenceDot
                 x={last.timestamp}
                 y={last.remainingPercent}
-                r={compact ? 5 : 8}
+                r={currentMarkerLayout.haloRadius}
                 fill="var(--tray-current-halo)"
                 stroke="none"
               />
               <ReferenceDot
                 x={last.timestamp}
                 y={last.remainingPercent}
-                r={compact ? 3 : 4.5}
+                r={currentMarkerLayout.dotRadius}
                 fill="var(--tray-accent)"
                 stroke="var(--tray-accent)"
-                strokeWidth={compact ? 1 : 1.5}
+                strokeWidth={currentMarkerLayout.strokeWidth}
                 label={{
-                  value: formatPercent(last.remainingPercent),
-                  content: (labelProps) => (
-                    <CurrentPercentLabel {...labelProps} compact={compact} />
-                  ),
+                  value: Math.round(last.remainingPercent),
+                  content: (labelProps) => <CurrentValueLabel {...labelProps} compact={compact} />,
                 }}
               />
             </>
