@@ -30,5 +30,11 @@ interaction.
 - `just check`
 - `just test`
 - `just build-gui`
-- For UI delivery, compare real rendered captures with the references under
-  `docs/design/reference` and update `design-qa.md`.
+- UI changes default to building, backing up and replacing
+  `/Applications/Codex Quota Trends.app`, then restarting it. Skip installation
+  only when the user explicitly requests code-only work.
+- Verify the installed binary, signature, app-server child process, and affected
+  real Tauri window. Capture its `CGWindowID`, inspect the screenshot, and update
+  `design-qa.md`; browser captures are not a substitute.
+- Report failed build, packaging, installation, launch, process, or capture steps
+  exactly. Keep local `.app` deployment separate from complete release packaging.

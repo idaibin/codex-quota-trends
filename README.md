@@ -18,7 +18,7 @@ product gates.
 The active phase-one deliverable is a minimal Rust PoC that:
 
 - reads only `account/rateLimits/read` through the installed Codex CLI;
-- stores no password, cookie, token, or Codex credential;
+- stores no password, cookie, access token, or Codex credential;
 - writes raw and normalized local JSONL evidence with opaque reset-credit IDs redacted;
 - distinguishes rolling, weekly, monthly, credits, and unknown pools without
   treating an inferred pool label as an observed fact;

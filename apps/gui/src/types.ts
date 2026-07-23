@@ -30,6 +30,25 @@ export interface UsageSpeeds {
   twentyFourHours: number;
 }
 
+export interface TokenUsageDay {
+  totalTokens: number;
+  inputTokens: number;
+  cachedInputTokens: number;
+  nonCachedInputTokens: number;
+  sessionCount: number;
+  callCount: number;
+}
+
+export interface TokenUsageHistoryDay extends TokenUsageDay {
+  day: string;
+}
+
+export interface TokenActivity {
+  today: TokenUsageDay;
+  history: TokenUsageHistoryDay[];
+  lastScannedAt: number | null;
+}
+
 export interface DashboardData {
   snapshot: QuotaSnapshot;
   resetCreditsAvailable: number | null;
@@ -45,6 +64,7 @@ export interface DashboardData {
     status: "below" | "normal" | "above";
   };
   collector: CollectorState;
+  tokenActivity: TokenActivity;
 }
 
 export interface CollectorState {

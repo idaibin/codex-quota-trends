@@ -3,6 +3,7 @@ pub mod collector;
 pub mod feasibility;
 pub mod quota;
 pub mod storage;
+pub mod token_usage;
 
 pub use collector::{CollectorConfig, CollectorRuntime, CollectorState, SharedCollectorState};
 pub use feasibility::{
@@ -16,3 +17,7 @@ pub use quota::{
     calculate_speeds,
 };
 pub use storage::{ActivityEvent, Database, DatabaseCleanupResult, DatabaseStats};
+pub use token_usage::{
+    TokenActivity, TokenScanReport, TokenUsageDay, TokenUsageHistoryDay, TokenUsageRuntime,
+    TokenUsageScanner,
+};

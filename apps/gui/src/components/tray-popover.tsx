@@ -1,6 +1,7 @@
 import { ArrowCounterClockwise, CreditCard } from "@phosphor-icons/react";
 import { useEffect, useMemo, useState } from "react";
 import type { AppSettings, DashboardData, TrendPoint } from "../types";
+import { TokenActivityCard } from "./token-activity-card";
 import { TrayRemainingChart } from "./trend-chart";
 
 export const formatResetCountdown = (resetAt: number | null, now: number) => {
@@ -46,9 +47,6 @@ export function TrayPopover({ data, settings }: { data: DashboardData; settings:
     () => selectTrayHistory(data, settings.trayHistoryHours),
     [data, settings.trayHistoryHours],
   );
-  if (!quotaWindow)
-    return <div className="tray-popover tray-popover--empty">正在等待额度数据…</div>;
-
   return (
     <div className="tray-popover">
       <main className="tray-content">
@@ -57,7 +55,7 @@ export function TrayPopover({ data, settings }: { data: DashboardData; settings:
             <span className="tray-summary-icon" aria-hidden="true">
               <ArrowCounterClockwise size={13} weight="regular" />
             </span>
-            <strong>{formatResetCountdown(quotaWindow.resetAt, now)}</strong>
+            <strong>{formatResetCountdown(quotaWindow?.resetAt ?? null, now)}</strong>
           </div>
           <div className="tray-reset-group tray-reset-group--credits">
             <span className="tray-summary-icon tray-summary-icon--small">
@@ -96,8 +94,14 @@ export function TrayPopover({ data, settings }: { data: DashboardData; settings:
         </section>
 
         <section className="tray-card tray-chart-card">
-          <TrayRemainingChart history={history} rangeHours={rangeHours} compact />
+          {quotaWindow ? (
+            <TrayRemainingChart history={history} rangeHours={rangeHours} compact />
+          ) : (
+            <div className="tray-trend-chart tray-trend-chart--empty">正在等待额度数据…</div>
+          )}
         </section>
+
+        <TokenActivityCard activity={data.tokenActivity} />
       </main>
     </div>
   );

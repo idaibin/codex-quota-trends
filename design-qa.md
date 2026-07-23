@@ -407,6 +407,57 @@ final result: blocked
 
 final result: passed
 
+## 90-day Token activity card and hover details — 2026-07-22
+
+- Selected design reference:
+  `/Users/daibin/.codex/generated_images/019f879d-1c7f-7bf2-9d0a-b8b5d8dac7d2/exec-e0f12801-5e78-4295-bcf5-d8eeea24c851.png`.
+- Real Tauri rest state: `/private/tmp/codex-quota-trends-token-90-days-final.png`.
+- Real Tauri hover state: `/private/tmp/codex-quota-trends-token-90-days-tooltip-final.png`.
+- Same-state normalized comparison:
+  `/private/tmp/codex-quota-trends-token-90-days-comparison.png`.
+- The installed tray window is `CGWindowID 14876`, layer 5, at 338×352 points. The selected
+  concept was intentionally adapted from a year view to the user's final 90-calendar-day scope,
+  producing 90 real cells across 14 aligned calendar columns.
+- The persistent card surface keeps only `今日 Token`, `会话`, and `调用`. Cached and non-cached
+  input stay out of the resting layout and appear in the custom hover card together with the date,
+  total Token, session count, and call count.
+- The first real hover capture found that the 160px tooltip wrapped `非缓存` and ellipsized its
+  value. The final tooltip is 190px wide with non-wrapping labels; `缓存 11.72亿` and
+  `非缓存 4592万` are both fully visible while the bubble remains inside the Token card.
+- The heatmap follows the selected glass, border, spacing, and four-level blue intensity language.
+  Its 12px cells and 2px gaps remain legible at native tray size, and the selected cell receives a
+  compact outline without shifting layout. There are no new raster assets.
+- `just check`, `just test`, and `just build-gui` pass: 34 Rust core tests, 3 Tauri tests, and 32
+  frontend tests. The
+  installed binary SHA-256 matches the signed local universal release
+  (`c5790553e321d8f4e13f70c5fa2e67d2edf58d2f4673c0ec57dc1164f99ce5da`), and the app plus its
+  configured Volta Codex app-server child process are running.
+- Complete DMG packaging remains blocked by the existing `bundle_dmg.sh` failure; the signed local
+  `.app` build and `/Applications` deployment both succeeded.
+
+final result: passed
+
+## Token activity card and yearly heatmap — 2026-07-22
+
+- Real Tauri capture: `/private/tmp/codex-quota-trends-token-activity.png`, captured from the
+  installed release app window `CGWindowID 14203` at 338×274 points (676×548 Retina pixels).
+- The card sits directly below the quota trend and keeps the primary daily figures in one row:
+  total input, cached input, non-cached input, session count, and call count. The captured live
+  values match the SQLite aggregate after compact-number formatting: 502,519,593 input tokens,
+  481,488,000 cached, 21,031,593 non-cached, 48 sessions, and 4,030 calls.
+- The 53-week by 7-day heatmap presents the latest year from left to right with month markers and
+  four square-root-scaled accent levels. All 371 cells fit inside the fixed tray width without
+  clipping, horizontal scrolling, or a new chart dependency.
+- The token card remains visible when quota app-server data is unavailable; only the independent
+  quota trend surface changes to its waiting state. This behavior is covered by a focused render
+  regression test.
+- The installed application binary matches the locally built universal release binary, passes
+  strict deep code-signature verification, and restarted its Volta Codex app-server child process.
+  The signed `.app` was produced successfully; DMG packaging still failed in Tauri's final
+  `bundle_dmg.sh` step and was not used for this local installation.
+
+final result: passed
+
 ## Menu-bar alignment, chart density, and native glass correction
 
 - Source feedback: `docs/design/reference/tray-glass-feedback-2026-07-16.png`.
@@ -932,3 +983,77 @@ final result: passed
   no warnings or errors. Real Tauri and seven-day visual captures were not performed.
 
 final result: passed
+
+## Settings Codex-path help icon — 2026-07-22
+
+- Real Tauri capture: `/private/tmp/codex-quota-trends-settings-path-tooltip.png`, captured from
+  installed release app window `CGWindowID 13869` at 520×580 points (1264×1384 Retina pixels).
+- The persistent Codex-path description is removed, restoring the first settings row to a compact
+  single-line layout. A muted 14px information icon now sits directly after `Codex 路径` without
+  changing the path-control width or the remaining row alignment.
+- The icon exposes `留空时自动查找 Volta 和常用安装位置` through its accessible label and native
+  hover title. Keyboard focus is retained with a visible focus ring.
+- The installed application binary matches the locally built universal release binary and passes
+  strict deep code-signature verification. The app restarted its configured Volta Codex app-server
+  child process successfully.
+
+final result: passed
+
+## Token activity typography — 2026-07-22
+
+- Real Tauri capture: `/private/tmp/codex-quota-trends-token-fonts.png`, captured from installed
+  release app window `CGWindowID 14259` at 338×286 points (676×572 Retina pixels).
+- Token-card typography now uses 10px headings, 8px labels and month markers, 10px secondary
+  values, and a 15px primary value. The previous sizes were 9px, 7px, 8px, and 13px respectively.
+- The card gains 12 points of vertical space rather than compressing the heatmap. All five current
+  metrics remain fully visible without ellipsis or overlap, and all 53 heatmap weeks and month
+  markers remain inside the fixed 338-point width.
+- The installed binary matches the locally built universal release and passes strict deep
+  code-signature verification. The app and its Volta Codex app-server child process restarted
+  successfully.
+
+final result: passed
+
+## Official Codex token activity — 2026-07-23
+
+- Real Tauri capture: `/private/tmp/codex-quota-trends-official-usage-july16.png`, captured from
+  the installed release application at its native 338×352-point tray-popover size.
+- The visible Token total and heatmap now use the same experimental Codex app-server request as
+  the Codex client: `account/usage/read`. The generated local app-server schema identifies
+  `dailyUsageBuckets[].startDate` and `dailyUsageBuckets[].tokens` as the daily series.
+- Direct live evidence reports `1,082,620,516` tokens for 2026-07-16, rendered as `10.83亿`.
+  This replaces the inflated `119.46亿` value previously produced by replaying inherited
+  subagent history from local rollout logs.
+- The official endpoint does not expose cache, non-cache, session, or call breakdowns. Those
+  tooltip rows remain supplementary local-log metrics and are not expected to sum to the
+  official account Token value.
+- The local rollout parser now rejects inherited UUIDv7 and UUIDv4 turn histories inside
+  subagent logs. Parser-version invalidation forces existing derived rows to be rebuilt when
+  this semantic changes.
+- `just check`, `just test`, `just build-gui`, and `git diff --check` pass. The installed binary
+  matches the locally built universal release binary at SHA-256
+  `13068b097a0bd5e30ee5754836d4795ec6a62396ea07fa9c9a4aeb97e1e4592f` and passes strict deep
+  code-signature verification. The installed app and its configured Volta Codex app-server child
+  process are running.
+- The universal `.app` is complete and deployed. DMG creation still stops in the existing
+  `bundle_dmg.sh` stage; this does not affect the installed application verification above.
+
+final result: passed
+
+## Token heatmap tooltip vertical collision handling — 2026-07-23
+
+- Real Tauri capture: `/private/tmp/codex-quota-trends-token-tooltip-always-above.png`, from
+  installed release app window `CGWindowID 15384` at 338×352 points. This capture is superseded
+  by the collision report below.
+- The always-above placement clips against the Token card when hovering its top rows. The heatmap
+  now places Sunday and Monday tooltips below the selected cell and keeps the remaining rows above.
+- Horizontal start/end clamping remains unchanged, so the card stays within the tray popover.
+- `just check`, `just test`, and `just build-gui` pass. The debug `.app` was ad-hoc signed,
+  installed, and restarted from `/Applications` as PID 38614; strict deep signature verification
+  passes. CoreGraphics identifies the 338×352 tray layer as `CGWindowID 18374`.
+- Real hover capture remains `Not verified`: the tray layer's window-specific screenshot contains
+  only the macOS material backing, and Accessibility exposes the status item only through its
+  native menu rather than the left-click event that opens the Tauri tray window. No browser preview
+  was substituted for native evidence.
+
+final result: implementation and installed runtime verified; hover visual evidence blocked

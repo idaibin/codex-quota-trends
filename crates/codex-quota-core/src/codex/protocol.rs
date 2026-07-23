@@ -8,6 +8,19 @@ use crate::quota::{QuotaSnapshot, QuotaWindow};
 
 pub const RATE_LIMITS_UPDATED_METHOD: &str = "account/rateLimits/updated";
 
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct AccountTokenUsageResponse {
+    pub daily_usage_buckets: Option<Vec<AccountTokenUsageDailyBucket>>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct AccountTokenUsageDailyBucket {
+    pub start_date: String,
+    pub tokens: u64,
+}
+
 #[derive(Debug, Deserialize)]
 pub struct AppServerMessage {
     pub id: Option<i64>,
@@ -104,6 +117,10 @@ pub fn normalize_rate_limits(value: Value, created_at: i64) -> Result<Vec<QuotaS
     Ok(snapshots)
 }
 
+pub fn normalize_account_token_usage(value: Value) -> Result<AccountTokenUsageResponse> {
+    serde_json::from_value(value).context("invalid account/usage/read response")
+}
+
 fn normalize_snapshot(
     snapshot: RateLimitSnapshot,
     fallback_limit_id: String,
@@ -158,5 +175,27 @@ mod tests {
         .unwrap();
         assert_eq!(snapshots[0].limit_id, "codex");
         assert_eq!(snapshots[0].windows[0].used_percent, 7.0);
+    }
+
+    #[test]
+    fn normalizes_account_daily_token_usage() {
+        let usage = normalize_account_token_usage(json!({
+            "summary": {
+                "lifetimeTokens": 21_319_647_325_u64,
+                "peakDailyTokens": 1_195_212_394_u64
+            },
+            "dailyUsageBuckets": [
+                { "startDate": "2026-07-16", "tokens": 1_082_620_516_u64 }
+            ]
+        }))
+        .unwrap();
+
+        assert_eq!(
+            usage.daily_usage_buckets,
+            Some(vec![AccountTokenUsageDailyBucket {
+                start_date: "2026-07-16".into(),
+                tokens: 1_082_620_516,
+            }])
+        );
     }
 }

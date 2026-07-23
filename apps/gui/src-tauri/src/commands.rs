@@ -1,10 +1,10 @@
 use std::{collections::BTreeMap, fs, process::Command};
 
-use chrono::Utc;
+use chrono::{Duration, Local, Utc};
 use codex_quota_core::{
     ActivityEvent, AlertRecord, AppSettings, CollectorState, DatabaseCleanupResult, DatabaseStats,
-    Pace, QuotaSnapshot, TrendPoint, UsageSpeeds, calculate_consumed, calculate_pace,
-    calculate_speeds,
+    Pace, QuotaSnapshot, TokenActivity, TrendPoint, UsageSpeeds, calculate_consumed,
+    calculate_pace, calculate_speeds,
 };
 use serde::Serialize;
 use tauri::{AppHandle, State};
@@ -25,6 +25,7 @@ pub struct DashboardData {
     speeds: UsageSpeeds,
     pace: Pace,
     collector: CollectorState,
+    token_activity: TokenActivity,
 }
 
 #[derive(Debug, Serialize, PartialEq)]
@@ -117,6 +118,13 @@ fn dashboard(state: &AppState) -> Result<DashboardData, String> {
         .read()
         .map_err(|_| "collector state lock poisoned".to_owned())?
         .clone();
+    let today = Local::now().date_naive();
+    let token_activity = database
+        .token_activity(
+            &today.format("%Y-%m-%d").to_string(),
+            &(today - Duration::days(89)).format("%Y-%m-%d").to_string(),
+        )
+        .map_err(|error| error.to_string())?;
     Ok(DashboardData {
         snapshot,
         reset_credits_available,
@@ -128,6 +136,7 @@ fn dashboard(state: &AppState) -> Result<DashboardData, String> {
         speeds,
         pace,
         collector,
+        token_activity,
     })
 }
 

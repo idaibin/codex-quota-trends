@@ -1,4 +1,4 @@
-import { CalendarBlank, Database } from "@phosphor-icons/react";
+import { CalendarBlank, Database, Info } from "@phosphor-icons/react";
 import { useEffect, useState } from "react";
 import { getDatabaseStats, saveSettings } from "../api/quota-api";
 import type { AppSettings, DatabaseStats } from "../types";
@@ -48,7 +48,7 @@ export function SettingsRoute({
   return (
     <div className="settings-page">
       <SettingsSection icon={<CalendarBlank />} title="常规">
-        <SettingRow title="Codex 路径" description="留空时自动查找 Volta 和常用安装位置">
+        <SettingRow title="Codex 路径" tooltip="留空时自动查找 Volta 和常用安装位置">
           <input
             className="path-control"
             type="text"
@@ -167,18 +167,28 @@ function SettingsSection({
 
 function SettingRow({
   title,
-  description,
+  tooltip,
   children,
 }: {
   title: string;
-  description?: string;
+  tooltip?: string;
   children: React.ReactNode;
 }) {
   return (
     <div className="setting-row">
-      <div>
+      <div className="setting-row__label">
         <strong>{title}</strong>
-        {description && <span>{description}</span>}
+        {tooltip && (
+          <span
+            className="setting-row__info"
+            role="img"
+            tabIndex={0}
+            aria-label={tooltip}
+            title={tooltip}
+          >
+            <Info size={14} aria-hidden="true" />
+          </span>
+        )}
       </div>
       {children}
     </div>

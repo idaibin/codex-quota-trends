@@ -16,6 +16,18 @@ events used by Activity and Alerts.
 persisted 24-hour or seven-day tray trend range. Older settings rows default this
 new preference to 24 hours during deserialization.
 
+`token_usage_sources` fingerprints local Codex session logs so unchanged files can
+be skipped. `token_usage_daily` stores one derived aggregate per source session and
+local calendar day; dashboard queries sum these rows to produce cached and
+non-cached input, distinct session count, and call count. `account_token_usage_daily`
+stores the account-level Token totals returned by Codex app-server
+`account/usage/read`; these values override locally derived totals for matching
+dates. `token_usage_metadata` records the last completed local scan and parser
+version. A parser-version change clears only the derived local rows and source
+fingerprints before the next full rescan, so fixes to inherited subagent-history
+filtering cannot leave stale details behind. No conversation content or Codex
+credential is stored.
+
 Indexes cover `(limit_id, window_minutes, created_at)` and recent event reads.
 New installs retain 14 days by default. Users can choose 7, 14, 30, or 90 days,
 or keep data long-term. Saving a bounded period immediately deletes expired
@@ -28,4 +40,5 @@ The Settings page reports the on-disk size of `quota-trends.db` plus its `-wal`
 and `-shm` companions. **Clean Up Database** applies the configured retention,
 truncates the WAL, runs `VACUUM`, then truncates the WAL again so unused pages
 are returned to disk. **Reset Local Data** uses the same compaction sequence
-after deleting all history, events, and alerts. Settings are preserved.
+after deleting all quota history, token aggregates, events, and alerts. Settings
+are preserved.

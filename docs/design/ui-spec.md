@@ -12,7 +12,7 @@ and used only for Settings. The generated transparent PNG app mark under
 - Menu bar item: a monochrome template version of the existing quota curve with
   no purple tile, followed by the rounded current remaining percentage. The title
   refreshes from the latest local quota snapshot without opening the popover.
-- Menu bar popover: Medium 338×158, frameless, translucent, flush with the menu bar, and
+- Menu bar popover: 338×352, frameless, translucent, flush with the menu bar, and
   hidden on blur. A native macOS HUD material, fine light border, and nested
   translucent panels provide real desktop-backed glass without a decorative pointer.
 - The popover includes a reset summary and the remaining-quota trend, without
@@ -39,10 +39,16 @@ and used only for Settings. The generated transparent PNG app mark under
   Reset boundaries remain vertical by preserving the observed pre-reset value and
   inserting the observed post-reset value at the same timestamp; the chart never
   invents a 100% post-reset record.
-- The heatmap is a 24-week UTC-day aggregation of positive consumption deltas from
-  persisted snapshots; reset jumps are ignored and missing days stay empty. Recent
-  events come directly from persisted collector events, with reset, increase, and
-  decrease states using the established success and danger colors.
+- Token activity: a third card below the quota trend keeps only today's account Token
+  total, distinct local session count, and local call count visible. A 90-day calendar
+  heatmap encodes the official app-server daily totals with four accent intensities on a
+  square-root scale.
+  Hovering a day shows its total, cached and non-cached input, sessions, and calls in
+  a custom in-card tooltip that flips below the top two rows and remains above the other rows;
+  the heatmap also exposes a text summary.
+- The heatmap shows the latest 90 local calendar days. Official account totals determine
+  its intensity; missing account days stay empty, while the local persisted scan supplements
+  the tooltip's cache split, session count, and call count.
 - Visible popover copy, chart labels, tooltips, and accessibility names use Chinese.
 - The native window and its content clip to a 12px continuous corner radius.
 
@@ -78,6 +84,9 @@ content insets, 6px dense text spacing, and 16px between Settings groups.
   spaced evenly within the persisted 24-hour or seven-day selection, a visible
   percentage scale, reset markers,
   and tooltip.
+- `TokenActivityCard`: a React/CSS Grid calendar heatmap backed by Rust/SQLite daily
+  aggregates. React owns the rolling 90-day layout, hover tooltip, and labels; no additional chart
+  library or client-side persistence is introduced.
 - `SettingsRoute`: the only on-demand main-window route.
   It uses a 520×580 single-column preferences window with no branded top bar.
   Theme selection is a normal row in the General group. Compact Chinese-only
@@ -101,9 +110,9 @@ content insets, 6px dense text spacing, and 16px between Settings groups.
 
 ## Responsive behavior
 
-- The tray surface uses the fixed Medium 338×158 preset and is not treated as a
-  mobile page. Its reset summary owns the top row; the lower card is reserved for
-  the compressed trend.
+- The tray surface uses the fixed 338×352 preset and is not treated as a mobile
+  page. Its reset summary, compressed quota trend, and Token activity card occupy
+  three fixed rows.
 - Chart labels and plot margins are sized to remain fully visible at that width.
 - The Settings surface is fixed to a compact 520px width. Its native titlebar
   area is left clear for macOS traffic lights, and all controls flow in one column.

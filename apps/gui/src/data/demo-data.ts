@@ -17,6 +17,25 @@ const demoResetAt = (() => {
 })();
 
 const demoUsageSteps = [25, 26, 28, 31, 34, 38, 40, 42, 45, 47, 49, 51, 53, 55];
+const demoTokenHistory = Array.from({ length: 120 }, (_, index) => {
+  const date = new Date();
+  date.setHours(12, 0, 0, 0);
+  date.setDate(date.getDate() - (119 - index));
+  const intensity = index < 82 ? 0 : [2, 5, 9, 4, 12, 18, 7][index % 7];
+  const inputTokens = intensity * 12_500_000;
+  const cachedInputTokens = Math.round(inputTokens * 0.94);
+  return {
+    day: `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(
+      date.getDate(),
+    ).padStart(2, "0")}`,
+    totalTokens: inputTokens,
+    inputTokens,
+    cachedInputTokens,
+    nonCachedInputTokens: inputTokens - cachedInputTokens,
+    sessionCount: intensity ? 4 + (index % 11) : 0,
+    callCount: intensity ? 120 + index * 3 : 0,
+  };
+});
 export const demoHistory: TrendPoint[] = Array.from({ length: 49 }, (_, index) => {
   const step = Math.min(demoUsageSteps.length - 1, Math.floor(index / 2));
   const resetIndex = 28;
@@ -69,6 +88,18 @@ export const demoDashboard: DashboardData = {
   speeds: { fifteenMinutes: 1.2, oneHour: 4.8, twentyFourHours: 15.3 },
   pace: { timeProgress: 40, usageProgress: 65, status: "above" },
   collector: { status: "connected", lastUpdateAt: now - 60, nextPollSeconds: 58 },
+  tokenActivity: {
+    today: {
+      totalTokens: 398_334_882,
+      inputTokens: 396_295_846,
+      cachedInputTokens: 379_238_912,
+      nonCachedInputTokens: 17_056_934,
+      sessionCount: 40,
+      callCount: 3_100,
+    },
+    history: demoTokenHistory,
+    lastScannedAt: now - 30,
+  },
 };
 
 const activityRows: Omit<ActivityEvent, "id" | "createdAt">[] = [

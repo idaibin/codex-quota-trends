@@ -1,4 +1,5 @@
 use std::{
+    collections::BTreeMap,
     ffi::OsString,
     fs,
     io::ErrorKind,
@@ -9,7 +10,14 @@ use anyhow::{Context, Result};
 use rusqlite::{Connection, OptionalExtension, params};
 use serde::{Deserialize, Serialize};
 
-use crate::quota::{AlertRecord, AppSettings, QuotaSnapshot, QuotaWindow, TrendPoint};
+use crate::{
+    codex::AccountTokenUsageDailyBucket,
+    quota::{AlertRecord, AppSettings, QuotaSnapshot, QuotaWindow, TrendPoint},
+    token_usage::{
+        SourceDailyUsage, TokenActivity, TokenSourceFingerprint, TokenUsageDay,
+        TokenUsageHistoryDay,
+    },
+};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -101,7 +109,31 @@ impl Database {
               key TEXT PRIMARY KEY,
               value TEXT NOT NULL
             );
-            PRAGMA user_version = 1;
+            CREATE TABLE IF NOT EXISTS token_usage_sources(
+              source_id TEXT PRIMARY KEY,
+              path TEXT NOT NULL,
+              file_size INTEGER NOT NULL,
+              modified_at_ns INTEGER NOT NULL,
+              scanned_at INTEGER NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS token_usage_daily(
+              source_id TEXT NOT NULL REFERENCES token_usage_sources(source_id) ON DELETE CASCADE,
+              day TEXT NOT NULL,
+              input_tokens INTEGER NOT NULL,
+              cached_input_tokens INTEGER NOT NULL,
+              call_count INTEGER NOT NULL,
+              PRIMARY KEY(source_id, day)
+            );
+            CREATE INDEX IF NOT EXISTS idx_token_usage_daily_day ON token_usage_daily(day);
+            CREATE TABLE IF NOT EXISTS token_usage_metadata(
+              key TEXT PRIMARY KEY,
+              value INTEGER NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS account_token_usage_daily(
+              day TEXT PRIMARY KEY,
+              tokens INTEGER NOT NULL
+            );
+            PRAGMA user_version = 3;
             COMMIT;",
         )?;
         Ok(())
@@ -276,6 +308,156 @@ impl Database {
         Ok(history)
     }
 
+    pub(crate) fn token_source_is_current(
+        &self,
+        source_id: &str,
+        fingerprint: TokenSourceFingerprint,
+    ) -> Result<bool> {
+        self.connection
+            .query_row(
+                "SELECT file_size = ?2 AND modified_at_ns = ?3 FROM token_usage_sources WHERE source_id = ?1",
+                params![source_id, fingerprint.file_size, fingerprint.modified_at_ns],
+                |row| row.get(0),
+            )
+            .optional()
+            .map(|value| value.unwrap_or(false))
+            .map_err(Into::into)
+    }
+
+    pub(crate) fn ensure_token_usage_parser_version(&mut self, version: i64) -> Result<()> {
+        let current = self
+            .connection
+            .query_row(
+                "SELECT value FROM token_usage_metadata WHERE key = 'parser_version'",
+                [],
+                |row| row.get::<_, i64>(0),
+            )
+            .optional()?;
+        if current == Some(version) {
+            return Ok(());
+        }
+
+        let transaction = self.connection.transaction()?;
+        transaction.execute("DELETE FROM token_usage_daily", [])?;
+        transaction.execute("DELETE FROM token_usage_sources", [])?;
+        transaction.execute(
+            "INSERT INTO token_usage_metadata(key, value) VALUES('parser_version', ?1)
+             ON CONFLICT(key) DO UPDATE SET value = excluded.value",
+            [version],
+        )?;
+        transaction.commit()?;
+        Ok(())
+    }
+
+    pub(crate) fn replace_token_usage_source(
+        &mut self,
+        source_id: &str,
+        path: &Path,
+        fingerprint: TokenSourceFingerprint,
+        scanned_at: i64,
+        daily: &[SourceDailyUsage],
+    ) -> Result<()> {
+        let transaction = self.connection.transaction()?;
+        transaction.execute(
+            "INSERT INTO token_usage_sources(source_id, path, file_size, modified_at_ns, scanned_at)
+             VALUES(?1, ?2, ?3, ?4, ?5)
+             ON CONFLICT(source_id) DO UPDATE SET path = excluded.path, file_size = excluded.file_size,
+             modified_at_ns = excluded.modified_at_ns, scanned_at = excluded.scanned_at",
+            params![source_id, path.to_string_lossy(), fingerprint.file_size, fingerprint.modified_at_ns, scanned_at],
+        )?;
+        transaction.execute("DELETE FROM token_usage_daily WHERE source_id = ?1", [source_id])?;
+        for usage in daily {
+            transaction.execute(
+                "INSERT INTO token_usage_daily(source_id, day, input_tokens, cached_input_tokens, call_count)
+                 VALUES(?1, ?2, ?3, ?4, ?5)",
+                params![source_id, usage.day, usage.input_tokens, usage.cached_input_tokens, usage.call_count],
+            )?;
+        }
+        transaction.commit()?;
+        Ok(())
+    }
+
+    pub(crate) fn record_token_scan(&self, scanned_at: i64) -> Result<()> {
+        self.connection.execute(
+            "INSERT INTO token_usage_metadata(key, value) VALUES('last_scanned_at', ?1)
+             ON CONFLICT(key) DO UPDATE SET value = excluded.value",
+            [scanned_at],
+        )?;
+        Ok(())
+    }
+
+    pub fn replace_account_token_usage(
+        &mut self,
+        daily: &[AccountTokenUsageDailyBucket],
+    ) -> Result<()> {
+        let transaction = self.connection.transaction()?;
+        transaction.execute("DELETE FROM account_token_usage_daily", [])?;
+        for bucket in daily {
+            transaction.execute(
+                "INSERT INTO account_token_usage_daily(day, tokens) VALUES(?1, ?2)",
+                params![bucket.start_date, bucket.tokens],
+            )?;
+        }
+        transaction.commit()?;
+        Ok(())
+    }
+
+    pub fn token_activity(&self, today: &str, since: &str) -> Result<TokenActivity> {
+        let mut statement = self.connection.prepare(
+            "SELECT day, SUM(input_tokens), SUM(cached_input_tokens), COUNT(*), SUM(call_count)
+             FROM token_usage_daily WHERE day >= ?1 GROUP BY day ORDER BY day ASC",
+        )?;
+        let local_history = statement
+            .query_map([since], |row| {
+                let input_tokens = row.get::<_, u64>(1)?;
+                let cached_input_tokens = row.get::<_, u64>(2)?;
+                Ok(TokenUsageHistoryDay {
+                    day: row.get(0)?,
+                    usage: TokenUsageDay {
+                        total_tokens: 0,
+                        input_tokens,
+                        cached_input_tokens,
+                        non_cached_input_tokens: input_tokens.saturating_sub(cached_input_tokens),
+                        session_count: row.get(3)?,
+                        call_count: row.get(4)?,
+                    },
+                })
+            })?
+            .collect::<rusqlite::Result<Vec<_>>>()?;
+        let mut history_by_day = local_history
+            .into_iter()
+            .map(|usage| (usage.day, usage.usage))
+            .collect::<BTreeMap<_, _>>();
+        let mut official = self.connection.prepare(
+            "SELECT day, tokens FROM account_token_usage_daily
+             WHERE day >= ?1 ORDER BY day ASC",
+        )?;
+        for bucket in official
+            .query_map([since], |row| Ok((row.get::<_, String>(0)?, row.get::<_, u64>(1)?)))?
+        {
+            let (day, total_tokens) = bucket?;
+            history_by_day.entry(day).or_default().total_tokens = total_tokens;
+        }
+        let history = history_by_day
+            .into_iter()
+            .map(|(day, usage)| TokenUsageHistoryDay { day, usage })
+            .collect::<Vec<_>>();
+        let today_usage = history
+            .iter()
+            .find(|usage| usage.day == today)
+            .map(|usage| usage.usage)
+            .unwrap_or_default();
+        let last_scanned_at = self
+            .connection
+            .query_row(
+                "SELECT value FROM token_usage_metadata WHERE key = 'last_scanned_at'",
+                [],
+                |row| row.get(0),
+            )
+            .optional()?;
+        Ok(TokenActivity { today: today_usage, history, last_scanned_at })
+    }
+
     pub fn add_event(
         &self,
         created_at: i64,
@@ -422,6 +604,9 @@ impl Database {
         let mut deleted_rows = transaction.execute("DELETE FROM quota_snapshots", [])?;
         deleted_rows += transaction.execute("DELETE FROM collector_events", [])?;
         deleted_rows += transaction.execute("DELETE FROM alerts", [])?;
+        deleted_rows += transaction.execute("DELETE FROM token_usage_sources", [])?;
+        deleted_rows += transaction.execute("DELETE FROM token_usage_metadata", [])?;
+        deleted_rows += transaction.execute("DELETE FROM account_token_usage_daily", [])?;
         transaction.commit()?;
         self.compact()?;
         let after = self.storage_stats()?;
@@ -679,6 +864,155 @@ mod tests {
         let settings = AppSettings { retention_days: 90, ..AppSettings::default() };
         database.save_settings(&settings).unwrap();
         assert_eq!(database.load_settings().unwrap(), settings);
+    }
+
+    #[test]
+    fn upgrades_version_one_database_with_token_usage_tables() {
+        let directory = tempfile::tempdir().unwrap();
+        let path = directory.path().join("quota.db");
+        let connection = Connection::open(&path).unwrap();
+        connection
+            .execute_batch(
+                "CREATE TABLE settings(key TEXT PRIMARY KEY, value TEXT NOT NULL);
+                 PRAGMA user_version = 1;",
+            )
+            .unwrap();
+        drop(connection);
+
+        let database = Database::open(&path).unwrap();
+
+        assert_eq!(
+            database
+                .connection
+                .pragma_query_value(None, "user_version", |row| row.get::<_, i64>(0))
+                .unwrap(),
+            3
+        );
+        assert_eq!(
+            database.token_activity("2026-07-22", "2025-07-18").unwrap(),
+            TokenActivity {
+                today: TokenUsageDay::default(),
+                history: Vec::new(),
+                last_scanned_at: None,
+            }
+        );
+    }
+
+    #[test]
+    fn parser_version_change_invalidates_derived_token_usage() {
+        let mut database = Database::open_in_memory().unwrap();
+        database.ensure_token_usage_parser_version(1).unwrap();
+        database
+            .connection
+            .execute(
+                "INSERT INTO token_usage_sources(source_id, path, file_size, modified_at_ns, scanned_at)
+                 VALUES('source', '/tmp/source', 10, 20, 30)",
+                [],
+            )
+            .unwrap();
+        database
+            .connection
+            .execute(
+                "INSERT INTO token_usage_daily(source_id, day, input_tokens, cached_input_tokens, call_count)
+                 VALUES('source', '2026-07-16', 1000000, 900000, 10)",
+                [],
+            )
+            .unwrap();
+
+        database.ensure_token_usage_parser_version(2).unwrap();
+
+        assert_eq!(
+            database.token_activity("2026-07-16", "2026-07-16").unwrap(),
+            TokenActivity {
+                today: TokenUsageDay::default(),
+                history: Vec::new(),
+                last_scanned_at: None,
+            }
+        );
+        assert!(
+            !database
+                .token_source_is_current(
+                    "source",
+                    TokenSourceFingerprint { file_size: 10, modified_at_ns: 20 }
+                )
+                .unwrap()
+        );
+
+        database.ensure_token_usage_parser_version(2).unwrap();
+        assert_eq!(
+            database
+                .connection
+                .query_row(
+                    "SELECT value FROM token_usage_metadata WHERE key = 'parser_version'",
+                    [],
+                    |row| row.get::<_, i64>(0),
+                )
+                .unwrap(),
+            2
+        );
+    }
+
+    #[test]
+    fn official_account_usage_overrides_local_total_without_losing_local_details() {
+        let mut database = Database::open_in_memory().unwrap();
+        database
+            .connection
+            .execute(
+                "INSERT INTO token_usage_sources(source_id, path, file_size, modified_at_ns, scanned_at)
+                 VALUES('source', '/tmp/source', 10, 20, 30)",
+                [],
+            )
+            .unwrap();
+        database
+            .connection
+            .execute(
+                "INSERT INTO token_usage_daily(source_id, day, input_tokens, cached_input_tokens, call_count)
+                 VALUES('source', '2026-07-16', 11945613842, 11648037760, 95274)",
+                [],
+            )
+            .unwrap();
+        database
+            .replace_account_token_usage(&[AccountTokenUsageDailyBucket {
+                start_date: "2026-07-16".into(),
+                tokens: 1_082_620_516,
+            }])
+            .unwrap();
+
+        let activity = database.token_activity("2026-07-16", "2026-07-16").unwrap();
+
+        assert_eq!(activity.today.total_tokens, 1_082_620_516);
+        assert_eq!(activity.today.input_tokens, 11_945_613_842);
+        assert_eq!(activity.today.cached_input_tokens, 11_648_037_760);
+        assert_eq!(activity.today.session_count, 1);
+        assert_eq!(activity.today.call_count, 95_274);
+    }
+
+    #[test]
+    fn local_details_do_not_substitute_for_missing_official_total() {
+        let database = Database::open_in_memory().unwrap();
+        database
+            .connection
+            .execute(
+                "INSERT INTO token_usage_sources(source_id, path, file_size, modified_at_ns, scanned_at)
+                 VALUES('source', '/tmp/source', 10, 20, 30)",
+                [],
+            )
+            .unwrap();
+        database
+            .connection
+            .execute(
+                "INSERT INTO token_usage_daily(source_id, day, input_tokens, cached_input_tokens, call_count)
+                 VALUES('source', '2026-07-15', 500, 400, 3)",
+                [],
+            )
+            .unwrap();
+
+        let activity = database.token_activity("2026-07-15", "2026-07-15").unwrap();
+
+        assert_eq!(activity.today.total_tokens, 0);
+        assert_eq!(activity.today.input_tokens, 500);
+        assert_eq!(activity.today.cached_input_tokens, 400);
+        assert_eq!(activity.today.non_cached_input_tokens, 100);
     }
 
     #[test]

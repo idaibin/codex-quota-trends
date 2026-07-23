@@ -18,6 +18,7 @@ apps/gui/src-tauri   Tauri commands, tray, and window lifecycle
 crates/codex-quota-core
   codex              app-server JSONL process and protocol normalization
   quota              domain model, trend calculations, alert detection
+  token_usage        local session-log metadata aggregation
   storage            SQLite schema and repositories
 ```
 
@@ -26,6 +27,18 @@ The frontend never reads the database or starts Codex directly.
 The dashboard command owns the presentation-ready 24-hour and seven-day histories
 plus the 24-week daily usage aggregation. The activity command returns recent
 persisted collector events; the tray does not synthesize either dataset.
+
+The collector reads account-level daily Token totals from Codex app-server's
+`account/usage/read` response. Those official `dailyUsageBuckets` are authoritative
+for the visible Token total and heatmap. A separate local runtime scans only
+`token_count.last_token_usage` metadata from Codex session and archived-session
+JSONL files to supplement fields the account API does not expose: input cache split,
+calls, and distinct source sessions. Spawned subagent rollouts can replay their
+parent's history at the beginning of the file; those inherited records are excluded
+until the spawned session's own UUIDv7 turn starts. File size, modification time,
+and the parser version prevent unchanged logs from being rescanned while still
+forcing a rebuild when aggregation semantics change. Prompt and response content is
+never stored by this application.
 
 ## Collection lifecycle
 

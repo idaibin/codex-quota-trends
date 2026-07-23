@@ -16,7 +16,10 @@ use tracing::{info, warn};
 
 use crate::{
     Database,
-    codex::{AppServerClient, RATE_LIMITS_UPDATED_METHOD, normalize_rate_limits},
+    codex::{
+        AppServerClient, RATE_LIMITS_UPDATED_METHOD, normalize_account_token_usage,
+        normalize_rate_limits,
+    },
     quota::{
         AlertRecord, AlertSeverity, AlertStatus, AlertType, AppSettings, QuotaSnapshot,
         detect_alerts,
@@ -180,6 +183,19 @@ impl CollectorRuntime {
         }
         for snapshot in snapshots {
             self.persist_snapshot(&snapshot, &raw)?;
+        }
+        match client.read_account_usage().await {
+            Ok(raw_usage) => match normalize_account_token_usage(raw_usage) {
+                Ok(usage) => {
+                    if let Some(daily) = usage.daily_usage_buckets {
+                        self.with_database(|database| {
+                            database.replace_account_token_usage(&daily)
+                        })?;
+                    }
+                }
+                Err(error) => warn!(%error, "invalid account token usage response"),
+            },
+            Err(error) => warn!(%error, "account token usage read failed"),
         }
         let settings = self.settings()?;
         self.with_database(|database| {

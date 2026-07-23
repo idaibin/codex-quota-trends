@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import { demoDashboard, demoSettings } from "../data/demo-data";
 import {
+  TrayPopover,
   formatExpiryDate,
   formatResetCountdown,
   isExpiryUrgent,
@@ -46,5 +50,19 @@ describe("tray history selection", () => {
     expect(isExpiryUrgent(86_400, 0)).toBe(true);
     expect(isExpiryUrgent(86_401, 0)).toBe(false);
     expect(isExpiryUrgent(0, 1)).toBe(false);
+  });
+
+  it("keeps token activity visible while quota data is unavailable", () => {
+    const dashboard = {
+      ...demoDashboard,
+      snapshot: { ...demoDashboard.snapshot, windows: [] },
+    };
+
+    const markup = renderToStaticMarkup(
+      createElement(TrayPopover, { data: dashboard, settings: demoSettings }),
+    );
+
+    expect(markup).toContain("今日 Token");
+    expect(markup).toContain("正在等待额度数据");
   });
 });

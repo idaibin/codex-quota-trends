@@ -74,6 +74,10 @@ impl AppServerClient {
         self.request("account/rateLimits/read", Value::Null).await
     }
 
+    pub async fn read_account_usage(&mut self) -> Result<Value, AppServerError> {
+        self.request("account/usage/read", Value::Null).await
+    }
+
     pub async fn next_message(&mut self) -> Result<AppServerMessage, AppServerError> {
         self.read_message().await
     }

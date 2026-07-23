@@ -7,7 +7,7 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use codex_quota_core::{CollectorConfig, CollectorRuntime, Database};
+use codex_quota_core::{CollectorConfig, CollectorRuntime, Database, TokenUsageRuntime};
 use state::AppState;
 use tauri::{
     Manager, PhysicalPosition, RunEvent, WindowEvent,
@@ -83,6 +83,7 @@ pub fn run() {
             let tray_database = Arc::clone(&database);
             let initial_tray_title = current_remaining_title(&tray_database);
             let runtime = CollectorRuntime::new(Arc::clone(&database), CollectorConfig::default());
+            let token_runtime = TokenUsageRuntime::from_environment(Arc::clone(&database))?;
             let state = AppState {
                 database,
                 collector_state: runtime.state(),
@@ -92,6 +93,7 @@ pub fn run() {
             };
             app.manage(state);
             tauri::async_runtime::spawn(runtime.run());
+            tauri::async_runtime::spawn(token_runtime.run());
 
             let settings = MenuItem::with_id(app, "settings", "设置", true, Some("CmdOrCtrl+,"))?;
             let separator = PredefinedMenuItem::separator(app)?;
