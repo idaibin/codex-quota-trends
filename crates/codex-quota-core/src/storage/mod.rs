@@ -1,5 +1,5 @@
 use std::{
-    collections::BTreeMap,
+    collections::{BTreeMap, BTreeSet},
     ffi::OsString,
     fs,
     io::ErrorKind,
@@ -432,11 +432,18 @@ impl Database {
             "SELECT day, tokens FROM account_token_usage_daily
              WHERE day >= ?1 ORDER BY day ASC",
         )?;
+        let mut official_days = BTreeSet::new();
         for bucket in official
             .query_map([since], |row| Ok((row.get::<_, String>(0)?, row.get::<_, u64>(1)?)))?
         {
             let (day, total_tokens) = bucket?;
+            official_days.insert(day.clone());
             history_by_day.entry(day).or_default().total_tokens = total_tokens;
+        }
+        if !official_days.contains(today)
+            && let Some(usage) = history_by_day.get_mut(today)
+        {
+            usage.total_tokens = usage.input_tokens;
         }
         let history = history_by_day
             .into_iter()
@@ -988,7 +995,7 @@ mod tests {
     }
 
     #[test]
-    fn local_details_do_not_substitute_for_missing_official_total() {
+    fn historical_local_details_do_not_substitute_for_missing_official_total() {
         let database = Database::open_in_memory().unwrap();
         database
             .connection
@@ -1007,12 +1014,72 @@ mod tests {
             )
             .unwrap();
 
-        let activity = database.token_activity("2026-07-15", "2026-07-15").unwrap();
+        let activity = database.token_activity("2026-07-16", "2026-07-15").unwrap();
+        let usage = activity.history.iter().find(|usage| usage.day == "2026-07-15").unwrap().usage;
+
+        assert_eq!(usage.total_tokens, 0);
+        assert_eq!(usage.input_tokens, 500);
+        assert_eq!(usage.cached_input_tokens, 400);
+        assert_eq!(usage.non_cached_input_tokens, 100);
+    }
+
+    #[test]
+    fn today_falls_back_to_local_input_when_official_bucket_is_missing() {
+        let database = Database::open_in_memory().unwrap();
+        database
+            .connection
+            .execute(
+                "INSERT INTO token_usage_sources(source_id, path, file_size, modified_at_ns, scanned_at)
+                 VALUES('source', '/tmp/source', 10, 20, 30)",
+                [],
+            )
+            .unwrap();
+        database
+            .connection
+            .execute(
+                "INSERT INTO token_usage_daily(source_id, day, input_tokens, cached_input_tokens, call_count)
+                 VALUES('source', '2026-07-16', 500, 400, 3)",
+                [],
+            )
+            .unwrap();
+
+        let activity = database.token_activity("2026-07-16", "2026-07-16").unwrap();
+
+        assert_eq!(activity.today.total_tokens, 500);
+        assert_eq!(activity.today.input_tokens, 500);
+        assert_eq!(activity.history[0].usage.total_tokens, 500);
+    }
+
+    #[test]
+    fn today_keeps_an_explicit_official_zero() {
+        let mut database = Database::open_in_memory().unwrap();
+        database
+            .connection
+            .execute(
+                "INSERT INTO token_usage_sources(source_id, path, file_size, modified_at_ns, scanned_at)
+                 VALUES('source', '/tmp/source', 10, 20, 30)",
+                [],
+            )
+            .unwrap();
+        database
+            .connection
+            .execute(
+                "INSERT INTO token_usage_daily(source_id, day, input_tokens, cached_input_tokens, call_count)
+                 VALUES('source', '2026-07-16', 500, 400, 3)",
+                [],
+            )
+            .unwrap();
+        database
+            .replace_account_token_usage(&[AccountTokenUsageDailyBucket {
+                start_date: "2026-07-16".into(),
+                tokens: 0,
+            }])
+            .unwrap();
+
+        let activity = database.token_activity("2026-07-16", "2026-07-16").unwrap();
 
         assert_eq!(activity.today.total_tokens, 0);
         assert_eq!(activity.today.input_tokens, 500);
-        assert_eq!(activity.today.cached_input_tokens, 400);
-        assert_eq!(activity.today.non_cached_input_tokens, 100);
     }
 
     #[test]

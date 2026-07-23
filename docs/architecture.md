@@ -30,7 +30,9 @@ persisted collector events; the tray does not synthesize either dataset.
 
 The collector reads account-level daily Token totals from Codex app-server's
 `account/usage/read` response. Those official `dailyUsageBuckets` are authoritative
-for the visible Token total and heatmap. A separate local runtime scans only
+for the visible Token total and heatmap. While today's official bucket has not
+arrived, today's total temporarily falls back to the locally observed input Token
+count; historical days never use this fallback. A separate local runtime scans only
 `token_count.last_token_usage` metadata from Codex session and archived-session
 JSONL files to supplement fields the account API does not expose: input cache split,
 calls, and distinct source sessions. Spawned subagent rollouts can replay their

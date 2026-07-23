@@ -379,7 +379,7 @@ mod tests {
         assert_eq!(
             activity.today,
             TokenUsageDay {
-                total_tokens: 0,
+                total_tokens: 350,
                 input_tokens: 350,
                 cached_input_tokens: 150,
                 non_cached_input_tokens: 200,
@@ -445,7 +445,7 @@ mod tests {
         assert_eq!(
             activity.today,
             TokenUsageDay {
-                total_tokens: 0,
+                total_tokens: 200,
                 input_tokens: 200,
                 cached_input_tokens: 150,
                 non_cached_input_tokens: 50,

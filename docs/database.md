@@ -22,7 +22,8 @@ local calendar day; dashboard queries sum these rows to produce cached and
 non-cached input, distinct session count, and call count. `account_token_usage_daily`
 stores the account-level Token totals returned by Codex app-server
 `account/usage/read`; these values override locally derived totals for matching
-dates. `token_usage_metadata` records the last completed local scan and parser
+dates. If the current local date has no official bucket yet, only that day's total
+falls back to the locally derived input count. `token_usage_metadata` records the last completed local scan and parser
 version. A parser-version change clears only the derived local rows and source
 fingerprints before the next full rescan, so fixes to inherited subagent-history
 filtering cannot leave stale details behind. No conversation content or Codex

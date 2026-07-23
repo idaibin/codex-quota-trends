@@ -1057,3 +1057,28 @@ final result: passed
   was substituted for native evidence.
 
 final result: implementation and installed runtime verified; hover visual evidence blocked
+
+## Current-day Token fallback and tooltip overflow — 2026-07-23
+
+- User runtime evidence showed a current-day official usage gap: local cache, non-cache, session,
+  and call details were present while both the current Token total and selected heatmap cell showed
+  `0`.
+- When the official account series has not produced today's bucket, today's visible total and
+  heatmap cell now temporarily use locally observed input Tokens. Historical missing buckets remain
+  empty, and an explicit official zero remains authoritative.
+- The Token card now uses visible overflow so its hover tooltip can cross the card's top border.
+  Outer tray/window clipping remains unchanged.
+- `just fmt`, `just check`, `just test`, `just build-gui`, and `git diff --check` pass. The suite
+  includes 41 core tests, 3 Tauri tests, and 33 frontend tests.
+- The ad-hoc-signed debug `.app` was installed and restarted from `/Applications`. Its binary
+  matches the built bundle at SHA-256
+  `0373fc5306add0529eeac004d107b7f9bf49106ef1a237828ca05a17f08a689d`, strict deep signature
+  verification passes, and both PID 7119 and its Volta Codex app-server child are running.
+- Computer Use inspected the real installed Tauri window through its Accessibility tree and
+  directly read `今日 Token 3.35亿`, `会话 93`, and `调用 3064`; this confirms the current-day
+  fallback in the runtime surface. The transient screenshot could not be retained after the
+  Computer Use service rotated its temporary file.
+- Post-fix tooltip hover remains `Not verified`: moving the pointer through automation caused the
+  tray to lose focus and hide, and no browser preview was substituted for native evidence.
+
+final result: implementation, installed runtime, and current-day value verified; hover visual evidence blocked
