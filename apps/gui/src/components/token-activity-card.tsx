@@ -14,7 +14,7 @@ interface HoveredTokenCell {
   x: number;
   y: number;
   horizontal: "start" | "center" | "end";
-  vertical: "above" | "below";
+  vertical: "above";
 }
 
 const parseDay = (day: string) => {
@@ -45,8 +45,7 @@ export function tokenHeatLevel(value: number, maximum: number): number {
   return Math.min(4, Math.max(1, Math.ceil(Math.sqrt(value / maximum) * 4)));
 }
 
-export const tokenTooltipVerticalPlacement = (dayOfWeek: number): "above" | "below" =>
-  dayOfWeek <= 1 ? "below" : "above";
+export const tokenTooltipVerticalPlacement = (_dayOfWeek: number): "above" => "above";
 
 export function buildTokenHeatmap(
   history: TokenUsageHistoryDay[],

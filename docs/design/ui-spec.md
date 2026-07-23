@@ -44,9 +44,9 @@ and used only for Settings. The generated transparent PNG app mark under
   heatmap encodes the official app-server daily totals with four accent intensities on a
   square-root scale.
   Hovering a day shows its total, cached and non-cached input, sessions, and calls in
-  a custom tooltip that flips below the top two rows and remains above the other rows. The Token
-  card permits the tooltip to cross its border; the outer tray surface still clips to the native
-  window radius. The heatmap also exposes a text summary.
+  a custom tooltip above every cell. The Token card permits the tooltip to cross its border; the
+  outer tray surface still clips to the native window radius. The heatmap also exposes a text
+  summary.
 - The heatmap shows the latest 90 local calendar days. Official account totals determine
   its intensity; missing historical account days stay empty, while today temporarily falls back
   to locally observed input Tokens until its official bucket arrives. The local persisted scan

@@ -1481,9 +1481,6 @@ select {
 .tray-token-tooltip--end {
   --tooltip-x: -100%;
 }
-.tray-token-tooltip--below {
-  transform: translate(var(--tooltip-x), 19px);
-}
 .tray-token-tooltip::after {
   position: absolute;
   left: 50%;
@@ -1495,14 +1492,6 @@ select {
   bottom: -4px;
   content: "";
   transform: translateX(-50%) rotate(45deg);
-}
-.tray-token-tooltip--below::after {
-  top: -4px;
-  bottom: auto;
-  border-top: 1px solid var(--tray-border);
-  border-right: 0;
-  border-bottom: 0;
-  border-left: 1px solid var(--tray-border);
 }
 .tray-token-tooltip--start::after {
   left: 8px;

@@ -1082,3 +1082,20 @@ final result: implementation and installed runtime verified; hover visual eviden
   tray to lose focus and hide, and no browser preview was substituted for native evidence.
 
 final result: implementation, installed runtime, and current-day value verified; hover visual evidence blocked
+
+## Token heatmap tooltip always above — 2026-07-23
+
+- All Token heatmap cells now place their tooltip above the selected cell. The previous Sunday and
+  Monday downward placement is superseded now that the Token card allows visible overflow.
+- Horizontal start/end clamping and the outer tray/window clipping remain unchanged.
+- `just fmt`, `just check`, `just test`, `just build-gui`, and `git diff --check` pass. The focused
+  placement test covers all seven heatmap rows and confirms they resolve to `above`.
+- The ad-hoc-signed debug `.app` was installed and restarted from `/Applications`. Its binary
+  matches the built bundle at SHA-256
+  `363c223d0c4c30a006c9bbcf5dc872c1c234569065f5c366b0c43a04094fe001`, strict deep signature
+  verification passes, and both the application and its Volta Codex app-server child are running.
+- Real hover evidence remains `Not verified`: the tray window was not present in the CoreGraphics
+  on-screen list after restart, and Computer Use could not acquire a window before timing out. No
+  browser preview was substituted for native evidence.
+
+final result: implementation and installed runtime verified; hover visual evidence blocked

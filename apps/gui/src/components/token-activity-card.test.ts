@@ -54,11 +54,10 @@ describe("token activity heatmap", () => {
     expect(tokenHeatLevel(10_000, 10_000)).toBe(4);
   });
 
-  it("places top-row tooltips below and the remaining rows above", () => {
-    expect(tokenTooltipVerticalPlacement(0)).toBe("below");
-    expect(tokenTooltipVerticalPlacement(1)).toBe("below");
-    expect(tokenTooltipVerticalPlacement(2)).toBe("above");
-    expect(tokenTooltipVerticalPlacement(6)).toBe("above");
+  it("places every tooltip above its heatmap cell", () => {
+    expect(Array.from({ length: 7 }, (_, day) => tokenTooltipVerticalPlacement(day))).toEqual(
+      Array(7).fill("above"),
+    );
   });
 
   it("formats large token totals compactly in Chinese units", () => {
